@@ -747,8 +747,7 @@ function hideLoader()    { document.getElementById("loader").style.display="none
 // ── AUTO LOGIN ───────────────────────────────────────────────────────────
 window.addEventListener("load", async () => {
   try {
-    const instance = initMsal();
-    await instance.initialize();
+    const instance = await getMsal();
     const accounts = instance.getAllAccounts();
     if (accounts.length > 0) {
       instance.setActiveAccount(accounts[0]);
@@ -757,7 +756,7 @@ window.addEventListener("load", async () => {
       document.getElementById("btn-login").style.background = "rgba(22,163,74,.4)";
       await loadFromSharePoint();
     }
-  } catch(e) { console.error("Erro init MSAL:", e); }
+  } catch(e) { console.error("Erro init:", e); }
 });
 </script>
 </body>
