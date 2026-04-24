@@ -203,8 +203,10 @@ let accessToken = null;
 async function doLogin() {
   try {
     showLoader("A autenticar...");
-    const resp = await msalInstance.loginPopup({ scopes });
-    msalInstance.setActiveAccount(resp.account);
+    const instance = initMsal();
+    await instance.initialize();
+    const resp = await instance.loginPopup({ scopes });
+    instance.setActiveAccount(resp.account);
     document.getElementById("user-name").textContent = "👤 " + resp.account.name;
     document.getElementById("btn-login").textContent = "✅ " + resp.account.username;
     document.getElementById("btn-login").style.background = "rgba(22,163,74,.4)";
@@ -214,9 +216,10 @@ async function doLogin() {
 }
 
 async function getToken() {
-  const acc = msalInstance.getActiveAccount();
+  const instance = initMsal();
+  const acc = instance.getActiveAccount();
   if (!acc) return;
-  const r = await msalInstance.acquireTokenSilent({ scopes, account: acc });
+  const r = await instance.acquireTokenSilent({ scopes, account: acc });
   accessToken = r.accessToken;
 }
 
@@ -743,15 +746,18 @@ function hideLoader()    { document.getElementById("loader").style.display="none
 
 // ── AUTO LOGIN ───────────────────────────────────────────────────────────
 window.addEventListener("load", async () => {
-  await msalInstance.initialize();
-  const accounts = msalInstance.getAllAccounts();
-  if (accounts.length > 0) {
-    msalInstance.setActiveAccount(accounts[0]);
-    document.getElementById("user-name").textContent = "👤 " + accounts[0].name;
-    document.getElementById("btn-login").textContent = "✅ " + accounts[0].username;
-    document.getElementById("btn-login").style.background = "rgba(22,163,74,.4)";
-    await loadFromSharePoint();
-  }
+  try {
+    const instance = initMsal();
+    await instance.initialize();
+    const accounts = instance.getAllAccounts();
+    if (accounts.length > 0) {
+      instance.setActiveAccount(accounts[0]);
+      document.getElementById("user-name").textContent = "👤 " + accounts[0].name;
+      document.getElementById("btn-login").textContent = "✅ " + accounts[0].username;
+      document.getElementById("btn-login").style.background = "rgba(22,163,74,.4)";
+      await loadFromSharePoint();
+    }
+  } catch(e) { console.error("Erro init MSAL:", e); }
 });
 </script>
 </body>
