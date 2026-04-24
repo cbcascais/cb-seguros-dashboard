@@ -110,7 +110,29 @@ tfoot .sr{background:var(--navy2)}
 
 <!-- Scripts no final do body para garantir ordem de carregamento -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script>
+// Carrega MSAL dinamicamente com fallback entre CDNs
+function loadMsal() {
+  return new Promise((resolve, reject) => {
+    if (window.msal) { resolve(); return; }
+    const cdns = [
+      "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/2.38.3/msal-browser.min.js",
+      "https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"
+    ];
+    let i = 0;
+    function tryNext() {
+      if (i >= cdns.length) { reject(new Error("Não foi possível carregar MSAL")); return; }
+      const s = document.createElement("script");
+      s.src = cdns[i++];
+      s.onload = () => { if (window.msal) resolve(); else tryNext(); };
+      s.onerror = tryNext;
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+</script>
 <script>
 // ── CONFIG
 const TENANT  = "a914409c-82a2-4746-85f0-f51bd2711c33";
@@ -128,6 +150,7 @@ let _token  = null;
 
 async function initMsalApp() {
   if (msalApp) return msalApp;
+  await loadMsal(); // garante que MSAL está carregado
   msalApp = new msal.PublicClientApplication({
     auth: {
       clientId:    CLIENT,
