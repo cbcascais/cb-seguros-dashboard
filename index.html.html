@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CB Seguros — Dashboard Sinistralidade</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/2.38.3/msal-browser.min.js"></script>
+<style>
+  :root { --navy:#1B2A5E; --navy2:#263d7a; --blue-light:#eef3fc; --gray:#f0f3fa; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',sans-serif; font-size:13px; }
+  body { background:var(--gray); }
+
+  /* HEADER */
+  header { background:var(--navy); color:#fff; padding:14px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; box-shadow:0 2px 8px rgba(0,0,0,.3); }
+  header svg { flex-shrink:0; }
+  header .title { font-size:18px; font-weight:700; }
+  header .sub   { font-size:11px; color:#7eb3f7; letter-spacing:.1em; text-transform:uppercase; }
+  header .meses { margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; }
+  header .mes-badge { background:rgba(255,255,255,.15); border-radius:6px; padding:3px 10px; font-size:11px; font-weight:600; }
+  #user-info { font-size:11px; color:#7eb3f7; display:flex; align-items:center; gap:8px; }
+  #btn-login  { background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:6px; padding:5px 14px; cursor:pointer; font-size:12px; }
+  #btn-login:hover { background:rgba(255,255,255,.3); }
+
+  /* LOADER */
+  #loader { display:none; position:fixed; inset:0; background:rgba(27,42,94,.7); z-index:999; align-items:center; justify-content:center; flex-direction:column; gap:12px; color:#fff; font-size:14px; }
+  .spinner { width:40px; height:40px; border:4px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* STATUS */
+  #status { padding:12px 24px; background:#fff; border-bottom:1px solid #dde3f0; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .status-card { display:flex; align-items:center; gap:6px; background:var(--blue-light); border:1px solid #c5d5ef; border-radius:8px; padding:6px 12px; }
+  .status-card .icon { font-size:16px; }
+  .status-card .info .label { font-size:10px; color:#666; }
+  .status-card .info .val   { font-size:12px; font-weight:700; color:var(--navy); }
+  #btn-refresh { margin-left:auto; background:var(--navy); color:#fff; border:none; border-radius:8px; padding:8px 16px; cursor:pointer; font-size:12px; font-weight:600; }
+  #btn-refresh:hover { background:var(--navy2); }
+
+  /* KPIs */
+  #kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px 24px; }
+  .kpi  { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:14px 16px; border-left:4px solid var(--navy); }
+  .kpi .label { font-size:11px; color:#888; margin-bottom:4px; }
+  .kpi .val   { font-size:22px; font-weight:700; color:var(--navy); }
+  .kpi.red  { border-left-color:#dc2626; } .kpi.red .val { color:#dc2626; }
+  .kpi.green{ border-left-color:#16a34a; } .kpi.green .val { color:#16a34a; }
+
+  /* TABS */
+  .tabs { background:#fff; border-bottom:1px solid #e5e7eb; padding:0 24px; display:flex; gap:4px; overflow-x:auto; }
+  .tab  { padding:10px 18px; font-size:13px; font-weight:600; border-bottom:2px solid transparent; color:#6b7280; cursor:pointer; white-space:nowrap; }
+  .tab.active { border-bottom-color:#1d4ed8; color:#1d4ed8; }
+
+  /* CONTENT */
+  #content { padding:16px 24px; }
+
+  /* TABELAS */
+  .table-wrap { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); overflow:auto; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  thead tr { background:var(--navy); color:#fff; }
+  th { padding:10px 12px; text-align:left; white-space:nowrap; }
+  td { padding:8px 12px; border-bottom:1px solid #f0f3fa; }
+  tbody tr:hover { background:#f5f8ff; }
+  .tr-cli  { cursor:pointer; } 
+  .tr-ap   { cursor:pointer; }
+  .tr-oc   { cursor:pointer; }
+  .tr-sin  { }
+  .tr-movs td { background:#eef2fb !important; }
+
+  tfoot tr { background:var(--navy); color:#fff; font-weight:700; }
+  tfoot .sub-row { background:var(--navy2); }
+
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; }
+  .badge.deb { background:#fee2e2; color:#b91c1c; }
+  .badge.cred{ background:#dcfce7; color:#15803d; }
+  .badge.sal { background:#f3f4f6; color:#6b7280; }
+
+  .sit-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+
+  .neg { color:#dc2626; font-weight:600; }
+  .pos { color:#16a34a; font-weight:600; }
+  .zero{ color:#9ca3af; }
+
+  /* ANUAL */
+  .ano-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .ano-pill   { background:var(--navy); color:#fff; border-radius:8px; padding:2px 14px; font-weight:700; font-size:14px; }
+  .toggle-group { display:flex; gap:6px; }
+  .toggle-btn   { border:1px solid #d1d5db; background:#fff; border-radius:20px; padding:5px 16px; font-size:12px; font-weight:600; color:#6b7280; cursor:pointer; }
+  .toggle-btn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  /* EMPTY */
+  #empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 0; color:#9ca3af; }
+  #empty .icon { font-size:56px; margin-bottom:16px; }
+  #empty .msg  { font-size:16px; font-weight:600; }
+  #empty .sub  { font-size:12px; margin-top:6px; }
+
+  /* FILTROS */
+  .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .filters select, .filters input { border:1px solid #d1d5db; border-radius:6px; padding:5px 10px; font-size:12px; background:#fff; }
+  .filters button { border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid #d1d5db; background:#fff; color:#6b7280; }
+  .filters button.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .btn-export { background:#16a34a !important; color:#fff !important; border-color:#16a34a !important; margin-left:auto; }
+  .multi-badge { background:#dc2626; color:#fff; border-radius:10px; padding:1px 6px; font-size:10px; font-weight:700; margin-left:4px; }
+
+  @media(max-width:600px){ #kpis{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="spinner"></div><div id="loader-msg">A carregar...</div></div>
+
+<!-- HEADER -->
+<header>
+  <svg width="44" height="44" viewBox="0 0 200 200" fill="none">
+    <path d="M90 30 C45 30 15 62 15 100 C15 138 45 170 90 170" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <path d="M75 60 C52 60 36 78 36 100 C36 122 52 140 75 140" stroke="#7eb3f7" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <rect x="108" y="28" width="12" height="142" rx="6" fill="white"/>
+    <path d="M120 28 Q170 28 170 65 Q170 100 120 100" stroke="white" stroke-width="12" stroke-linecap="round" fill="none"/>
+    <path d="M120 100 Q178 100 178 137 Q178 170 120 170" stroke="white" stroke-width="12" stroke-linecap="round" fill="none"/>
+    <path d="M130 62 Q155 62 155 80 Q155 98 130 98" stroke="#7eb3f7" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path d="M130 102 Q160 102 160 120 Q160 138 130 138" stroke="#7eb3f7" stroke-width="8" stroke-linecap="round" fill="none"/>
+  </svg>
+  <div>
+    <div class="sub">CB Seguros | Cascais</div>
+    <div class="title">Dashboard Sinistralidade</div>
+  </div>
+  <div id="user-info">
+    <span id="user-name">Não autenticado</span>
+    <button id="btn-login" onclick="doLogin()">🔐 Entrar com M365</button>
+  </div>
+  <div class="meses" id="meses-header"></div>
+</header>
+
+<!-- STATUS FICHEIROS -->
+<div id="status">
+  <div class="status-card">
+    <div class="icon">📊</div>
+    <div class="info">
+      <div class="label">Ficheiros Sinistralidade</div>
+      <div class="val" id="st-mensais">0 ficheiros</div>
+    </div>
+  </div>
+  <div class="status-card">
+    <div class="icon">📋</div>
+    <div class="info">
+      <div class="label">Ficheiro Sinistros</div>
+      <div class="val" id="st-sinistros">Não carregado</div>
+    </div>
+  </div>
+  <div class="status-card">
+    <div class="icon">🕐</div>
+    <div class="info">
+      <div class="label">Última atualização</div>
+      <div class="val" id="st-update">—</div>
+    </div>
+  </div>
+  <button id="btn-refresh" onclick="loadFromSharePoint()">🔄 Atualizar dados</button>
+</div>
+
+<!-- KPIs -->
+<div id="kpis" style="display:none">
+  <div class="kpi"><div class="label">Clientes</div><div class="val" id="kpi-cli">0</div></div>
+  <div class="kpi"><div class="label">Ocorrências</div><div class="val" id="kpi-ocorr">0</div></div>
+  <div class="kpi"><div class="label">Sinistros</div><div class="val" id="kpi-sin">0</div></div>
+  <div class="kpi red"><div class="label">Total Débito</div><div class="val" id="kpi-deb">—</div></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="tabs" style="display:none">
+  <div class="tab active" onclick="showTab('cc',this)">Conta Corrente</div>
+  <div class="tab" onclick="showTab('mensal',this)">Resumo Mensal</div>
+  <div class="tab" onclick="showTab('produto',this)">Por Produto</div>
+  <div class="tab" onclick="showTab('anual',this)">Resumo Anual</div>
+</div>
+
+<div id="content">
+  <div id="empty">
+    <div class="icon">🔐</div>
+    <div class="msg">Inicia sessão com a tua conta M365</div>
+    <div class="sub">Os dados são carregados automaticamente do SharePoint</div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────
+const TENANT_ID  = "a914409c-82a2-4746-85f0-f51bd2711c33";
+const CLIENT_ID  = "6e166a10-9f36-4888-9a23-1734f238d2d0";
+const SP_HOST    = "cbcascais.sharepoint.com";
+const SP_SITE    = "/";                          // site raiz
+const SP_LIB     = "Documentos Partilhados";
+const FOLDER_ROOT= "Sinistralidade 2026";
+const FOLDER_MEN = "Sinistralidade 2026/Mensais";
+const FOLDER_SIN = "Sinistralidade 2026/Sinistros";
+const MESES_NOME = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+// ── MSAL ────────────────────────────────────────────────────────────────
+const msalConfig = {
+  auth: { clientId: CLIENT_ID, authority: "https://login.microsoftonline.com/"+TENANT_ID, redirectUri: window.location.origin },
+  cache: { cacheLocation:"sessionStorage" }
+};
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+const scopes = ["User.Read","Files.Read.All","Sites.Read.All"];
+let accessToken = null;
+
+async function doLogin() {
+  try {
+    showLoader("A autenticar...");
+    const resp = await msalInstance.loginPopup({ scopes });
+    msalInstance.setActiveAccount(resp.account);
+    document.getElementById("user-name").textContent = "👤 " + resp.account.name;
+    document.getElementById("btn-login").textContent = "✅ " + resp.account.username;
+    document.getElementById("btn-login").style.background = "rgba(22,163,74,.4)";
+    await getToken();
+    await loadFromSharePoint();
+  } catch(e) { hideLoader(); alert("Erro ao autenticar: " + e.message); }
+}
+
+async function getToken() {
+  const acc = msalInstance.getActiveAccount();
+  if (!acc) return;
+  const r = await msalInstance.acquireTokenSilent({ scopes, account: acc });
+  accessToken = r.accessToken;
+}
+
+async function graphGet(url) {
+  if (!accessToken) await getToken();
+  const r = await fetch("https://graph.microsoft.com/v1.0" + url, {
+    headers: { Authorization: "Bearer " + accessToken }
+  });
+  if (!r.ok) throw new Error("Graph API error: " + r.status + " " + url);
+  return r.json();
+}
+
+async function graphGetBinary(url) {
+  if (!accessToken) await getToken();
+  const r = await fetch("https://graph.microsoft.com/v1.0" + url, {
+    headers: { Authorization: "Bearer " + accessToken }
+  });
+  if (!r.ok) throw new Error("Graph API error: " + r.status);
+  return r.arrayBuffer();
+}
+
+// ── SHAREPOINT HELPERS ───────────────────────────────────────────────────
+function encPath(p) { return encodeURIComponent(p).replace(/%2F/g,"/"); }
+
+async function listFolder(folderPath) {
+  const path = "/sites/root/drives";
+  const drives = await graphGet("/sites/" + SP_HOST + ":/drives");
+  const lib = drives.value.find(d => d.name === SP_LIB || d.webUrl.includes(encodeURIComponent(SP_LIB)));
+  if (!lib) throw new Error("Biblioteca '" + SP_LIB + "' não encontrada");
+  const items = await graphGet("/drives/" + lib.id + "/root:/" + encPath(folderPath) + ":/children");
+  return { driveId: lib.id, items: items.value };
+}
+
+async function downloadFile(driveId, itemId) {
+  const meta = await graphGet("/drives/" + driveId + "/items/" + itemId + "/content");
+  // content returns redirect, use @microsoft.graph.downloadUrl
+  const item = await graphGet("/drives/" + driveId + "/items/" + itemId);
+  const url  = item["@microsoft.graph.downloadUrl"];
+  const r    = await fetch(url);
+  return r.arrayBuffer();
+}
+
+// ── CARREGAR DO SHAREPOINT ───────────────────────────────────────────────
+let STATE = { allData:[], gestData:[], meses:[], clientes:[] };
+
+async function loadFromSharePoint() {
+  try {
+    showLoader("A ligar ao SharePoint...");
+    await getToken();
+
+    // Listar ficheiros Mensais
+    showLoader("A ler pasta Mensais...");
+    const { driveId, items: mensais } = await listFolder(FOLDER_MEN);
+    const xlsMensais = mensais.filter(f => f.name.match(/\.(xlsx|xls)$/i));
+
+    // Listar ficheiros Sinistros
+    showLoader("A ler pasta Sinistros...");
+    const { items: sinItems } = await listFolder(FOLDER_SIN);
+    const xlsSin = sinItems.filter(f => f.name.match(/\.(xlsx|xls)$/i));
+
+    STATE.allData  = [];
+    STATE.gestData = [];
+
+    // Processar mensais
+    for (const f of xlsMensais) {
+      showLoader("A processar " + f.name + "...");
+      const buf  = await downloadFile(driveId, f.id);
+      const rows = parseExcelBuf(buf);
+      if (!rows.length) continue;
+      const headers = Object.keys(rows[0]);
+      const m = autoMapSin(headers);
+      if (!m) continue;
+      // Extrair mês do nome do ficheiro ou da data de modificação
+      const mesLabel = extractMes(f.name, f.lastModifiedDateTime);
+      const mapped   = rows.map(r => mapRowSin(r, m));
+      STATE.allData.push({ mesLabel, fileName: f.name, rows: mapped });
+    }
+    STATE.allData.sort((a,b) => a.mesLabel.localeCompare(b.mesLabel));
+
+    // Processar sinistros (último ficheiro da pasta)
+    if (xlsSin.length) {
+      const f   = xlsSin[xlsSin.length - 1];
+      showLoader("A processar sinistros " + f.name + "...");
+      const buf = await downloadFile(driveId, f.id);
+      const rows = parseExcelBuf(buf);
+      if (rows.length) {
+        const headers = Object.keys(rows[0]);
+        const m = autoMapGest(headers);
+        if (m) STATE.gestData = rows.map(r => mapRowGest(r, m));
+      }
+    }
+
+    buildHierarchy();
+    renderAll();
+    updateStatus(xlsMensais, xlsSin);
+    hideLoader();
+  } catch(e) {
+    hideLoader();
+    alert("Erro ao carregar dados:\n" + e.message);
+    console.error(e);
+  }
+}
+
+function extractMes(fileName, lastMod) {
+  // tenta YYYY-MM no nome
+  const m = fileName.match(/(\d{4})[_\-\s]?(\d{2})/);
+  if (m) return m[1] + "-" + m[2];
+  // usa data de modificação
+  const d = new Date(lastMod);
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+}
+
+// ── PARSE EXCEL ──────────────────────────────────────────────────────────
+function parseExcelBuf(buf) {
+  const wb = XLSX.read(buf, { type:"array" });
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:"" });
+}
+
+function excelDate(raw) {
+  if (!raw) return "";
+  if (typeof raw === "number") return new Date(Math.round((raw-25569)*86400*1000)).toLocaleDateString("pt-PT");
+  const d = new Date(raw); return isNaN(d) ? String(raw) : d.toLocaleDateString("pt-PT");
+}
+
+const COLS_SIN = {
+  cliente:        ["cliente","client","nome cliente","tomador"],
+  apolice:        ["apólice","apolice","nº apólice","num apolice","policia"],
+  produto:        ["produto","product","ramo","linha","tipo produto"],
+  ocorrencia:     ["ocorrência","ocorrencia","nº ocorrência","num ocorrencia","ocorr","nº ocorr"],
+  dataocorrencia: ["data ocorrência","data ocorrencia","dt ocorrência","data ocorr","data sinistro"],
+  sinistro:       ["sinistro","nº sinistro","num sinistro","sin"],
+  valor:          ["valor","montante","importe","amount","custo"],
+};
+const COLS_GEST = {
+  ocorrencia:       ["ocorrência","ocorrencia","nº ocorrência","num ocorrencia","ocorr","nº ocorr"],
+  dataabertura:     ["data abertura","dt abertura","abertura"],
+  dataocorrencia:   ["data ocorrência","data ocorrencia","dt ocorrência","data ocorr"],
+  datareabertura:   ["data reabertura","dt reabertura","reabertura"],
+  dataencerramento: ["data encerramento","dt encerramento","encerramento","data fecho"],
+  situacao:         ["situação","situacao","estado","status","state"],
+  qtasinistros:     ["qta sinistros","qtd sinistros","quantidade sinistros","nº sinistros","qt sinistros"],
+};
+
+function detectCol(headers, cands) {
+  const h = headers.map(x => x?.toString().toLowerCase().trim());
+  for (const c of cands) { const i = h.findIndex(x => x===c||x?.includes(c)); if(i>=0) return headers[i]; }
+  return null;
+}
+function autoMapSin(headers) {
+  const m = {};
+  for (const [k,cands] of Object.entries(COLS_SIN)) m[k] = detectCol(headers, cands);
+  const req = ["cliente","apolice","ocorrencia","sinistro","valor"];
+  return req.every(k=>m[k]) ? m : null;
+}
+function autoMapGest(headers) {
+  const m = {};
+  for (const [k,cands] of Object.entries(COLS_GEST)) m[k] = detectCol(headers, cands);
+  return m.ocorrencia ? m : null;
+}
+function mapRowSin(r,m) {
+  return {
+    cliente:        String(r[m.cliente]    ??""),
+    apolice:        String(r[m.apolice]    ??""),
+    produto:        String(r[m.produto]    ??""),
+    ocorrencia:     String(r[m.ocorrencia] ??"").trim(),
+    dataocorrencia: excelDate(r[m.dataocorrencia]),
+    sinistro:       String(r[m.sinistro]   ??"").trim(),
+    valor:          parseFloat(r[m.valor]  ??0)||0,
+  };
+}
+function mapRowGest(r,m) {
+  return {
+    ocorrencia:       String(r[m.ocorrencia]       ??"").trim(),
+    dataabertura:     excelDate(r[m.dataabertura]),
+    dataocorrencia:   excelDate(r[m.dataocorrencia]),
+    datareabertura:   excelDate(r[m.datareabertura]),
+    dataencerramento: excelDate(r[m.dataencerramento]),
+    situacao:         String(r[m.situacao]         ??""),
+    qtasinistros:     (r[m.qtasinistros]!==undefined&&r[m.qtasinistros]!=="")?(parseInt(r[m.qtasinistros])||0):null,
+  };
+}
+
+// ── HIERARQUIA ───────────────────────────────────────────────────────────
+function buildHierarchy() {
+  const gestMap = {};
+  for (const r of STATE.gestData) gestMap[r.ocorrencia] = r;
+
+  const sinMap = {};
+  for (const {mesLabel, rows} of STATE.allData) {
+    for (const r of rows) {
+      const sk = r.cliente+"||"+r.apolice+"||"+r.ocorrencia+"||"+r.sinistro;
+      if (!sinMap[sk]) sinMap[sk] = {...r, valoresPorMes:{}};
+      sinMap[sk].valoresPorMes[mesLabel] = (sinMap[sk].valoresPorMes[mesLabel]??0)+r.valor;
+    }
+  }
+
+  const sinistros = Object.values(sinMap).map(s => {
+    const mOrd = Object.keys(s.valoresPorMes).sort();
+    let saldo = 0;
+    const movimentos = mOrd.map((mes,i) => {
+      const vA=s.valoresPorMes[mes], vP=i===0?0:(s.valoresPorMes[mOrd[i-1]]??0);
+      const mov=vA-vP; saldo+=mov;
+      return {mes,valorFicheiro:vA,movimento:mov,saldo};
+    });
+    return {...s,movimentos,saldo};
+  });
+
+  const cliMap = {};
+  for (const s of sinistros) {
+    if (!cliMap[s.cliente]) cliMap[s.cliente]={cliente:s.cliente,apolices:{}};
+    const cM=cliMap[s.cliente];
+    if (!cM.apolices[s.apolice]) cM.apolices[s.apolice]={apolice:s.apolice,ocorrencias:{}};
+    const aM=cM.apolices[s.apolice];
+    if (!aM.ocorrencias[s.ocorrencia]) aM.ocorrencias[s.ocorrencia]={ocorrencia:s.ocorrencia,dataocorrencia:s.dataocorrencia,produto:s.produto,sinistros:[]};
+    aM.ocorrencias[s.ocorrencia].sinistros.push(s);
+  }
+
+  STATE.clientes = Object.values(cliMap).map(cli => {
+    const apolices = Object.values(cli.apolices).map(ap => {
+      const ocorrencias = Object.values(ap.ocorrencias).map(oc => {
+        const saldoTotal=oc.sinistros.reduce((s,x)=>s+x.saldo,0);
+        return {...oc,saldoTotal,gestao:gestMap[oc.ocorrencia]??null};
+      });
+      return {...ap,ocorrencias,saldoTotal:ocorrencias.reduce((s,x)=>s+x.saldoTotal,0)};
+    });
+    return {...cli,apolices,saldoTotal:apolices.reduce((s,x)=>s+x.saldoTotal,0)};
+  });
+
+  STATE.meses = [...new Set(STATE.allData.map(d=>d.mesLabel))].sort();
+}
+
+// ── FORMATAÇÃO ───────────────────────────────────────────────────────────
+const fmt = v => { const n=parseFloat(v); if(isNaN(n)) return "—"; return new Intl.NumberFormat("pt-PT",{style:"currency",currency:"EUR"}).format(n); };
+const clrClass = v => v<0?"neg":v>0?"pos":"zero";
+const mesMes   = mes => { if(!mes) return ""; const [a,m]=mes.split("-"); return MESES_NOME[parseInt(m,10)-1]+" "+a; };
+const badge    = v => `<span class="badge ${v<0?"deb":v>0?"cred":"sal"}">${v<0?"Débito":v>0?"Crédito":"Saldado"}</span>`;
+const sitBadge = sit => {
+  if (!sit) return "—";
+  const s=sit.toLowerCase();
+  let cls="background:#f3f4f6;color:#6b7280";
+  if(s.includes("encerr")||s.includes("fech")) cls="background:#e5e7eb;color:#374151";
+  else if(s.includes("reaber")) cls="background:#ffedd5;color:#c2410c";
+  else if(s.includes("aber")||s.includes("ativo")||s.includes("aberto")) cls="background:#dbeafe;color:#1d4ed8";
+  else if(s.includes("pend")) cls="background:#fef9c3;color:#854d0e";
+  return `<span class="sit-badge" style="${cls}">${sit}</span>`;
+};
+
+// ── RENDER ALL ───────────────────────────────────────────────────────────
+let currentTab = "cc";
+let anualView  = "cliente";
+let expandedCli={}, expandedAp={}, expandedOcorr={}, expandedMovs={};
+let filterCli="", filterMulti=false;
+
+function renderAll() {
+  const c = STATE.clientes;
+  document.getElementById("kpis").style.display="grid";
+  document.getElementById("tabs").style.display="flex";
+  document.getElementById("kpi-cli").textContent  = c.length;
+  document.getElementById("kpi-ocorr").textContent= c.reduce((s,x)=>s+x.apolices.reduce((s2,a)=>s2+a.ocorrencias.length,0),0);
+  document.getElementById("kpi-sin").textContent  = c.reduce((s,x)=>s+x.apolices.reduce((s2,a)=>s2+a.ocorrencias.reduce((s3,o)=>s3+o.sinistros.length,0),0),0);
+  const totalDeb=c.filter(x=>x.saldoTotal<0).reduce((s,x)=>s+x.saldoTotal,0);
+  document.getElementById("kpi-deb").textContent  = fmt(totalDeb);
+  const mh=document.getElementById("meses-header"); mh.innerHTML="";
+  STATE.meses.forEach(m=>{const s=document.createElement("span");s.className="mes-badge";s.textContent=mesMes(m);mh.appendChild(s);});
+  showTab(currentTab);
+}
+
+function showTab(id, el) {
+  currentTab=id;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  if(el) el.classList.add("active");
+  else document.querySelectorAll(".tab").forEach(t=>{ if(t.textContent.toLowerCase().includes(id)||t.getAttribute("onclick")?.includes("'"+id+"'")) t.classList.add("active"); });
+  const div=document.getElementById("content");
+  if(id==="cc")      div.innerHTML = renderCC();
+  else if(id==="mensal") div.innerHTML = renderMensal();
+  else if(id==="produto")div.innerHTML = renderProduto();
+  else if(id==="anual")  div.innerHTML = renderAnual();
+}
+
+// ── CONTA CORRENTE ───────────────────────────────────────────────────────
+function renderCC() {
+  const multiSet=new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
+  const filtered=STATE.clientes.filter(c=>{
+    if(filterCli && filterCli!==c.cliente) return false;
+    if(filterMulti && !multiSet.has(c.cliente)) return false;
+    return true;
+  });
+  const hasGest=STATE.gestData.length>0;
+  const totalSaldo=filtered.reduce((s,c)=>s+c.saldoTotal,0);
+  const totalDeb=filtered.filter(c=>c.saldoTotal<0).reduce((s,c)=>s+c.saldoTotal,0);
+  const totalCred=filtered.filter(c=>c.saldoTotal>0).reduce((s,c)=>s+c.saldoTotal,0);
+
+  const cliOptions=STATE.clientes.map(c=>`<option value="${c.cliente}" ${filterCli===c.cliente?"selected":""}>${c.cliente}</option>`).join("");
+  const multiCount=multiSet.size;
+
+  let html=`<div class="filters">
+    <select onchange="filterCli=this.value;showTab('cc')"><option value="">Todos os clientes</option>${cliOptions}</select>
+    <button class="${filterMulti?"active":""}" onclick="filterMulti=!filterMulti;showTab('cc')">🔀 Múltiplas apólices${multiCount?`<span class="multi-badge">${multiCount}</span>`:""}</button>
+    <button onclick="filterCli='';filterMulti=false;showTab('cc')">Limpar</button>
+    <button class="btn-export" onclick="exportExcel()">⬇ Exportar</button>
+  </div>
+  <div class="table-wrap"><table>
+  <thead><tr>
+    <th style="width:30px"></th>
+    <th>Nº / Nome</th><th>Data Ocorr.</th><th>Produto</th>
+    ${hasGest?"<th>Qta.Sin.</th><th>Situação</th><th>Dt.Abertura</th><th>Dt.Reabertura</th><th>Dt.Encerramento</th>":""}
+    <th style="text-align:right">Saldo</th><th>Estado</th>
+  </tr></thead><tbody>`;
+
+  filtered.forEach((cli,ci)=>{
+    const cKey=cli.cliente;
+    const expC=expandedCli[cKey];
+    const bg=ci%2===0?"#e8edf8":"#dce4f5";
+    const isMulti=multiSet.has(cli.cliente);
+    html+=`<tr class="tr-cli" style="background:${bg}" onclick="toggleCli('${cKey}')">
+      <td style="text-align:center;color:var(--navy);font-weight:700">${expC?"▼":"▶"}</td>
+      <td colspan="3" style="font-weight:700;color:var(--navy)">${cli.cliente}${isMulti?`<span class="multi-badge">${cli.apolices.length} ap.</span>`:""}</td>
+      ${hasGest?"<td colspan='5'></td>":""}
+      <td style="text-align:right" class="${clrClass(cli.saldoTotal)}">${fmt(cli.saldoTotal)}</td>
+      <td>${badge(cli.saldoTotal)}</td>
+    </tr>`;
+
+    if(expC) cli.apolices.forEach(ap=>{
+      const apKey=cKey+"||"+ap.apolice;
+      const expA=expandedAp[apKey];
+      html+=`<tr class="tr-ap" style="background:#c5d5ef" onclick="toggleAp('${apKey}')">
+        <td style="text-align:center;padding-left:24px;font-weight:700;color:var(--navy)">${expA?"▼":"▶"}</td>
+        <td colspan="3" style="font-weight:700;color:var(--navy)"><span style="font-weight:400;color:#666;font-size:11px">Apólice </span>${ap.apolice}</td>
+        ${hasGest?"<td colspan='5'></td>":""}
+        <td style="text-align:right" class="${clrClass(ap.saldoTotal)}">${fmt(ap.saldoTotal)}</td>
+        <td>${badge(ap.saldoTotal)}</td>
+      </tr>`;
+
+      if(expA) ap.ocorrencias.forEach(oc=>{
+        const ocKey=apKey+"||"+oc.ocorrencia;
+        const expO=expandedOcorr[ocKey];
+        const g=oc.gestao;
+        html+=`<tr class="tr-oc" style="background:#dce6f7" onclick="toggleOc('${ocKey}')">
+          <td style="text-align:center;padding-left:48px;font-weight:700;color:#1d4ed8">${expO?"▼":"▶"}</td>
+          <td style="font-weight:700;color:#1d4ed8">${oc.ocorrencia}</td>
+          <td style="color:#666">${oc.dataocorrencia||"—"}</td>
+          <td>${oc.produto||"—"}</td>
+          ${hasGest?`<td style="text-align:center;font-weight:600">${g?(g.qtasinistros??"—"):"—"}</td><td>${g?sitBadge(g.situacao):"—"}</td><td>${g?(g.dataabertura||"—"):"—"}</td><td>${g?(g.datareabertura||"—"):"—"}</td><td>${g?(g.dataencerramento||"—"):"—"}</td>`:""}
+          <td style="text-align:right;font-weight:700" class="${clrClass(oc.saldoTotal)}">${fmt(oc.saldoTotal)}</td>
+          <td>${badge(oc.saldoTotal)}</td>
+        </tr>`;
+
+        if(expO) oc.sinistros.forEach(s=>{
+          const sKey=ocKey+"||"+s.sinistro;
+          const expM=expandedMovs[sKey];
+          html+=`<tr class="tr-sin" style="background:#eef2fb">
+            <td style="text-align:center;padding-left:72px"><button style="border:none;background:none;cursor:pointer;color:#6366f1;font-weight:700" onclick="toggleMov('${sKey}')">${expM?"▼":"▶"}</button></td>
+            <td colspan="3"><span style="color:#9ca3af;font-size:11px">Sinistro </span><strong style="color:#6366f1">${s.sinistro}</strong></td>
+            ${hasGest?"<td colspan='5'></td>":""}
+            <td style="text-align:right;font-weight:600" class="${clrClass(s.saldo)}">${fmt(s.saldo)}</td>
+            <td>${badge(s.saldo)}</td>
+          </tr>`;
+          if(expM){
+            html+=`<tr class="tr-movs"><td colspan="${hasGest?12:7}" style="padding:8px 16px 8px 96px;background:#eef2fb">
+              <table style="max-width:520px;font-size:11px">
+                <thead><tr style="background:none;color:#4338ca"><th style="text-align:left">Mês</th><th style="text-align:right">Valor Ficheiro</th><th style="text-align:right">Movimento</th><th style="text-align:right">Saldo Acumulado</th></tr></thead>
+                <tbody>${s.movimentos.map(m=>`<tr style="border-top:1px solid #e0e7ff"><td>${mesMes(m.mes)}</td><td style="text-align:right" class="${clrClass(m.valorFicheiro)}">${fmt(m.valorFicheiro)}</td><td style="text-align:right;font-weight:600" class="${clrClass(m.movimento)}">${fmt(m.movimento)}</td><td style="text-align:right;font-weight:700" class="${clrClass(m.saldo)}">${fmt(m.saldo)}</td></tr>`).join("")}</tbody>
+              </table></td></tr>`;
+          }
+        });
+      });
+    });
+  });
+
+  const gc=hasGest?9:4;
+  html+=`</tbody><tfoot>
+    <tr><td colspan="${gc}" style="text-align:right">TOTAL (${filtered.length} clientes)</td><td style="text-align:right" class="${clrClass(totalSaldo)}">${fmt(totalSaldo)}</td><td></td></tr>
+    <tr class="sub-row"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Débito total</td><td style="text-align:right;color:#fca5a5">${fmt(totalDeb)}</td><td></td></tr>
+    <tr class="sub-row"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Crédito total</td><td style="text-align:right;color:#86efac">${fmt(totalCred)}</td><td></td></tr>
+  </tfoot></table></div>`;
+  return html;
+}
+
+function toggleCli(k){expandedCli[k]=!expandedCli[k];showTab("cc");}
+function toggleAp(k) {expandedAp[k] =!expandedAp[k]; showTab("cc");}
+function toggleOc(k) {expandedOcorr[k]=!expandedOcorr[k];showTab("cc");}
+function toggleMov(k){expandedMovs[k]=!expandedMovs[k];showTab("cc");}
+
+// ── RESUMO MENSAL ────────────────────────────────────────────────────────
+function renderMensal() {
+  const map={};
+  for(const cli of STATE.clientes)
+    for(const ap of cli.apolices)
+      for(const oc of ap.ocorrencias){
+        const key=cli.cliente+"||"+(oc.produto||"—");
+        if(!map[key]) map[key]={cliente:cli.cliente,produto:oc.produto,meses:{}};
+        for(const s of oc.sinistros)
+          for(const m of s.movimentos)
+            map[key].meses[m.mes]=(map[key].meses[m.mes]??0)+m.movimento;
+      }
+  const rows=Object.values(map);
+  const meses=STATE.meses;
+  let html=`<div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Produto</th>${meses.map(m=>`<th style="text-align:right">${mesMes(m)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
+  rows.forEach((row,i)=>{
+    const total=Object.values(row.meses).reduce((s,v)=>s+v,0);
+    html+=`<tr><td style="font-weight:600">${row.cliente}</td><td style="color:#6b7280">${row.produto||"—"}</td>${meses.map(m=>`<td style="text-align:right" class="${clrClass(row.meses[m]??0)}">${row.meses[m]!==undefined?fmt(row.meses[m]):"—"}</td>`).join("")}<td style="text-align:right;font-weight:700" class="${clrClass(total)}">${fmt(total)}</td></tr>`;
+  });
+  const totalSaldo=STATE.clientes.reduce((s,c)=>s+c.saldoTotal,0);
+  html+=`</tbody><tfoot><tr><td colspan="2" style="text-align:right">TOTAL</td>${meses.map(m=>{const t=rows.reduce((s,r)=>s+(r.meses[m]??0),0);return `<td style="text-align:right" class="${clrClass(t)}">${fmt(t)}</td>`;}).join("")}<td style="text-align:right" class="${clrClass(totalSaldo)}">${fmt(totalSaldo)}</td></tr></tfoot></table></div>`;
+  return html;
+}
+
+// ── RESUMO POR PRODUTO ───────────────────────────────────────────────────
+function renderProduto() {
+  const map={};
+  for(const cli of STATE.clientes)
+    for(const ap of cli.apolices)
+      for(const oc of ap.ocorrencias){
+        const prod=oc.produto||"(sem produto)";
+        if(!map[prod]) map[prod]={produto:prod,meses:{},cliSet:new Set(),ocorr:0,sins:0};
+        map[prod].cliSet.add(cli.cliente); map[prod].ocorr++; map[prod].sins+=oc.sinistros.length;
+        for(const s of oc.sinistros) for(const m of s.movimentos) map[prod].meses[m.mes]=(map[prod].meses[m.mes]??0)+m.movimento;
+      }
+  const rows=Object.values(map).map(r=>({...r,nCli:r.cliSet.size,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.total-b.total);
+  const meses=STATE.meses;
+  const totalSaldo=STATE.clientes.reduce((s,c)=>s+c.saldoTotal,0);
+
+  let cards=rows.map(p=>`<div class="kpi" style="border-left-color:var(--navy)">
+    <div class="label" style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">${p.produto}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:11px;color:#6b7280;margin-bottom:8px">
+      <div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.nCli}</div>Clientes</div>
+      <div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.ocorr}</div>Ocorrências</div>
+      <div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.sins}</div>Sinistros</div>
+    </div>
+    <div class="${clrClass(p.total)}" style="font-size:15px;font-weight:700">${fmt(p.total)}</div>
+  </div>`).join("");
+
+  let html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">${cards}</div>
+  <div class="table-wrap"><table><thead><tr><th>Produto</th><th style="text-align:center">Clientes</th><th style="text-align:center">Ocorrências</th><th style="text-align:center">Sinistros</th>${meses.map(m=>`<th style="text-align:right">${mesMes(m)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
+  rows.forEach((row,i)=>{
+    html+=`<tr><td style="font-weight:600">${row.produto}</td><td style="text-align:center">${row.nCli}</td><td style="text-align:center">${row.ocorr}</td><td style="text-align:center">${row.sins}</td>${meses.map(m=>`<td style="text-align:right" class="${clrClass(row.meses[m]??0)}">${row.meses[m]!==undefined?fmt(row.meses[m]):"—"}</td>`).join("")}<td style="text-align:right;font-weight:700" class="${clrClass(row.total)}">${fmt(row.total)}</td></tr>`;
+  });
+  html+=`</tbody><tfoot><tr><td colspan="4" style="text-align:right">TOTAL</td>${meses.map(m=>{const t=rows.reduce((s,r)=>s+(r.meses[m]??0),0);return `<td style="text-align:right" class="${clrClass(t)}">${fmt(t)}</td>`;}).join("")}<td style="text-align:right" class="${clrClass(totalSaldo)}">${fmt(totalSaldo)}</td></tr></tfoot></table></div>`;
+  return html;
+}
+
+// ── RESUMO ANUAL ─────────────────────────────────────────────────────────
+function renderAnual() {
+  const anos=[...new Set(STATE.meses.map(m=>m.split("-")[0]))].sort();
+
+  function buildAnualMap(keyFn) {
+    const map={};
+    for(const cli of STATE.clientes)
+      for(const ap of cli.apolices)
+        for(const oc of ap.ocorrencias)
+          for(const s of oc.sinistros)
+            for(const m of s.movimentos){
+              const [ano,mes]=m.mes.split("-");
+              const key=keyFn(cli,oc)+"||"+ano;
+              if(!map[key]) map[key]={label:keyFn(cli,oc),ano,meses:{}};
+              const mn=parseInt(mes,10);
+              map[key].meses[mn]=(map[key].meses[mn]??0)+m.movimento;
+            }
+    return Object.values(map).map(r=>({...r,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.ano.localeCompare(b.ano)||a.label.localeCompare(b.label));
+  }
+
+  const rows = anualView==="cliente"
+    ? buildAnualMap((cli,oc)=>cli.cliente)
+    : buildAnualMap((cli,oc)=>oc.produto||"(sem produto)");
+
+  let html=`<div style="display:flex;gap:8px;margin-bottom:16px" class="toggle-group">
+    <button class="toggle-btn ${anualView==="cliente"?"active":""}" onclick="anualView='cliente';showTab('anual')">Por Cliente</button>
+    <button class="toggle-btn ${anualView==="produto"?"active":""}" onclick="anualView='produto';showTab('anual')">Por Produto</button>
+  </div>`;
+
+  anos.forEach(ano=>{
+    const anoRows=rows.filter(r=>r.ano===ano);
+    if(!anoRows.length) return;
+    const totMes={};
+    for(let m=1;m<=12;m++) totMes[m]=anoRows.reduce((s,r)=>s+(r.meses[m]??0),0);
+    const totalGeral=anoRows.reduce((s,r)=>s+r.total,0);
+    html+=`<div style="margin-bottom:24px">
+      <div class="ano-header"><div class="ano-pill">${ano}</div><div class="${clrClass(totalGeral)}" style="font-size:14px;font-weight:700">${fmt(totalGeral)}</div></div>
+      <div class="table-wrap"><table><thead><tr>
+        <th style="min-width:160px;position:sticky;left:0;background:var(--navy)">${anualView==="cliente"?"Cliente":"Produto"}</th>
+        ${MESES_NOME.map(m=>`<th style="text-align:right;min-width:78px">${m.slice(0,3)}</th>`).join("")}
+        <th style="text-align:right;min-width:95px;border-left:1px solid #3b5299">Total</th>
+      </tr></thead><tbody>`;
+    anoRows.forEach((row,i)=>{
+      const bg=i%2===0?"white":"#f9fafb";
+      html+=`<tr><td style="font-weight:600;position:sticky;left:0;background:${bg};border-right:1px solid #e5e7eb">${row.label}</td>`;
+      for(let m=1;m<=12;m++){
+        const v=row.meses[m];
+        html+=`<td style="text-align:right" class="${v!==undefined?clrClass(v):"zero"}">${v!==undefined?fmt(v):"—"}</td>`;
+      }
+      html+=`<td style="text-align:right;font-weight:700;border-left:1px solid #e5e7eb" class="${clrClass(row.total)}">${fmt(row.total)}</td></tr>`;
+    });
+    html+=`</tbody><tfoot><tr><td style="position:sticky;left:0;background:var(--navy)">TOTAL</td>`;
+    for(let m=1;m<=12;m++){const t=totMes[m]??0;html+=`<td style="text-align:right" class="${clrClass(t)}">${t!==0?fmt(t):"—"}</td>`;}
+    html+=`<td style="text-align:right;font-weight:700;border-left:1px solid #3b5299" class="${clrClass(totalGeral)}">${fmt(totalGeral)}</td></tr></tfoot></table></div></div>`;
+  });
+  return html;
+}
+
+// ── EXPORT ───────────────────────────────────────────────────────────────
+function exportExcel() {
+  const rows=[];
+  for(const cli of STATE.clientes)
+    for(const ap of cli.apolices)
+      for(const oc of ap.ocorrencias)
+        for(const s of oc.sinistros)
+          rows.push({Cliente:cli.cliente,Apolice:ap.apolice,Produto:oc.produto,Ocorrencia:oc.ocorrencia,"Data Ocorrencia":oc.dataocorrencia,Sinistro:s.sinistro,"Saldo Sinistro":s.saldo,"Saldo Ocorrencia":oc.saldoTotal,Estado:oc.saldoTotal<0?"Debito":oc.saldoTotal>0?"Credito":"Saldado",Situacao:oc.gestao?.situacao??"—","Qta Sinistros":oc.gestao?.qtasinistros??"—","Data Abertura":oc.gestao?.dataabertura??"—","Data Reabertura":oc.gestao?.datareabertura??"—","Data Encerramento":oc.gestao?.dataencerramento??"—"});
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Conta Corrente");
+  XLSX.writeFile(wb,"CB_Seguros_ContaCorrente.xlsx");
+}
+
+// ── STATUS ───────────────────────────────────────────────────────────────
+function updateStatus(mensais, sinItems) {
+  document.getElementById("st-mensais").textContent = mensais.length+" ficheiro(s)";
+  document.getElementById("st-sinistros").textContent = sinItems.length?"✅ "+sinItems[sinItems.length-1].name:"Não encontrado";
+  document.getElementById("st-update").textContent = new Date().toLocaleString("pt-PT");
+}
+
+// ── LOADER ───────────────────────────────────────────────────────────────
+function showLoader(msg) { document.getElementById("loader").style.display="flex"; document.getElementById("loader-msg").textContent=msg||"A carregar..."; }
+function hideLoader()    { document.getElementById("loader").style.display="none"; }
+
+// ── AUTO LOGIN ───────────────────────────────────────────────────────────
+window.addEventListener("load", async () => {
+  await msalInstance.initialize();
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length > 0) {
+    msalInstance.setActiveAccount(accounts[0]);
+    document.getElementById("user-name").textContent = "👤 " + accounts[0].name;
+    document.getElementById("btn-login").textContent = "✅ " + accounts[0].username;
+    document.getElementById("btn-login").style.background = "rgba(22,163,74,.4)";
+    await loadFromSharePoint();
+  }
+});
+</script>
+</body>
+</html>
