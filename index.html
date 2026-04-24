@@ -146,10 +146,16 @@ async function getMsal(){
 
 async function doLogin(){
   try{
-    showL("A redirecionar para login...");
+    showL("A redirecionar para login Microsoft...");
     const m=await getMsal();
-    await m.loginRedirect({scopes:SCOPES});
-  }catch(e){hideL();alert("Erro ao autenticar: "+(e.message||JSON.stringify(e)));}
+    // loginRedirect navega para fora da página — não lança erro real
+    m.loginRedirect({scopes:SCOPES});
+  }catch(e){
+    // Ignora erros de navegação (isTrusted events)
+    if(e&&e.isTrusted===true) return;
+    hideL();
+    alert("Erro ao autenticar: "+(e.message||JSON.stringify(e)));
+  }
 }
 
 async function getToken(){
@@ -160,8 +166,8 @@ async function getToken(){
     const r=await m.acquireTokenSilent({scopes:SCOPES,account:a});
     _token=r.accessToken;
   }catch(e){
-    // silent falhou, faz redirect
-    await m.acquireTokenRedirect({scopes:SCOPES,account:a});
+    if(e&&e.isTrusted===true) return;
+    m.acquireTokenRedirect({scopes:SCOPES,account:a});
   }
 }
 
