@@ -146,22 +146,23 @@ async function getMsal(){
 
 async function doLogin(){
   try{
-    showL("A autenticar...");
+    showL("A redirecionar para login...");
     const m=await getMsal();
-    const r=await m.loginPopup({scopes:SCOPES});
-    m.setActiveAccount(r.account);
-    setUser(r.account);
-    await getToken();
-    await loadSP();
-  }catch(e){hideL();alert("Erro ao autenticar: "+e.message);}
+    await m.loginRedirect({scopes:SCOPES});
+  }catch(e){hideL();alert("Erro ao autenticar: "+(e.message||JSON.stringify(e)));}
 }
 
 async function getToken(){
   const m=await getMsal();
   const a=m.getActiveAccount();
   if(!a) return;
-  const r=await m.acquireTokenSilent({scopes:SCOPES,account:a});
-  _token=r.accessToken;
+  try{
+    const r=await m.acquireTokenSilent({scopes:SCOPES,account:a});
+    _token=r.accessToken;
+  }catch(e){
+    // silent falhou, faz redirect
+    await m.acquireTokenRedirect({scopes:SCOPES,account:a});
+  }
 }
 
 function setUser(acc){
@@ -478,6 +479,15 @@ function hideL(){document.getElementById("loader").style.display="none";}
 window.addEventListener("load",async()=>{
   try{
     const m=await getMsal();
+    // Processar resposta do redirect
+    const resp=await m.handleRedirectPromise();
+    if(resp&&resp.account){
+      m.setActiveAccount(resp.account);
+      setUser(resp.account);
+      await loadSP();
+      return;
+    }
+    // Verificar se já tem sessão
     const accounts=m.getAllAccounts();
     if(accounts.length>0){
       m.setActiveAccount(accounts[0]);
