@@ -5,109 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CB Seguros — Dashboard Sinistralidade</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/2.38.3/msal-browser.min.js"></script>
 <style>
-  :root { --navy:#1B2A5E; --navy2:#263d7a; --blue-light:#eef3fc; --gray:#f0f3fa; }
-  * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',sans-serif; font-size:13px; }
-  body { background:var(--gray); }
-
-  /* HEADER */
-  header { background:var(--navy); color:#fff; padding:14px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; box-shadow:0 2px 8px rgba(0,0,0,.3); }
-  header svg { flex-shrink:0; }
-  header .title { font-size:18px; font-weight:700; }
-  header .sub   { font-size:11px; color:#7eb3f7; letter-spacing:.1em; text-transform:uppercase; }
-  header .meses { margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; }
-  header .mes-badge { background:rgba(255,255,255,.15); border-radius:6px; padding:3px 10px; font-size:11px; font-weight:600; }
-  #user-info { font-size:11px; color:#7eb3f7; display:flex; align-items:center; gap:8px; }
-  #btn-login  { background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:6px; padding:5px 14px; cursor:pointer; font-size:12px; }
-  #btn-login:hover { background:rgba(255,255,255,.3); }
-
-  /* LOADER */
-  #loader { display:none; position:fixed; inset:0; background:rgba(27,42,94,.7); z-index:999; align-items:center; justify-content:center; flex-direction:column; gap:12px; color:#fff; font-size:14px; }
-  .spinner { width:40px; height:40px; border:4px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-
-  /* STATUS */
-  #status { padding:12px 24px; background:#fff; border-bottom:1px solid #dde3f0; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .status-card { display:flex; align-items:center; gap:6px; background:var(--blue-light); border:1px solid #c5d5ef; border-radius:8px; padding:6px 12px; }
-  .status-card .icon { font-size:16px; }
-  .status-card .info .label { font-size:10px; color:#666; }
-  .status-card .info .val   { font-size:12px; font-weight:700; color:var(--navy); }
-  #btn-refresh { margin-left:auto; background:var(--navy); color:#fff; border:none; border-radius:8px; padding:8px 16px; cursor:pointer; font-size:12px; font-weight:600; }
-  #btn-refresh:hover { background:var(--navy2); }
-
-  /* KPIs */
-  #kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px 24px; }
-  .kpi  { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:14px 16px; border-left:4px solid var(--navy); }
-  .kpi .label { font-size:11px; color:#888; margin-bottom:4px; }
-  .kpi .val   { font-size:22px; font-weight:700; color:var(--navy); }
-  .kpi.red  { border-left-color:#dc2626; } .kpi.red .val { color:#dc2626; }
-  .kpi.green{ border-left-color:#16a34a; } .kpi.green .val { color:#16a34a; }
-
-  /* TABS */
-  .tabs { background:#fff; border-bottom:1px solid #e5e7eb; padding:0 24px; display:flex; gap:4px; overflow-x:auto; }
-  .tab  { padding:10px 18px; font-size:13px; font-weight:600; border-bottom:2px solid transparent; color:#6b7280; cursor:pointer; white-space:nowrap; }
-  .tab.active { border-bottom-color:#1d4ed8; color:#1d4ed8; }
-
-  /* CONTENT */
-  #content { padding:16px 24px; }
-
-  /* TABELAS */
-  .table-wrap { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); overflow:auto; }
-  table { width:100%; border-collapse:collapse; font-size:12px; }
-  thead tr { background:var(--navy); color:#fff; }
-  th { padding:10px 12px; text-align:left; white-space:nowrap; }
-  td { padding:8px 12px; border-bottom:1px solid #f0f3fa; }
-  tbody tr:hover { background:#f5f8ff; }
-  .tr-cli  { cursor:pointer; } 
-  .tr-ap   { cursor:pointer; }
-  .tr-oc   { cursor:pointer; }
-  .tr-sin  { }
-  .tr-movs td { background:#eef2fb !important; }
-
-  tfoot tr { background:var(--navy); color:#fff; font-weight:700; }
-  tfoot .sub-row { background:var(--navy2); }
-
-  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; }
-  .badge.deb { background:#fee2e2; color:#b91c1c; }
-  .badge.cred{ background:#dcfce7; color:#15803d; }
-  .badge.sal { background:#f3f4f6; color:#6b7280; }
-
-  .sit-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
-
-  .neg { color:#dc2626; font-weight:600; }
-  .pos { color:#16a34a; font-weight:600; }
-  .zero{ color:#9ca3af; }
-
-  /* ANUAL */
-  .ano-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-  .ano-pill   { background:var(--navy); color:#fff; border-radius:8px; padding:2px 14px; font-weight:700; font-size:14px; }
-  .toggle-group { display:flex; gap:6px; }
-  .toggle-btn   { border:1px solid #d1d5db; background:#fff; border-radius:20px; padding:5px 16px; font-size:12px; font-weight:600; color:#6b7280; cursor:pointer; }
-  .toggle-btn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
-
-  /* EMPTY */
-  #empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 0; color:#9ca3af; }
-  #empty .icon { font-size:56px; margin-bottom:16px; }
-  #empty .msg  { font-size:16px; font-weight:600; }
-  #empty .sub  { font-size:12px; margin-top:6px; }
-
-  /* FILTROS */
-  .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
-  .filters select, .filters input { border:1px solid #d1d5db; border-radius:6px; padding:5px 10px; font-size:12px; background:#fff; }
-  .filters button { border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid #d1d5db; background:#fff; color:#6b7280; }
-  .filters button.active { background:var(--navy); color:#fff; border-color:var(--navy); }
-  .btn-export { background:#16a34a !important; color:#fff !important; border-color:#16a34a !important; margin-left:auto; }
-  .multi-badge { background:#dc2626; color:#fff; border-radius:10px; padding:1px 6px; font-size:10px; font-weight:700; margin-left:4px; }
-
-  @media(max-width:600px){ #kpis{grid-template-columns:1fr 1fr;} }
+:root{--navy:#1B2A5E;--navy2:#263d7a;--gray:#f0f3fa}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif;font-size:13px}
+body{background:var(--gray)}
+header{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.title{font-size:18px;font-weight:700}.sub{font-size:11px;color:#7eb3f7;letter-spacing:.1em;text-transform:uppercase}
+#btn-login{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:6px 16px;cursor:pointer;font-size:12px;font-weight:600}
+#user-name{font-size:12px;color:#7eb3f7}
+.meses{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.mes-badge{background:rgba(255,255,255,.15);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600}
+#loader{display:none;position:fixed;inset:0;background:rgba(27,42,94,.8);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-size:14px}
+.spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#status{padding:12px 24px;background:#fff;border-bottom:1px solid #dde3f0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sc{display:flex;align-items:center;gap:8px;background:#eef3fc;border:1px solid #c5d5ef;border-radius:8px;padding:6px 14px}
+.sc .lbl{font-size:10px;color:#666}.sc .val{font-size:12px;font-weight:700;color:var(--navy)}
+#btn-refresh{margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:600}
+#kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 24px;display:none}
+.kpi{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14px 16px;border-left:4px solid var(--navy)}
+.kpi .lbl{font-size:11px;color:#888;margin-bottom:4px}.kpi .val{font-size:22px;font-weight:700;color:var(--navy)}
+.kpi.red{border-left-color:#dc2626}.kpi.red .val{color:#dc2626}
+.tabs{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 24px;display:none;gap:4px;overflow-x:auto}
+.tab{padding:10px 18px;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#6b7280;cursor:pointer;white-space:nowrap}
+.tab.active{border-bottom-color:#1d4ed8;color:#1d4ed8}
+#content{padding:16px 24px}
+.tw{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:var(--navy);color:#fff}
+th{padding:10px 12px;text-align:left;white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid #f0f3fa}
+tbody tr:hover{background:#f5f8ff}
+tfoot tr{background:var(--navy);color:#fff;font-weight:700}
+tfoot .sr{background:var(--navy2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.deb{background:#fee2e2;color:#b91c1c}.cred{background:#dcfce7;color:#15803d}.sal{background:#f3f4f6;color:#6b7280}
+.neg{color:#dc2626;font-weight:600}.pos{color:#16a34a;font-weight:600}.zero{color:#9ca3af}
+.sit{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters select,.filters input{border:1px solid #d1d5db;border-radius:6px;padding:5px 10px;font-size:12px;background:#fff}
+.filters button{border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#6b7280}
+.filters button.act{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-exp{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important;margin-left:auto}
+.mb{background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
+#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 0;color:#9ca3af}
+#empty .ei{font-size:56px;margin-bottom:16px}
+#empty .em{font-size:16px;font-weight:600}
+#empty .es{font-size:12px;margin-top:6px}
+.ano-pill{background:var(--navy);color:#fff;border-radius:8px;padding:2px 14px;font-weight:700;font-size:14px;display:inline-block;margin-bottom:8px}
+.tg{display:flex;gap:6px;margin-bottom:16px}
+.tgb{border:1px solid #d1d5db;background:#fff;border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;color:#6b7280;cursor:pointer}
+.tgb.act{background:var(--navy);color:#fff;border-color:var(--navy)}
 </style>
 </head>
 <body>
+<div id="loader"><div class="spinner"></div><div id="lmsg">A carregar...</div></div>
 
-<div id="loader"><div class="spinner"></div><div id="loader-msg">A carregar...</div></div>
-
-<!-- HEADER -->
 <header>
   <svg width="44" height="44" viewBox="0 0 200 200" fill="none">
     <path d="M90 30 C45 30 15 62 15 100 C15 138 45 170 90 170" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
@@ -118,53 +71,29 @@
     <path d="M130 62 Q155 62 155 80 Q155 98 130 98" stroke="#7eb3f7" stroke-width="8" stroke-linecap="round" fill="none"/>
     <path d="M130 102 Q160 102 160 120 Q160 138 130 138" stroke="#7eb3f7" stroke-width="8" stroke-linecap="round" fill="none"/>
   </svg>
-  <div>
-    <div class="sub">CB Seguros | Cascais</div>
-    <div class="title">Dashboard Sinistralidade</div>
-  </div>
-  <div id="user-info">
+  <div><div class="sub">CB Seguros | Cascais</div><div class="title">Dashboard Sinistralidade</div></div>
+  <div style="display:flex;align-items:center;gap:10px">
     <span id="user-name">Não autenticado</span>
     <button id="btn-login" onclick="doLogin()">🔐 Entrar com M365</button>
   </div>
-  <div class="meses" id="meses-header"></div>
+  <div class="meses" id="mh"></div>
 </header>
 
-<!-- STATUS FICHEIROS -->
 <div id="status">
-  <div class="status-card">
-    <div class="icon">📊</div>
-    <div class="info">
-      <div class="label">Ficheiros Sinistralidade</div>
-      <div class="val" id="st-mensais">0 ficheiros</div>
-    </div>
-  </div>
-  <div class="status-card">
-    <div class="icon">📋</div>
-    <div class="info">
-      <div class="label">Ficheiro Sinistros</div>
-      <div class="val" id="st-sinistros">Não carregado</div>
-    </div>
-  </div>
-  <div class="status-card">
-    <div class="icon">🕐</div>
-    <div class="info">
-      <div class="label">Última atualização</div>
-      <div class="val" id="st-update">—</div>
-    </div>
-  </div>
-  <button id="btn-refresh" onclick="loadFromSharePoint()">🔄 Atualizar dados</button>
+  <div class="sc"><div>📊</div><div><div class="lbl">Ficheiros Sinistralidade</div><div class="val" id="st1">0 ficheiros</div></div></div>
+  <div class="sc"><div>📋</div><div><div class="lbl">Ficheiro Sinistros</div><div class="val" id="st2">Não carregado</div></div></div>
+  <div class="sc"><div>🕐</div><div><div class="lbl">Última atualização</div><div class="val" id="st3">—</div></div></div>
+  <button id="btn-refresh" onclick="loadSP()">🔄 Atualizar dados</button>
 </div>
 
-<!-- KPIs -->
-<div id="kpis" style="display:none">
-  <div class="kpi"><div class="label">Clientes</div><div class="val" id="kpi-cli">0</div></div>
-  <div class="kpi"><div class="label">Ocorrências</div><div class="val" id="kpi-ocorr">0</div></div>
-  <div class="kpi"><div class="label">Sinistros</div><div class="val" id="kpi-sin">0</div></div>
-  <div class="kpi red"><div class="label">Total Débito</div><div class="val" id="kpi-deb">—</div></div>
+<div id="kpis">
+  <div class="kpi"><div class="lbl">Clientes</div><div class="val" id="k1">0</div></div>
+  <div class="kpi"><div class="lbl">Ocorrências</div><div class="val" id="k2">0</div></div>
+  <div class="kpi"><div class="lbl">Sinistros</div><div class="val" id="k3">0</div></div>
+  <div class="kpi red"><div class="lbl">Total Débito</div><div class="val" id="k4">—</div></div>
 </div>
 
-<!-- TABS -->
-<div class="tabs" id="tabs" style="display:none">
+<div class="tabs" id="tabs">
   <div class="tab active" onclick="showTab('cc',this)">Conta Corrente</div>
   <div class="tab" onclick="showTab('mensal',this)">Resumo Mensal</div>
   <div class="tab" onclick="showTab('produto',this)">Por Produto</div>
@@ -173,590 +102,389 @@
 
 <div id="content">
   <div id="empty">
-    <div class="icon">🔐</div>
-    <div class="msg">Inicia sessão com a tua conta M365</div>
-    <div class="sub">Os dados são carregados automaticamente do SharePoint</div>
+    <div class="ei">🔐</div>
+    <div class="em">Inicia sessão com a tua conta M365</div>
+    <div class="es">Os dados são carregados automaticamente do SharePoint</div>
   </div>
 </div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────────
-const TENANT_ID  = "a914409c-82a2-4746-85f0-f51bd2711c33";
-const CLIENT_ID  = "6e166a10-9f36-4888-9a23-1734f238d2d0";
-const SP_HOST    = "cbcascais.sharepoint.com";
-const SP_SITE    = "/";                          // site raiz
-const SP_LIB     = "Documentos Partilhados";
-const FOLDER_ROOT= "Sinistralidade 2026";
-const FOLDER_MEN = "Sinistralidade 2026/Mensais";
-const FOLDER_SIN = "Sinistralidade 2026/Sinistros";
-const MESES_NOME = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+// ── CONFIG
+const TENANT="a914409c-82a2-4746-85f0-f51bd2711c33";
+const CLIENT="6e166a10-9f36-4888-9a23-1734f238d2d0";
+const SP_HOST="cbcascais.sharepoint.com";
+const SP_LIB="Documentos Partilhados";
+const FOLDER_M="Sinistralidade 2026/Mensais";
+const FOLDER_S="Sinistralidade 2026/Sinistros";
+const SCOPES=["User.Read","Files.Read.All","Sites.Read.All"];
+const MN=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-// ── MSAL ────────────────────────────────────────────────────────────────
-const msalConfig = {
-  auth: { clientId: CLIENT_ID, authority: "https://login.microsoftonline.com/"+TENANT_ID, redirectUri: window.location.origin },
-  cache: { cacheLocation:"sessionStorage" }
-};
-const msalInstance = new msal.PublicClientApplication(msalConfig);
-const scopes = ["User.Read","Files.Read.All","Sites.Read.All"];
-let accessToken = null;
+// ── MSAL — carregado dinamicamente para garantir que está pronto
+let _msal=null;
+let _token=null;
 
-async function doLogin() {
-  try {
-    showLoader("A autenticar...");
-    const instance = initMsal();
-    await instance.initialize();
-    const resp = await instance.loginPopup({ scopes });
-    instance.setActiveAccount(resp.account);
-    document.getElementById("user-name").textContent = "👤 " + resp.account.name;
-    document.getElementById("btn-login").textContent = "✅ " + resp.account.username;
-    document.getElementById("btn-login").style.background = "rgba(22,163,74,.4)";
-    await getToken();
-    await loadFromSharePoint();
-  } catch(e) { hideLoader(); alert("Erro ao autenticar: " + e.message); }
-}
-
-async function getToken() {
-  const instance = initMsal();
-  const acc = instance.getActiveAccount();
-  if (!acc) return;
-  const r = await instance.acquireTokenSilent({ scopes, account: acc });
-  accessToken = r.accessToken;
-}
-
-async function graphGet(url) {
-  if (!accessToken) await getToken();
-  const r = await fetch("https://graph.microsoft.com/v1.0" + url, {
-    headers: { Authorization: "Bearer " + accessToken }
+function loadMsalScript(){
+  return new Promise((res,rej)=>{
+    if(window.msal){res();return;}
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/2.38.3/msal-browser.min.js";
+    s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
   });
-  if (!r.ok) throw new Error("Graph API error: " + r.status + " " + url);
+}
+
+async function getMsal(){
+  if(_msal) return _msal;
+  await loadMsalScript();
+  _msal=new window.msal.PublicClientApplication({
+    auth:{clientId:CLIENT,authority:"https://login.microsoftonline.com/"+TENANT,redirectUri:window.location.href.split("?")[0].split("#")[0]},
+    cache:{cacheLocation:"sessionStorage"}
+  });
+  await _msal.initialize();
+  return _msal;
+}
+
+async function doLogin(){
+  try{
+    showL("A autenticar...");
+    const m=await getMsal();
+    const r=await m.loginPopup({scopes:SCOPES});
+    m.setActiveAccount(r.account);
+    setUser(r.account);
+    await getToken();
+    await loadSP();
+  }catch(e){hideL();alert("Erro ao autenticar: "+e.message);}
+}
+
+async function getToken(){
+  const m=await getMsal();
+  const a=m.getActiveAccount();
+  if(!a) return;
+  const r=await m.acquireTokenSilent({scopes:SCOPES,account:a});
+  _token=r.accessToken;
+}
+
+function setUser(acc){
+  document.getElementById("user-name").textContent="👤 "+acc.name;
+  const b=document.getElementById("btn-login");
+  b.textContent="✅ "+acc.username;
+  b.style.background="rgba(22,163,74,.4)";
+}
+
+async function graph(url){
+  if(!_token) await getToken();
+  const r=await fetch("https://graph.microsoft.com/v1.0"+url,{headers:{Authorization:"Bearer "+_token}});
+  if(!r.ok) throw new Error("Graph "+r.status+": "+url);
   return r.json();
 }
 
-async function graphGetBinary(url) {
-  if (!accessToken) await getToken();
-  const r = await fetch("https://graph.microsoft.com/v1.0" + url, {
-    headers: { Authorization: "Bearer " + accessToken }
-  });
-  if (!r.ok) throw new Error("Graph API error: " + r.status);
-  return r.arrayBuffer();
-}
+// ── SHAREPOINT
+let STATE={allData:[],gestData:[],clientes:[],meses:[]};
+let curTab="cc",anualView="cliente",fCli="",fMulti=false;
+let expCli={},expAp={},expOc={},expMov={};
 
-// ── SHAREPOINT HELPERS ───────────────────────────────────────────────────
-function encPath(p) { return encodeURIComponent(p).replace(/%2F/g,"/"); }
-
-async function listFolder(folderPath) {
-  const path = "/sites/root/drives";
-  const drives = await graphGet("/sites/" + SP_HOST + ":/drives");
-  const lib = drives.value.find(d => d.name === SP_LIB || d.webUrl.includes(encodeURIComponent(SP_LIB)));
-  if (!lib) throw new Error("Biblioteca '" + SP_LIB + "' não encontrada");
-  const items = await graphGet("/drives/" + lib.id + "/root:/" + encPath(folderPath) + ":/children");
-  return { driveId: lib.id, items: items.value };
-}
-
-async function downloadFile(driveId, itemId) {
-  const meta = await graphGet("/drives/" + driveId + "/items/" + itemId + "/content");
-  // content returns redirect, use @microsoft.graph.downloadUrl
-  const item = await graphGet("/drives/" + driveId + "/items/" + itemId);
-  const url  = item["@microsoft.graph.downloadUrl"];
-  const r    = await fetch(url);
-  return r.arrayBuffer();
-}
-
-// ── CARREGAR DO SHAREPOINT ───────────────────────────────────────────────
-let STATE = { allData:[], gestData:[], meses:[], clientes:[] };
-
-async function loadFromSharePoint() {
-  try {
-    showLoader("A ligar ao SharePoint...");
+async function loadSP(){
+  try{
+    showL("A ligar ao SharePoint...");
     await getToken();
+    const drives=await graph("/sites/"+SP_HOST+":/drives");
+    const lib=drives.value.find(d=>d.name===SP_LIB||d.webUrl.includes("Documentos"));
+    if(!lib) throw new Error("Biblioteca não encontrada");
+    const dId=lib.id;
 
-    // Listar ficheiros Mensais
-    showLoader("A ler pasta Mensais...");
-    const { driveId, items: mensais } = await listFolder(FOLDER_MEN);
-    const xlsMensais = mensais.filter(f => f.name.match(/\.(xlsx|xls)$/i));
+    showL("A ler ficheiros mensais...");
+    const men=await graph("/drives/"+dId+"/root:/"+encodeURIComponent(FOLDER_M)+":/children");
+    const xls=men.value.filter(f=>f.name.match(/\.(xlsx|xls)$/i));
 
-    // Listar ficheiros Sinistros
-    showLoader("A ler pasta Sinistros...");
-    const { items: sinItems } = await listFolder(FOLDER_SIN);
-    const xlsSin = sinItems.filter(f => f.name.match(/\.(xlsx|xls)$/i));
+    showL("A ler ficheiros sinistros...");
+    const sin=await graph("/drives/"+dId+"/root:/"+encodeURIComponent(FOLDER_S)+":/children");
+    const xsin=sin.value.filter(f=>f.name.match(/\.(xlsx|xls)$/i));
 
-    STATE.allData  = [];
-    STATE.gestData = [];
+    STATE.allData=[];
+    STATE.gestData=[];
 
-    // Processar mensais
-    for (const f of xlsMensais) {
-      showLoader("A processar " + f.name + "...");
-      const buf  = await downloadFile(driveId, f.id);
-      const rows = parseExcelBuf(buf);
-      if (!rows.length) continue;
-      const headers = Object.keys(rows[0]);
-      const m = autoMapSin(headers);
-      if (!m) continue;
-      // Extrair mês do nome do ficheiro ou da data de modificação
-      const mesLabel = extractMes(f.name, f.lastModifiedDateTime);
-      const mapped   = rows.map(r => mapRowSin(r, m));
-      STATE.allData.push({ mesLabel, fileName: f.name, rows: mapped });
+    for(const f of xls){
+      showL("A processar "+f.name+"...");
+      const item=await graph("/drives/"+dId+"/items/"+f.id);
+      const url=item["@microsoft.graph.downloadUrl"];
+      const buf=await(await fetch(url)).arrayBuffer();
+      const rows=parseXls(buf);
+      if(!rows.length) continue;
+      const m=autoSin(Object.keys(rows[0]));
+      if(!m) continue;
+      const mes=getMes(f.name,f.lastModifiedDateTime);
+      STATE.allData.push({mesLabel:mes,fileName:f.name,rows:rows.map(r=>mapSin(r,m))});
     }
-    STATE.allData.sort((a,b) => a.mesLabel.localeCompare(b.mesLabel));
+    STATE.allData.sort((a,b)=>a.mesLabel.localeCompare(b.mesLabel));
 
-    // Processar sinistros (último ficheiro da pasta)
-    if (xlsSin.length) {
-      const f   = xlsSin[xlsSin.length - 1];
-      showLoader("A processar sinistros " + f.name + "...");
-      const buf = await downloadFile(driveId, f.id);
-      const rows = parseExcelBuf(buf);
-      if (rows.length) {
-        const headers = Object.keys(rows[0]);
-        const m = autoMapGest(headers);
-        if (m) STATE.gestData = rows.map(r => mapRowGest(r, m));
+    if(xsin.length){
+      const f=xsin[xsin.length-1];
+      showL("A processar sinistros...");
+      const item=await graph("/drives/"+dId+"/items/"+f.id);
+      const url=item["@microsoft.graph.downloadUrl"];
+      const buf=await(await fetch(url)).arrayBuffer();
+      const rows=parseXls(buf);
+      if(rows.length){
+        const m=autoGest(Object.keys(rows[0]));
+        if(m) STATE.gestData=rows.map(r=>mapGest(r,m));
       }
     }
 
-    buildHierarchy();
-    renderAll();
-    updateStatus(xlsMensais, xlsSin);
-    hideLoader();
-  } catch(e) {
-    hideLoader();
-    alert("Erro ao carregar dados:\n" + e.message);
-    console.error(e);
+    build();
+    render();
+    document.getElementById("st1").textContent=xls.length+" ficheiro(s)";
+    document.getElementById("st2").textContent=xsin.length?xsin[xsin.length-1].name:"Não encontrado";
+    document.getElementById("st3").textContent=new Date().toLocaleString("pt-PT");
+    hideL();
+  }catch(e){hideL();alert("Erro: "+e.message);console.error(e);}
+}
+
+function getMes(name,dt){
+  const m=name.match(/(\d{4})[_\-\s]?(\d{2})/);
+  if(m) return m[1]+"-"+m[2];
+  const d=new Date(dt);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+}
+
+// ── EXCEL
+function parseXls(buf){
+  const wb=XLSX.read(buf,{type:"array"});
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
+}
+function xDate(v){
+  if(!v) return "";
+  if(typeof v==="number") return new Date(Math.round((v-25569)*86400*1000)).toLocaleDateString("pt-PT");
+  const d=new Date(v); return isNaN(d)?String(v):d.toLocaleDateString("pt-PT");
+}
+
+const CS={cliente:["cliente","client","nome cliente","tomador"],apolice:["apólice","apolice","nº apólice","policia"],produto:["produto","ramo","linha"],ocorrencia:["ocorrência","ocorrencia","nº ocorrência","ocorr","nº ocorr"],dataocorrencia:["data ocorrência","data ocorrencia","dt ocorrência","data ocorr","data sinistro"],sinistro:["sinistro","nº sinistro","num sinistro","sin"],valor:["valor","montante","custo"]};
+const CG={ocorrencia:["ocorrência","ocorrencia","nº ocorrência","ocorr","nº ocorr"],dataabertura:["data abertura","dt abertura","abertura"],dataocorrencia:["data ocorrência","data ocorrencia","data ocorr"],datareabertura:["data reabertura","reabertura"],dataencerramento:["data encerramento","encerramento","data fecho"],situacao:["situação","situacao","estado","status"],qtasinistros:["qta sinistros","qtd sinistros","nº sinistros","qt sinistros"]};
+
+function dc(headers,cands){const h=headers.map(x=>x?.toString().toLowerCase().trim());for(const c of cands){const i=h.findIndex(x=>x===c||x?.includes(c));if(i>=0)return headers[i];}return null;}
+function autoSin(h){const m={};for(const[k,c]of Object.entries(CS))m[k]=dc(h,c);return["cliente","apolice","ocorrencia","sinistro","valor"].every(k=>m[k])?m:null;}
+function autoGest(h){const m={};for(const[k,c]of Object.entries(CG))m[k]=dc(h,c);return m.ocorrencia?m:null;}
+function mapSin(r,m){return{cliente:String(r[m.cliente]??""),apolice:String(r[m.apolice]??""),produto:String(r[m.produto]??""),ocorrencia:String(r[m.ocorrencia]??"").trim(),dataocorrencia:xDate(r[m.dataocorrencia]),sinistro:String(r[m.sinistro]??"").trim(),valor:parseFloat(r[m.valor]??0)||0};}
+function mapGest(r,m){return{ocorrencia:String(r[m.ocorrencia]??"").trim(),dataabertura:xDate(r[m.dataabertura]),dataocorrencia:xDate(r[m.dataocorrencia]),datareabertura:xDate(r[m.datareabertura]),dataencerramento:xDate(r[m.dataencerramento]),situacao:String(r[m.situacao]??""),qtasinistros:(r[m.qtasinistros]!==""&&r[m.qtasinistros]!==undefined)?(parseInt(r[m.qtasinistros])||0):null};}
+
+// ── HIERARQUIA
+function build(){
+  const gm={};for(const r of STATE.gestData) gm[r.ocorrencia]=r;
+  const sm={};
+  for(const{mesLabel,rows}of STATE.allData)for(const r of rows){
+    const k=r.cliente+"||"+r.apolice+"||"+r.ocorrencia+"||"+r.sinistro;
+    if(!sm[k])sm[k]={...r,vpm:{}};
+    sm[k].vpm[mesLabel]=(sm[k].vpm[mesLabel]??0)+r.valor;
   }
-}
-
-function extractMes(fileName, lastMod) {
-  // tenta YYYY-MM no nome
-  const m = fileName.match(/(\d{4})[_\-\s]?(\d{2})/);
-  if (m) return m[1] + "-" + m[2];
-  // usa data de modificação
-  const d = new Date(lastMod);
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
-}
-
-// ── PARSE EXCEL ──────────────────────────────────────────────────────────
-function parseExcelBuf(buf) {
-  const wb = XLSX.read(buf, { type:"array" });
-  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:"" });
-}
-
-function excelDate(raw) {
-  if (!raw) return "";
-  if (typeof raw === "number") return new Date(Math.round((raw-25569)*86400*1000)).toLocaleDateString("pt-PT");
-  const d = new Date(raw); return isNaN(d) ? String(raw) : d.toLocaleDateString("pt-PT");
-}
-
-const COLS_SIN = {
-  cliente:        ["cliente","client","nome cliente","tomador"],
-  apolice:        ["apólice","apolice","nº apólice","num apolice","policia"],
-  produto:        ["produto","product","ramo","linha","tipo produto"],
-  ocorrencia:     ["ocorrência","ocorrencia","nº ocorrência","num ocorrencia","ocorr","nº ocorr"],
-  dataocorrencia: ["data ocorrência","data ocorrencia","dt ocorrência","data ocorr","data sinistro"],
-  sinistro:       ["sinistro","nº sinistro","num sinistro","sin"],
-  valor:          ["valor","montante","importe","amount","custo"],
-};
-const COLS_GEST = {
-  ocorrencia:       ["ocorrência","ocorrencia","nº ocorrência","num ocorrencia","ocorr","nº ocorr"],
-  dataabertura:     ["data abertura","dt abertura","abertura"],
-  dataocorrencia:   ["data ocorrência","data ocorrencia","dt ocorrência","data ocorr"],
-  datareabertura:   ["data reabertura","dt reabertura","reabertura"],
-  dataencerramento: ["data encerramento","dt encerramento","encerramento","data fecho"],
-  situacao:         ["situação","situacao","estado","status","state"],
-  qtasinistros:     ["qta sinistros","qtd sinistros","quantidade sinistros","nº sinistros","qt sinistros"],
-};
-
-function detectCol(headers, cands) {
-  const h = headers.map(x => x?.toString().toLowerCase().trim());
-  for (const c of cands) { const i = h.findIndex(x => x===c||x?.includes(c)); if(i>=0) return headers[i]; }
-  return null;
-}
-function autoMapSin(headers) {
-  const m = {};
-  for (const [k,cands] of Object.entries(COLS_SIN)) m[k] = detectCol(headers, cands);
-  const req = ["cliente","apolice","ocorrencia","sinistro","valor"];
-  return req.every(k=>m[k]) ? m : null;
-}
-function autoMapGest(headers) {
-  const m = {};
-  for (const [k,cands] of Object.entries(COLS_GEST)) m[k] = detectCol(headers, cands);
-  return m.ocorrencia ? m : null;
-}
-function mapRowSin(r,m) {
-  return {
-    cliente:        String(r[m.cliente]    ??""),
-    apolice:        String(r[m.apolice]    ??""),
-    produto:        String(r[m.produto]    ??""),
-    ocorrencia:     String(r[m.ocorrencia] ??"").trim(),
-    dataocorrencia: excelDate(r[m.dataocorrencia]),
-    sinistro:       String(r[m.sinistro]   ??"").trim(),
-    valor:          parseFloat(r[m.valor]  ??0)||0,
-  };
-}
-function mapRowGest(r,m) {
-  return {
-    ocorrencia:       String(r[m.ocorrencia]       ??"").trim(),
-    dataabertura:     excelDate(r[m.dataabertura]),
-    dataocorrencia:   excelDate(r[m.dataocorrencia]),
-    datareabertura:   excelDate(r[m.datareabertura]),
-    dataencerramento: excelDate(r[m.dataencerramento]),
-    situacao:         String(r[m.situacao]         ??""),
-    qtasinistros:     (r[m.qtasinistros]!==undefined&&r[m.qtasinistros]!=="")?(parseInt(r[m.qtasinistros])||0):null,
-  };
-}
-
-// ── HIERARQUIA ───────────────────────────────────────────────────────────
-function buildHierarchy() {
-  const gestMap = {};
-  for (const r of STATE.gestData) gestMap[r.ocorrencia] = r;
-
-  const sinMap = {};
-  for (const {mesLabel, rows} of STATE.allData) {
-    for (const r of rows) {
-      const sk = r.cliente+"||"+r.apolice+"||"+r.ocorrencia+"||"+r.sinistro;
-      if (!sinMap[sk]) sinMap[sk] = {...r, valoresPorMes:{}};
-      sinMap[sk].valoresPorMes[mesLabel] = (sinMap[sk].valoresPorMes[mesLabel]??0)+r.valor;
-    }
-  }
-
-  const sinistros = Object.values(sinMap).map(s => {
-    const mOrd = Object.keys(s.valoresPorMes).sort();
-    let saldo = 0;
-    const movimentos = mOrd.map((mes,i) => {
-      const vA=s.valoresPorMes[mes], vP=i===0?0:(s.valoresPorMes[mOrd[i-1]]??0);
-      const mov=vA-vP; saldo+=mov;
-      return {mes,valorFicheiro:vA,movimento:mov,saldo};
-    });
-    return {...s,movimentos,saldo};
+  const sins=Object.values(sm).map(s=>{
+    const mo=Object.keys(s.vpm).sort();let saldo=0;
+    const movimentos=mo.map((mes,i)=>{const vA=s.vpm[mes],vP=i===0?0:(s.vpm[mo[i-1]]??0),mov=vA-vP;saldo+=mov;return{mes,vf:vA,mov,saldo};});
+    return{...s,movimentos,saldo};
   });
-
-  const cliMap = {};
-  for (const s of sinistros) {
-    if (!cliMap[s.cliente]) cliMap[s.cliente]={cliente:s.cliente,apolices:{}};
-    const cM=cliMap[s.cliente];
-    if (!cM.apolices[s.apolice]) cM.apolices[s.apolice]={apolice:s.apolice,ocorrencias:{}};
-    const aM=cM.apolices[s.apolice];
-    if (!aM.ocorrencias[s.ocorrencia]) aM.ocorrencias[s.ocorrencia]={ocorrencia:s.ocorrencia,dataocorrencia:s.dataocorrencia,produto:s.produto,sinistros:[]};
-    aM.ocorrencias[s.ocorrencia].sinistros.push(s);
+  const cm={};
+  for(const s of sins){
+    if(!cm[s.cliente])cm[s.cliente]={cliente:s.cliente,apolices:{}};
+    const c=cm[s.cliente];
+    if(!c.apolices[s.apolice])c.apolices[s.apolice]={apolice:s.apolice,ocorrencias:{}};
+    const a=c.apolices[s.apolice];
+    if(!a.ocorrencias[s.ocorrencia])a.ocorrencias[s.ocorrencia]={ocorrencia:s.ocorrencia,dataocorrencia:s.dataocorrencia,produto:s.produto,sinistros:[]};
+    a.ocorrencias[s.ocorrencia].sinistros.push(s);
   }
-
-  STATE.clientes = Object.values(cliMap).map(cli => {
-    const apolices = Object.values(cli.apolices).map(ap => {
-      const ocorrencias = Object.values(ap.ocorrencias).map(oc => {
-        const saldoTotal=oc.sinistros.reduce((s,x)=>s+x.saldo,0);
-        return {...oc,saldoTotal,gestao:gestMap[oc.ocorrencia]??null};
-      });
-      return {...ap,ocorrencias,saldoTotal:ocorrencias.reduce((s,x)=>s+x.saldoTotal,0)};
+  STATE.clientes=Object.values(cm).map(c=>{
+    const apolices=Object.values(c.apolices).map(a=>{
+      const ocs=Object.values(a.ocorrencias).map(o=>({...o,saldoT:o.sinistros.reduce((s,x)=>s+x.saldo,0),gestao:gm[o.ocorrencia]??null}));
+      return{...a,ocorrencias:ocs,saldoT:ocs.reduce((s,x)=>s+x.saldoT,0)};
     });
-    return {...cli,apolices,saldoTotal:apolices.reduce((s,x)=>s+x.saldoTotal,0)};
+    return{...c,apolices,saldoT:apolices.reduce((s,x)=>s+x.saldoT,0)};
   });
-
-  STATE.meses = [...new Set(STATE.allData.map(d=>d.mesLabel))].sort();
+  STATE.meses=[...new Set(STATE.allData.map(d=>d.mesLabel))].sort();
 }
 
-// ── FORMATAÇÃO ───────────────────────────────────────────────────────────
-const fmt = v => { const n=parseFloat(v); if(isNaN(n)) return "—"; return new Intl.NumberFormat("pt-PT",{style:"currency",currency:"EUR"}).format(n); };
-const clrClass = v => v<0?"neg":v>0?"pos":"zero";
-const mesMes   = mes => { if(!mes) return ""; const [a,m]=mes.split("-"); return MESES_NOME[parseInt(m,10)-1]+" "+a; };
-const badge    = v => `<span class="badge ${v<0?"deb":v>0?"cred":"sal"}">${v<0?"Débito":v>0?"Crédito":"Saldado"}</span>`;
-const sitBadge = sit => {
-  if (!sit) return "—";
-  const s=sit.toLowerCase();
-  let cls="background:#f3f4f6;color:#6b7280";
-  if(s.includes("encerr")||s.includes("fech")) cls="background:#e5e7eb;color:#374151";
-  else if(s.includes("reaber")) cls="background:#ffedd5;color:#c2410c";
-  else if(s.includes("aber")||s.includes("ativo")||s.includes("aberto")) cls="background:#dbeafe;color:#1d4ed8";
-  else if(s.includes("pend")) cls="background:#fef9c3;color:#854d0e";
-  return `<span class="sit-badge" style="${cls}">${sit}</span>`;
-};
+// ── FORMAT
+const fmt=v=>{const n=parseFloat(v);if(isNaN(n))return"—";return new Intl.NumberFormat("pt-PT",{style:"currency",currency:"EUR"}).format(n);};
+const cc=v=>v<0?"neg":v>0?"pos":"zero";
+const mm=m=>{if(!m)return"";const[a,n]=m.split("-");return MN[parseInt(n,10)-1]+" "+a;};
+const bdg=v=>`<span class="badge ${v<0?"deb":v>0?"cred":"sal"}">${v<0?"Débito":v>0?"Crédito":"Saldado"}</span>`;
+const sit=s=>{if(!s)return"—";const l=s.toLowerCase();let st="background:#f3f4f6;color:#6b7280";if(l.includes("encerr")||l.includes("fech"))st="background:#e5e7eb;color:#374151";else if(l.includes("reaber"))st="background:#ffedd5;color:#c2410c";else if(l.includes("aber")||l.includes("ativo"))st="background:#dbeafe;color:#1d4ed8";else if(l.includes("pend"))st="background:#fef9c3;color:#854d0e";return`<span class="sit" style="${st}">${s}</span>`;};
 
-// ── RENDER ALL ───────────────────────────────────────────────────────────
-let currentTab = "cc";
-let anualView  = "cliente";
-let expandedCli={}, expandedAp={}, expandedOcorr={}, expandedMovs={};
-let filterCli="", filterMulti=false;
-
-function renderAll() {
-  const c = STATE.clientes;
+// ── RENDER
+function render(){
+  const c=STATE.clientes;
   document.getElementById("kpis").style.display="grid";
   document.getElementById("tabs").style.display="flex";
-  document.getElementById("kpi-cli").textContent  = c.length;
-  document.getElementById("kpi-ocorr").textContent= c.reduce((s,x)=>s+x.apolices.reduce((s2,a)=>s2+a.ocorrencias.length,0),0);
-  document.getElementById("kpi-sin").textContent  = c.reduce((s,x)=>s+x.apolices.reduce((s2,a)=>s2+a.ocorrencias.reduce((s3,o)=>s3+o.sinistros.length,0),0),0);
-  const totalDeb=c.filter(x=>x.saldoTotal<0).reduce((s,x)=>s+x.saldoTotal,0);
-  document.getElementById("kpi-deb").textContent  = fmt(totalDeb);
-  const mh=document.getElementById("meses-header"); mh.innerHTML="";
-  STATE.meses.forEach(m=>{const s=document.createElement("span");s.className="mes-badge";s.textContent=mesMes(m);mh.appendChild(s);});
-  showTab(currentTab);
+  document.getElementById("k1").textContent=c.length;
+  document.getElementById("k2").textContent=c.reduce((s,x)=>s+x.apolices.reduce((s2,a)=>s2+a.ocorrencias.length,0),0);
+  document.getElementById("k3").textContent=c.reduce((s,x)=>s+x.apolices.reduce((s2,a)=>s2+a.ocorrencias.reduce((s3,o)=>s3+o.sinistros.length,0),0),0);
+  document.getElementById("k4").textContent=fmt(c.filter(x=>x.saldoT<0).reduce((s,x)=>s+x.saldoT,0));
+  const mh=document.getElementById("mh");mh.innerHTML="";
+  STATE.meses.forEach(m=>{const s=document.createElement("span");s.className="mes-badge";s.textContent=mm(m);mh.appendChild(s);});
+  showTab(curTab);
 }
 
-function showTab(id, el) {
-  currentTab=id;
+function showTab(id,el){
+  curTab=id;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  if(el) el.classList.add("active");
-  else document.querySelectorAll(".tab").forEach(t=>{ if(t.textContent.toLowerCase().includes(id)||t.getAttribute("onclick")?.includes("'"+id+"'")) t.classList.add("active"); });
-  const div=document.getElementById("content");
-  if(id==="cc")      div.innerHTML = renderCC();
-  else if(id==="mensal") div.innerHTML = renderMensal();
-  else if(id==="produto")div.innerHTML = renderProduto();
-  else if(id==="anual")  div.innerHTML = renderAnual();
+  if(el)el.classList.add("active");
+  else document.querySelectorAll(".tab").forEach(t=>{if(t.getAttribute("onclick")?.includes("'"+id+"'"))t.classList.add("active");});
+  const d=document.getElementById("content");
+  if(id==="cc")d.innerHTML=rCC();
+  else if(id==="mensal")d.innerHTML=rMensal();
+  else if(id==="produto")d.innerHTML=rProduto();
+  else if(id==="anual")d.innerHTML=rAnual();
 }
 
-// ── CONTA CORRENTE ───────────────────────────────────────────────────────
-function renderCC() {
-  const multiSet=new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
-  const filtered=STATE.clientes.filter(c=>{
-    if(filterCli && filterCli!==c.cliente) return false;
-    if(filterMulti && !multiSet.has(c.cliente)) return false;
-    return true;
-  });
-  const hasGest=STATE.gestData.length>0;
-  const totalSaldo=filtered.reduce((s,c)=>s+c.saldoTotal,0);
-  const totalDeb=filtered.filter(c=>c.saldoTotal<0).reduce((s,c)=>s+c.saldoTotal,0);
-  const totalCred=filtered.filter(c=>c.saldoTotal>0).reduce((s,c)=>s+c.saldoTotal,0);
-
-  const cliOptions=STATE.clientes.map(c=>`<option value="${c.cliente}" ${filterCli===c.cliente?"selected":""}>${c.cliente}</option>`).join("");
-  const multiCount=multiSet.size;
-
-  let html=`<div class="filters">
-    <select onchange="filterCli=this.value;showTab('cc')"><option value="">Todos os clientes</option>${cliOptions}</select>
-    <button class="${filterMulti?"active":""}" onclick="filterMulti=!filterMulti;showTab('cc')">🔀 Múltiplas apólices${multiCount?`<span class="multi-badge">${multiCount}</span>`:""}</button>
-    <button onclick="filterCli='';filterMulti=false;showTab('cc')">Limpar</button>
-    <button class="btn-export" onclick="exportExcel()">⬇ Exportar</button>
+// ── CC
+function rCC(){
+  const multi=new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
+  const fil=STATE.clientes.filter(c=>{if(fCli&&fCli!==c.cliente)return false;if(fMulti&&!multi.has(c.cliente))return false;return true;});
+  const hg=STATE.gestData.length>0;
+  const ts=fil.reduce((s,c)=>s+c.saldoT,0);
+  const td=fil.filter(c=>c.saldoT<0).reduce((s,c)=>s+c.saldoT,0);
+  const tc=fil.filter(c=>c.saldoT>0).reduce((s,c)=>s+c.saldoT,0);
+  const opts=STATE.clientes.map(c=>`<option value="${c.cliente}" ${fCli===c.cliente?"selected":""}>${c.cliente}</option>`).join("");
+  let h=`<div class="filters">
+    <select onchange="fCli=this.value;showTab('cc')"><option value="">Todos os clientes</option>${opts}</select>
+    <button class="${fMulti?"act":""}" onclick="fMulti=!fMulti;showTab('cc')">🔀 Múltiplas apólices${multi.size?`<span class="mb">${multi.size}</span>`:""}</button>
+    <button onclick="fCli='';fMulti=false;showTab('cc')">Limpar</button>
+    <button class="btn-exp" onclick="exportXls()">⬇ Exportar</button>
   </div>
-  <div class="table-wrap"><table>
-  <thead><tr>
-    <th style="width:30px"></th>
-    <th>Nº / Nome</th><th>Data Ocorr.</th><th>Produto</th>
-    ${hasGest?"<th>Qta.Sin.</th><th>Situação</th><th>Dt.Abertura</th><th>Dt.Reabertura</th><th>Dt.Encerramento</th>":""}
+  <div class="tw"><table><thead><tr>
+    <th style="width:30px"></th><th>Cliente / Apólice / Ocorrência</th><th>Data Ocorr.</th><th>Produto</th>
+    ${hg?"<th>Qta.</th><th>Situação</th><th>Dt.Abertura</th><th>Dt.Reabertura</th><th>Dt.Encerramento</th>":""}
     <th style="text-align:right">Saldo</th><th>Estado</th>
   </tr></thead><tbody>`;
 
-  filtered.forEach((cli,ci)=>{
-    const cKey=cli.cliente;
-    const expC=expandedCli[cKey];
-    const bg=ci%2===0?"#e8edf8":"#dce4f5";
-    const isMulti=multiSet.has(cli.cliente);
-    html+=`<tr class="tr-cli" style="background:${bg}" onclick="toggleCli('${cKey}')">
+  fil.forEach((c,ci)=>{
+    const ck=c.cliente,expC=expCli[ck],bg=ci%2===0?"#e8edf8":"#dce4f5";
+    h+=`<tr style="background:${bg};cursor:pointer" onclick="expCli['${ck}']=!expCli['${ck}'];showTab('cc')">
       <td style="text-align:center;color:var(--navy);font-weight:700">${expC?"▼":"▶"}</td>
-      <td colspan="3" style="font-weight:700;color:var(--navy)">${cli.cliente}${isMulti?`<span class="multi-badge">${cli.apolices.length} ap.</span>`:""}</td>
-      ${hasGest?"<td colspan='5'></td>":""}
-      <td style="text-align:right" class="${clrClass(cli.saldoTotal)}">${fmt(cli.saldoTotal)}</td>
-      <td>${badge(cli.saldoTotal)}</td>
-    </tr>`;
-
-    if(expC) cli.apolices.forEach(ap=>{
-      const apKey=cKey+"||"+ap.apolice;
-      const expA=expandedAp[apKey];
-      html+=`<tr class="tr-ap" style="background:#c5d5ef" onclick="toggleAp('${apKey}')">
-        <td style="text-align:center;padding-left:24px;font-weight:700;color:var(--navy)">${expA?"▼":"▶"}</td>
-        <td colspan="3" style="font-weight:700;color:var(--navy)"><span style="font-weight:400;color:#666;font-size:11px">Apólice </span>${ap.apolice}</td>
-        ${hasGest?"<td colspan='5'></td>":""}
-        <td style="text-align:right" class="${clrClass(ap.saldoTotal)}">${fmt(ap.saldoTotal)}</td>
-        <td>${badge(ap.saldoTotal)}</td>
-      </tr>`;
-
-      if(expA) ap.ocorrencias.forEach(oc=>{
-        const ocKey=apKey+"||"+oc.ocorrencia;
-        const expO=expandedOcorr[ocKey];
-        const g=oc.gestao;
-        html+=`<tr class="tr-oc" style="background:#dce6f7" onclick="toggleOc('${ocKey}')">
-          <td style="text-align:center;padding-left:48px;font-weight:700;color:#1d4ed8">${expO?"▼":"▶"}</td>
-          <td style="font-weight:700;color:#1d4ed8">${oc.ocorrencia}</td>
-          <td style="color:#666">${oc.dataocorrencia||"—"}</td>
-          <td>${oc.produto||"—"}</td>
-          ${hasGest?`<td style="text-align:center;font-weight:600">${g?(g.qtasinistros??"—"):"—"}</td><td>${g?sitBadge(g.situacao):"—"}</td><td>${g?(g.dataabertura||"—"):"—"}</td><td>${g?(g.datareabertura||"—"):"—"}</td><td>${g?(g.dataencerramento||"—"):"—"}</td>`:""}
-          <td style="text-align:right;font-weight:700" class="${clrClass(oc.saldoTotal)}">${fmt(oc.saldoTotal)}</td>
-          <td>${badge(oc.saldoTotal)}</td>
-        </tr>`;
-
-        if(expO) oc.sinistros.forEach(s=>{
-          const sKey=ocKey+"||"+s.sinistro;
-          const expM=expandedMovs[sKey];
-          html+=`<tr class="tr-sin" style="background:#eef2fb">
-            <td style="text-align:center;padding-left:72px"><button style="border:none;background:none;cursor:pointer;color:#6366f1;font-weight:700" onclick="toggleMov('${sKey}')">${expM?"▼":"▶"}</button></td>
+      <td colspan="3" style="font-weight:700;color:var(--navy)">${c.cliente}${multi.has(c.cliente)?`<span class="mb">${c.apolices.length}</span>`:""}</td>
+      ${hg?"<td colspan='5'></td>":""}
+      <td style="text-align:right" class="${cc(c.saldoT)}">${fmt(c.saldoT)}</td><td>${bdg(c.saldoT)}</td></tr>`;
+    if(expC)c.apolices.forEach(a=>{
+      const ak=ck+"||"+a.apolice,expA=expAp[ak];
+      h+=`<tr style="background:#c5d5ef;cursor:pointer" onclick="expAp['${ak}']=!expAp['${ak}'];showTab('cc')">
+        <td style="padding-left:20px;font-weight:700;color:var(--navy)">${expA?"▼":"▶"}</td>
+        <td colspan="3" style="font-weight:700;color:var(--navy)"><span style="font-weight:400;color:#666">Apólice </span>${a.apolice}</td>
+        ${hg?"<td colspan='5'></td>":""}
+        <td style="text-align:right" class="${cc(a.saldoT)}">${fmt(a.saldoT)}</td><td>${bdg(a.saldoT)}</td></tr>`;
+      if(expA)a.ocorrencias.forEach(o=>{
+        const ok=ak+"||"+o.ocorrencia,expO=expOc[ok],g=o.gestao;
+        h+=`<tr style="background:#dce6f7;cursor:pointer" onclick="expOc['${ok}']=!expOc['${ok}'];showTab('cc')">
+          <td style="padding-left:40px;font-weight:700;color:#1d4ed8">${expO?"▼":"▶"}</td>
+          <td style="font-weight:700;color:#1d4ed8">${o.ocorrencia}</td>
+          <td style="color:#666">${o.dataocorrencia||"—"}</td><td>${o.produto||"—"}</td>
+          ${hg?`<td style="text-align:center">${g?(g.qtasinistros??"—"):"—"}</td><td>${g?sit(g.situacao):"—"}</td><td>${g?(g.dataabertura||"—"):"—"}</td><td>${g?(g.datareabertura||"—"):"—"}</td><td>${g?(g.dataencerramento||"—"):"—"}</td>`:""}
+          <td style="text-align:right;font-weight:700" class="${cc(o.saldoT)}">${fmt(o.saldoT)}</td><td>${bdg(o.saldoT)}</td></tr>`;
+        if(expO)o.sinistros.forEach(s=>{
+          const sk=ok+"||"+s.sinistro,expM=expMov[sk];
+          h+=`<tr style="background:#eef2fb">
+            <td style="padding-left:60px"><button style="border:none;background:none;cursor:pointer;color:#6366f1;font-weight:700" onclick="expMov['${sk}']=!expMov['${sk}'];showTab('cc')">${expM?"▼":"▶"}</button></td>
             <td colspan="3"><span style="color:#9ca3af;font-size:11px">Sinistro </span><strong style="color:#6366f1">${s.sinistro}</strong></td>
-            ${hasGest?"<td colspan='5'></td>":""}
-            <td style="text-align:right;font-weight:600" class="${clrClass(s.saldo)}">${fmt(s.saldo)}</td>
-            <td>${badge(s.saldo)}</td>
-          </tr>`;
-          if(expM){
-            html+=`<tr class="tr-movs"><td colspan="${hasGest?12:7}" style="padding:8px 16px 8px 96px;background:#eef2fb">
-              <table style="max-width:520px;font-size:11px">
-                <thead><tr style="background:none;color:#4338ca"><th style="text-align:left">Mês</th><th style="text-align:right">Valor Ficheiro</th><th style="text-align:right">Movimento</th><th style="text-align:right">Saldo Acumulado</th></tr></thead>
-                <tbody>${s.movimentos.map(m=>`<tr style="border-top:1px solid #e0e7ff"><td>${mesMes(m.mes)}</td><td style="text-align:right" class="${clrClass(m.valorFicheiro)}">${fmt(m.valorFicheiro)}</td><td style="text-align:right;font-weight:600" class="${clrClass(m.movimento)}">${fmt(m.movimento)}</td><td style="text-align:right;font-weight:700" class="${clrClass(m.saldo)}">${fmt(m.saldo)}</td></tr>`).join("")}</tbody>
-              </table></td></tr>`;
-          }
+            ${hg?"<td colspan='5'></td>":""}
+            <td style="text-align:right" class="${cc(s.saldo)}">${fmt(s.saldo)}</td><td>${bdg(s.saldo)}</td></tr>`;
+          if(expM)h+=`<tr style="background:#eef2fb"><td colspan="${hg?12:7}" style="padding:6px 0 6px 80px">
+            <table style="max-width:500px;font-size:11px">
+              <thead><tr style="background:none;color:#4338ca"><th>Mês</th><th style="text-align:right">Valor Ficheiro</th><th style="text-align:right">Movimento</th><th style="text-align:right">Saldo Acum.</th></tr></thead>
+              <tbody>${s.movimentos.map(m=>`<tr><td>${mm(m.mes)}</td><td style="text-align:right" class="${cc(m.vf)}">${fmt(m.vf)}</td><td style="text-align:right;font-weight:600" class="${cc(m.mov)}">${fmt(m.mov)}</td><td style="text-align:right;font-weight:700" class="${cc(m.saldo)}">${fmt(m.saldo)}</td></tr>`).join("")}</tbody>
+            </table></td></tr>`;
         });
       });
     });
   });
-
-  const gc=hasGest?9:4;
-  html+=`</tbody><tfoot>
-    <tr><td colspan="${gc}" style="text-align:right">TOTAL (${filtered.length} clientes)</td><td style="text-align:right" class="${clrClass(totalSaldo)}">${fmt(totalSaldo)}</td><td></td></tr>
-    <tr class="sub-row"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Débito total</td><td style="text-align:right;color:#fca5a5">${fmt(totalDeb)}</td><td></td></tr>
-    <tr class="sub-row"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Crédito total</td><td style="text-align:right;color:#86efac">${fmt(totalCred)}</td><td></td></tr>
+  const gc=hg?9:4;
+  h+=`</tbody><tfoot>
+    <tr><td colspan="${gc}" style="text-align:right">TOTAL (${fil.length} clientes)</td><td style="text-align:right" class="${cc(ts)}">${fmt(ts)}</td><td></td></tr>
+    <tr class="sr"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Débito</td><td style="text-align:right;color:#fca5a5">${fmt(td)}</td><td></td></tr>
+    <tr class="sr"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Crédito</td><td style="text-align:right;color:#86efac">${fmt(tc)}</td><td></td></tr>
   </tfoot></table></div>`;
-  return html;
+  return h;
 }
 
-function toggleCli(k){expandedCli[k]=!expandedCli[k];showTab("cc");}
-function toggleAp(k) {expandedAp[k] =!expandedAp[k]; showTab("cc");}
-function toggleOc(k) {expandedOcorr[k]=!expandedOcorr[k];showTab("cc");}
-function toggleMov(k){expandedMovs[k]=!expandedMovs[k];showTab("cc");}
-
-// ── RESUMO MENSAL ────────────────────────────────────────────────────────
-function renderMensal() {
+// ── MENSAL
+function rMensal(){
   const map={};
-  for(const cli of STATE.clientes)
-    for(const ap of cli.apolices)
-      for(const oc of ap.ocorrencias){
-        const key=cli.cliente+"||"+(oc.produto||"—");
-        if(!map[key]) map[key]={cliente:cli.cliente,produto:oc.produto,meses:{}};
-        for(const s of oc.sinistros)
-          for(const m of s.movimentos)
-            map[key].meses[m.mes]=(map[key].meses[m.mes]??0)+m.movimento;
-      }
-  const rows=Object.values(map);
-  const meses=STATE.meses;
-  let html=`<div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Produto</th>${meses.map(m=>`<th style="text-align:right">${mesMes(m)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
-  rows.forEach((row,i)=>{
-    const total=Object.values(row.meses).reduce((s,v)=>s+v,0);
-    html+=`<tr><td style="font-weight:600">${row.cliente}</td><td style="color:#6b7280">${row.produto||"—"}</td>${meses.map(m=>`<td style="text-align:right" class="${clrClass(row.meses[m]??0)}">${row.meses[m]!==undefined?fmt(row.meses[m]):"—"}</td>`).join("")}<td style="text-align:right;font-weight:700" class="${clrClass(total)}">${fmt(total)}</td></tr>`;
-  });
-  const totalSaldo=STATE.clientes.reduce((s,c)=>s+c.saldoTotal,0);
-  html+=`</tbody><tfoot><tr><td colspan="2" style="text-align:right">TOTAL</td>${meses.map(m=>{const t=rows.reduce((s,r)=>s+(r.meses[m]??0),0);return `<td style="text-align:right" class="${clrClass(t)}">${fmt(t)}</td>`;}).join("")}<td style="text-align:right" class="${clrClass(totalSaldo)}">${fmt(totalSaldo)}</td></tr></tfoot></table></div>`;
-  return html;
+  for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias){
+    const k=c.cliente+"||"+(o.produto||"—");
+    if(!map[k])map[k]={cliente:c.cliente,produto:o.produto,meses:{}};
+    for(const s of o.sinistros)for(const m of s.movimentos)map[k].meses[m.mes]=(map[k].meses[m.mes]??0)+m.mov;
+  }
+  const rows=Object.values(map),m=STATE.meses,ts=STATE.clientes.reduce((s,c)=>s+c.saldoT,0);
+  let h=`<div class="tw"><table><thead><tr><th>Cliente</th><th>Produto</th>${m.map(x=>`<th style="text-align:right">${mm(x)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{const t=Object.values(r.meses).reduce((s,v)=>s+v,0);h+=`<tr><td style="font-weight:600">${r.cliente}</td><td style="color:#6b7280">${r.produto||"—"}</td>${m.map(x=>`<td style="text-align:right" class="${cc(r.meses[x]??0)}">${r.meses[x]!==undefined?fmt(r.meses[x]):"—"}</td>`).join("")}<td style="text-align:right;font-weight:700" class="${cc(t)}">${fmt(t)}</td></tr>`;});
+  h+=`</tbody><tfoot><tr><td colspan="2" style="text-align:right">TOTAL</td>${m.map(x=>{const t=rows.reduce((s,r)=>s+(r.meses[x]??0),0);return`<td style="text-align:right" class="${cc(t)}">${fmt(t)}</td>`;}).join("")}<td style="text-align:right" class="${cc(ts)}">${fmt(ts)}</td></tr></tfoot></table></div>`;
+  return h;
 }
 
-// ── RESUMO POR PRODUTO ───────────────────────────────────────────────────
-function renderProduto() {
+// ── PRODUTO
+function rProduto(){
   const map={};
-  for(const cli of STATE.clientes)
-    for(const ap of cli.apolices)
-      for(const oc of ap.ocorrencias){
-        const prod=oc.produto||"(sem produto)";
-        if(!map[prod]) map[prod]={produto:prod,meses:{},cliSet:new Set(),ocorr:0,sins:0};
-        map[prod].cliSet.add(cli.cliente); map[prod].ocorr++; map[prod].sins+=oc.sinistros.length;
-        for(const s of oc.sinistros) for(const m of s.movimentos) map[prod].meses[m.mes]=(map[prod].meses[m.mes]??0)+m.movimento;
-      }
-  const rows=Object.values(map).map(r=>({...r,nCli:r.cliSet.size,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.total-b.total);
-  const meses=STATE.meses;
-  const totalSaldo=STATE.clientes.reduce((s,c)=>s+c.saldoTotal,0);
-
-  let cards=rows.map(p=>`<div class="kpi" style="border-left-color:var(--navy)">
-    <div class="label" style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">${p.produto}</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:11px;color:#6b7280;margin-bottom:8px">
-      <div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.nCli}</div>Clientes</div>
-      <div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.ocorr}</div>Ocorrências</div>
-      <div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.sins}</div>Sinistros</div>
-    </div>
-    <div class="${clrClass(p.total)}" style="font-size:15px;font-weight:700">${fmt(p.total)}</div>
-  </div>`).join("");
-
-  let html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">${cards}</div>
-  <div class="table-wrap"><table><thead><tr><th>Produto</th><th style="text-align:center">Clientes</th><th style="text-align:center">Ocorrências</th><th style="text-align:center">Sinistros</th>${meses.map(m=>`<th style="text-align:right">${mesMes(m)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
-  rows.forEach((row,i)=>{
-    html+=`<tr><td style="font-weight:600">${row.produto}</td><td style="text-align:center">${row.nCli}</td><td style="text-align:center">${row.ocorr}</td><td style="text-align:center">${row.sins}</td>${meses.map(m=>`<td style="text-align:right" class="${clrClass(row.meses[m]??0)}">${row.meses[m]!==undefined?fmt(row.meses[m]):"—"}</td>`).join("")}<td style="text-align:right;font-weight:700" class="${clrClass(row.total)}">${fmt(row.total)}</td></tr>`;
-  });
-  html+=`</tbody><tfoot><tr><td colspan="4" style="text-align:right">TOTAL</td>${meses.map(m=>{const t=rows.reduce((s,r)=>s+(r.meses[m]??0),0);return `<td style="text-align:right" class="${clrClass(t)}">${fmt(t)}</td>`;}).join("")}<td style="text-align:right" class="${clrClass(totalSaldo)}">${fmt(totalSaldo)}</td></tr></tfoot></table></div>`;
-  return html;
+  for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias){
+    const p=o.produto||"(sem produto)";
+    if(!map[p])map[p]={produto:p,meses:{},cs:new Set(),oc:0,sin:0};
+    map[p].cs.add(c.cliente);map[p].oc++;map[p].sin+=o.sinistros.length;
+    for(const s of o.sinistros)for(const m of s.movimentos)map[p].meses[m.mes]=(map[p].meses[m.mes]??0)+m.mov;
+  }
+  const rows=Object.values(map).map(r=>({...r,nc:r.cs.size,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.total-b.total);
+  const m=STATE.meses,ts=STATE.clientes.reduce((s,c)=>s+c.saldoT,0);
+  const cards=rows.map(p=>`<div class="kpi"><div class="lbl" style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">${p.produto}</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:11px;color:#6b7280;margin-bottom:8px"><div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.nc}</div>Clientes</div><div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.oc}</div>Ocorrências</div><div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.sin}</div>Sinistros</div></div><div class="${cc(p.total)}" style="font-size:15px;font-weight:700">${fmt(p.total)}</div></div>`).join("");
+  let h=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">${cards}</div>
+  <div class="tw"><table><thead><tr><th>Produto</th><th style="text-align:center">Clientes</th><th style="text-align:center">Ocorrências</th><th style="text-align:center">Sinistros</th>${m.map(x=>`<th style="text-align:right">${mm(x)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{h+=`<tr><td style="font-weight:600">${r.produto}</td><td style="text-align:center">${r.nc}</td><td style="text-align:center">${r.oc}</td><td style="text-align:center">${r.sin}</td>${m.map(x=>`<td style="text-align:right" class="${cc(r.meses[x]??0)}">${r.meses[x]!==undefined?fmt(r.meses[x]):"—"}</td>`).join("")}<td style="text-align:right;font-weight:700" class="${cc(r.total)}">${fmt(r.total)}</td></tr>`;});
+  h+=`</tbody><tfoot><tr><td colspan="4" style="text-align:right">TOTAL</td>${m.map(x=>{const t=rows.reduce((s,r)=>s+(r.meses[x]??0),0);return`<td style="text-align:right" class="${cc(t)}">${fmt(t)}</td>`;}).join("")}<td style="text-align:right" class="${cc(ts)}">${fmt(ts)}</td></tr></tfoot></table></div>`;
+  return h;
 }
 
-// ── RESUMO ANUAL ─────────────────────────────────────────────────────────
-function renderAnual() {
+// ── ANUAL
+function rAnual(){
   const anos=[...new Set(STATE.meses.map(m=>m.split("-")[0]))].sort();
-
-  function buildAnualMap(keyFn) {
+  function buildMap(kfn){
     const map={};
-    for(const cli of STATE.clientes)
-      for(const ap of cli.apolices)
-        for(const oc of ap.ocorrencias)
-          for(const s of oc.sinistros)
-            for(const m of s.movimentos){
-              const [ano,mes]=m.mes.split("-");
-              const key=keyFn(cli,oc)+"||"+ano;
-              if(!map[key]) map[key]={label:keyFn(cli,oc),ano,meses:{}};
-              const mn=parseInt(mes,10);
-              map[key].meses[mn]=(map[key].meses[mn]??0)+m.movimento;
-            }
+    for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias)for(const s of o.sinistros)for(const m of s.movimentos){
+      const[ano,mes]=m.mes.split("-"),k=kfn(c,o)+"||"+ano;
+      if(!map[k])map[k]={label:kfn(c,o),ano,meses:{}};
+      const mn=parseInt(mes,10);map[k].meses[mn]=(map[k].meses[mn]??0)+m.mov;
+    }
     return Object.values(map).map(r=>({...r,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.ano.localeCompare(b.ano)||a.label.localeCompare(b.label));
   }
-
-  const rows = anualView==="cliente"
-    ? buildAnualMap((cli,oc)=>cli.cliente)
-    : buildAnualMap((cli,oc)=>oc.produto||"(sem produto)");
-
-  let html=`<div style="display:flex;gap:8px;margin-bottom:16px" class="toggle-group">
-    <button class="toggle-btn ${anualView==="cliente"?"active":""}" onclick="anualView='cliente';showTab('anual')">Por Cliente</button>
-    <button class="toggle-btn ${anualView==="produto"?"active":""}" onclick="anualView='produto';showTab('anual')">Por Produto</button>
-  </div>`;
-
+  const rows=anualView==="cliente"?buildMap((c,o)=>c.cliente):buildMap((c,o)=>o.produto||"(sem produto)");
+  let h=`<div class="tg"><button class="tgb ${anualView==="cliente"?"act":""}" onclick="anualView='cliente';showTab('anual')">Por Cliente</button><button class="tgb ${anualView==="produto"?"act":""}" onclick="anualView='produto';showTab('anual')">Por Produto</button></div>`;
   anos.forEach(ano=>{
-    const anoRows=rows.filter(r=>r.ano===ano);
-    if(!anoRows.length) return;
-    const totMes={};
-    for(let m=1;m<=12;m++) totMes[m]=anoRows.reduce((s,r)=>s+(r.meses[m]??0),0);
-    const totalGeral=anoRows.reduce((s,r)=>s+r.total,0);
-    html+=`<div style="margin-bottom:24px">
-      <div class="ano-header"><div class="ano-pill">${ano}</div><div class="${clrClass(totalGeral)}" style="font-size:14px;font-weight:700">${fmt(totalGeral)}</div></div>
-      <div class="table-wrap"><table><thead><tr>
-        <th style="min-width:160px;position:sticky;left:0;background:var(--navy)">${anualView==="cliente"?"Cliente":"Produto"}</th>
-        ${MESES_NOME.map(m=>`<th style="text-align:right;min-width:78px">${m.slice(0,3)}</th>`).join("")}
-        <th style="text-align:right;min-width:95px;border-left:1px solid #3b5299">Total</th>
-      </tr></thead><tbody>`;
-    anoRows.forEach((row,i)=>{
-      const bg=i%2===0?"white":"#f9fafb";
-      html+=`<tr><td style="font-weight:600;position:sticky;left:0;background:${bg};border-right:1px solid #e5e7eb">${row.label}</td>`;
-      for(let m=1;m<=12;m++){
-        const v=row.meses[m];
-        html+=`<td style="text-align:right" class="${v!==undefined?clrClass(v):"zero"}">${v!==undefined?fmt(v):"—"}</td>`;
-      }
-      html+=`<td style="text-align:right;font-weight:700;border-left:1px solid #e5e7eb" class="${clrClass(row.total)}">${fmt(row.total)}</td></tr>`;
-    });
-    html+=`</tbody><tfoot><tr><td style="position:sticky;left:0;background:var(--navy)">TOTAL</td>`;
-    for(let m=1;m<=12;m++){const t=totMes[m]??0;html+=`<td style="text-align:right" class="${clrClass(t)}">${t!==0?fmt(t):"—"}</td>`;}
-    html+=`<td style="text-align:right;font-weight:700;border-left:1px solid #3b5299" class="${clrClass(totalGeral)}">${fmt(totalGeral)}</td></tr></tfoot></table></div></div>`;
+    const ar=rows.filter(r=>r.ano===ano);if(!ar.length)return;
+    const tm={},tg=ar.reduce((s,r)=>s+r.total,0);
+    for(let m=1;m<=12;m++)tm[m]=ar.reduce((s,r)=>s+(r.meses[m]??0),0);
+    h+=`<div style="margin-bottom:24px"><div style="margin-bottom:8px"><span class="ano-pill">${ano}</span> <span class="${cc(tg)}" style="font-weight:700">${fmt(tg)}</span></div>
+    <div class="tw"><table><thead><tr><th style="min-width:150px;position:sticky;left:0;background:var(--navy)">${anualView==="cliente"?"Cliente":"Produto"}</th>${MN.map(m=>`<th style="text-align:right;min-width:78px">${m.slice(0,3)}</th>`).join("")}<th style="text-align:right;min-width:95px">Total</th></tr></thead><tbody>`;
+    ar.forEach((r,i)=>{const bg=i%2===0?"white":"#f9fafb";h+=`<tr><td style="font-weight:600;position:sticky;left:0;background:${bg};border-right:1px solid #e5e7eb">${r.label}</td>${Array.from({length:12},(_,idx)=>{const v=r.meses[idx+1];return`<td style="text-align:right" class="${v!==undefined?cc(v):"zero"}">${v!==undefined?fmt(v):"—"}</td>`;}).join("")}<td style="text-align:right;font-weight:700;border-left:1px solid #e5e7eb" class="${cc(r.total)}">${fmt(r.total)}</td></tr>`;});
+    h+=`</tbody><tfoot><tr><td style="position:sticky;left:0;background:var(--navy)">TOTAL</td>${Array.from({length:12},(_,idx)=>{const t=tm[idx+1]??0;return`<td style="text-align:right" class="${cc(t)}">${t!==0?fmt(t):"—"}</td>`;}).join("")}<td style="text-align:right;font-weight:700" class="${cc(tg)}">${fmt(tg)}</td></tr></tfoot></table></div></div>`;
   });
-  return html;
+  return h;
 }
 
-// ── EXPORT ───────────────────────────────────────────────────────────────
-function exportExcel() {
+// ── EXPORT
+function exportXls(){
   const rows=[];
-  for(const cli of STATE.clientes)
-    for(const ap of cli.apolices)
-      for(const oc of ap.ocorrencias)
-        for(const s of oc.sinistros)
-          rows.push({Cliente:cli.cliente,Apolice:ap.apolice,Produto:oc.produto,Ocorrencia:oc.ocorrencia,"Data Ocorrencia":oc.dataocorrencia,Sinistro:s.sinistro,"Saldo Sinistro":s.saldo,"Saldo Ocorrencia":oc.saldoTotal,Estado:oc.saldoTotal<0?"Debito":oc.saldoTotal>0?"Credito":"Saldado",Situacao:oc.gestao?.situacao??"—","Qta Sinistros":oc.gestao?.qtasinistros??"—","Data Abertura":oc.gestao?.dataabertura??"—","Data Reabertura":oc.gestao?.datareabertura??"—","Data Encerramento":oc.gestao?.dataencerramento??"—"});
-  const ws=XLSX.utils.json_to_sheet(rows);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Conta Corrente");
+  for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias)for(const s of o.sinistros)
+    rows.push({Cliente:c.cliente,Apolice:a.apolice,Produto:o.produto,Ocorrencia:o.ocorrencia,"Data Ocorrencia":o.dataocorrencia,Sinistro:s.sinistro,"Saldo Sinistro":s.saldo,"Saldo Ocorrencia":o.saldoT,Estado:o.saldoT<0?"Debito":o.saldoT>0?"Credito":"Saldado",Situacao:o.gestao?.situacao??"—","Data Abertura":o.gestao?.dataabertura??"—","Data Reabertura":o.gestao?.datareabertura??"—","Data Encerramento":o.gestao?.dataencerramento??"—"});
+  const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"ContaCorrente");
   XLSX.writeFile(wb,"CB_Seguros_ContaCorrente.xlsx");
 }
 
-// ── STATUS ───────────────────────────────────────────────────────────────
-function updateStatus(mensais, sinItems) {
-  document.getElementById("st-mensais").textContent = mensais.length+" ficheiro(s)";
-  document.getElementById("st-sinistros").textContent = sinItems.length?"✅ "+sinItems[sinItems.length-1].name:"Não encontrado";
-  document.getElementById("st-update").textContent = new Date().toLocaleString("pt-PT");
-}
+// ── LOADER
+function showL(m){document.getElementById("loader").style.display="flex";document.getElementById("lmsg").textContent=m||"A carregar...";}
+function hideL(){document.getElementById("loader").style.display="none";}
 
-// ── LOADER ───────────────────────────────────────────────────────────────
-function showLoader(msg) { document.getElementById("loader").style.display="flex"; document.getElementById("loader-msg").textContent=msg||"A carregar..."; }
-function hideLoader()    { document.getElementById("loader").style.display="none"; }
-
-// ── AUTO LOGIN ───────────────────────────────────────────────────────────
-window.addEventListener("load", async () => {
-  try {
-    const instance = await getMsal();
-    const accounts = instance.getAllAccounts();
-    if (accounts.length > 0) {
-      instance.setActiveAccount(accounts[0]);
-      document.getElementById("user-name").textContent = "👤 " + accounts[0].name;
-      document.getElementById("btn-login").textContent = "✅ " + accounts[0].username;
-      document.getElementById("btn-login").style.background = "rgba(22,163,74,.4)";
-      await loadFromSharePoint();
+// ── AUTO LOGIN
+window.addEventListener("load",async()=>{
+  try{
+    const m=await getMsal();
+    const accounts=m.getAllAccounts();
+    if(accounts.length>0){
+      m.setActiveAccount(accounts[0]);
+      setUser(accounts[0]);
+      await loadSP();
     }
-  } catch(e) { console.error("Erro init:", e); }
+  }catch(e){console.error("Auto-login:",e);}
 });
 </script>
 </body>
