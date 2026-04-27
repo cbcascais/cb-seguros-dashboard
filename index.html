@@ -216,7 +216,9 @@ async function graph(url) {
 
 // ── SHAREPOINT
 let STATE = { allData:[], gestData:[], clientes:[], meses:[] };
-let curTab="cc", anualView="cliente", fCli="", fMulti=false;
+let curTab="cc", anualView="cliente";
+let fCli="", fMulti=false, fOcorr="", fSinistro="", fSituacao="", fProduto="", fDtAb="", fDtEnc="", fDtRe="";
+let sortCol="cliente", sortDir="asc";
 let expCli={}, expAp={}, expOc={}, expMov={};
 
 async function loadSP() {
@@ -302,9 +304,17 @@ function parseXls(buf) {
   return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:"" });
 }
 function xDate(v) {
-  if (!v) return "";
-  if (typeof v === "number") return new Date(Math.round((v-25569)*86400*1000)).toLocaleDateString("pt-PT");
-  const d = new Date(v); return isNaN(d) ? String(v) : d.toLocaleDateString("pt-PT");
+  if (!v || v === "" || v === 0) return "";
+  let d;
+  if (typeof v === "number") {
+    if (v < 1) return ""; // valor inválido
+    d = new Date(Math.round((v - 25569) * 86400 * 1000));
+  } else {
+    d = new Date(v);
+  }
+  if (isNaN(d.getTime())) return "";
+  if (d.getFullYear() < 1950 || d.getFullYear() > 2100) return ""; // ano fora de intervalo válido
+  return d.toLocaleDateString("pt-PT");
 }
 
 const CS = {
@@ -444,67 +454,158 @@ function showTab(id,el) {
 }
 
 // ── CONTA CORRENTE
+function sortIcon(col) {
+  if (sortCol !== col) return `<span style="opacity:.3;font-size:10px">⇅</span>`;
+  return sortDir === "asc" ? `<span style="font-size:10px">▲</span>` : `<span style="font-size:10px">▼</span>`;
+}
+function toggleSort(col) {
+  if (sortCol === col) sortDir = sortDir === "asc" ? "desc" : "asc";
+  else { sortCol = col; sortDir = "asc"; }
+  showTab("cc");
+}
+
 function rCC() {
-  const multi=new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
-  const fil=STATE.clientes.filter(c=>{if(fCli&&fCli!==c.cliente)return false;if(fMulti&&!multi.has(c.cliente))return false;return true;});
-  const hg=STATE.gestData.length>0;
-  const ts=fil.reduce((s,c)=>s+c.saldoT,0);
-  const td=fil.filter(c=>c.saldoT<0).reduce((s,c)=>s+c.saldoT,0);
-  const tc=fil.filter(c=>c.saldoT>0).reduce((s,c)=>s+c.saldoT,0);
-  const opts=STATE.clientes.map(c=>`<option value="${c.cliente}" ${fCli===c.cliente?"selected":""}>${c.cliente}</option>`).join("");
-  let h=`<div class="filters">
-    <select onchange="fCli=this.value;showTab('cc')"><option value="">Todos os clientes</option>${opts}</select>
+  const hg = STATE.gestData.length > 0;
+  const multi = new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
+  const situacoes = [...new Set(STATE.clientes.flatMap(c=>c.apolices.flatMap(a=>a.ocorrencias.map(o=>o.gestao?.situacao).filter(Boolean))))].sort();
+  const produtos = [...new Set(STATE.clientes.flatMap(c=>c.apolices.flatMap(a=>a.ocorrencias.map(o=>o.produto).filter(Boolean))))].sort();
+
+  // Flatten para ocorrências para filtrar e ordenar
+  let flatOcorr = [];
+  for (const c of STATE.clientes) {
+    for (const a of c.apolices) {
+      for (const o of a.ocorrencias) {
+        // Aplica filtros
+        if (fCli && fCli !== c.cliente) continue;
+        if (fMulti && !multi.has(c.cliente)) continue;
+        if (fOcorr && !o.ocorrencia.toLowerCase().includes(fOcorr.toLowerCase())) continue;
+        if (fProduto && o.produto !== fProduto) continue;
+        if (fSituacao && o.gestao?.situacao !== fSituacao) continue;
+        if (o.sinistros.some(s => fSinistro && !s.sinistro.toLowerCase().includes(fSinistro.toLowerCase()))) {
+          if (fSinistro) continue;
+        }
+        if (hg && fDtAb && o.gestao?.dataabertura !== fDtAb) continue;
+        if (hg && fDtEnc && o.gestao?.dataencerramento !== fDtEnc) continue;
+        if (hg && fDtRe && o.gestao?.datareabertura !== fDtRe) continue;
+        flatOcorr.push({ c, a, o });
+      }
+    }
+  }
+
+  // Ordenação
+  flatOcorr.sort((x, y) => {
+    let va, vb;
+    switch(sortCol) {
+      case "cliente":    va=x.c.cliente; vb=y.c.cliente; break;
+      case "apolice":    va=x.a.apolice; vb=y.a.apolice; break;
+      case "ocorrencia": va=x.o.ocorrencia; vb=y.o.ocorrencia; break;
+      case "produto":    va=x.o.produto||""; vb=y.o.produto||""; break;
+      case "dataocorr":  va=x.o.dataocorrencia||""; vb=y.o.dataocorrencia||""; break;
+      case "saldo":      va=x.o.saldoT; vb=y.o.saldoT; break;
+      case "situacao":   va=x.o.gestao?.situacao||""; vb=y.o.gestao?.situacao||""; break;
+      case "dataabertura": va=x.o.gestao?.dataabertura||""; vb=y.o.gestao?.dataabertura||""; break;
+      case "dataencerramento": va=x.o.gestao?.dataencerramento||""; vb=y.o.gestao?.dataencerramento||""; break;
+      case "datareabertura": va=x.o.gestao?.datareabertura||""; vb=y.o.gestao?.dataabertura||""; break;
+      default: va=x.c.cliente; vb=y.c.cliente;
+    }
+    if (typeof va === "number") return sortDir==="asc" ? va-vb : vb-va;
+    return sortDir==="asc" ? String(va).localeCompare(String(vb),"pt") : String(vb).localeCompare(String(va),"pt");
+  });
+
+  const ts = flatOcorr.reduce((s,{o})=>s+o.saldoT,0);
+  const td = flatOcorr.filter(({o})=>o.saldoT<0).reduce((s,{o})=>s+o.saldoT,0);
+  const tc = flatOcorr.filter(({o})=>o.saldoT>0).reduce((s,{o})=>s+o.saldoT,0);
+
+  const cliOpts = STATE.clientes.map(c=>`<option value="${c.cliente}" ${fCli===c.cliente?"selected":""}>${c.cliente}</option>`).join("");
+
+  // Filtros
+  let h=`<div class="filters" style="flex-wrap:wrap;gap:6px;margin-bottom:10px">
+    <select onchange="fCli=this.value;showTab('cc')"><option value="">Todos os clientes</option>${cliOpts}</select>
+    <input placeholder="Ocorrência" style="width:110px" value="${fOcorr}" oninput="fOcorr=this.value;showTab('cc')">
+    <input placeholder="Sinistro" style="width:100px" value="${fSinistro}" oninput="fSinistro=this.value;showTab('cc')">
+    <select onchange="fProduto=this.value;showTab('cc')">
+      <option value="">Produto</option>${produtos.map(p=>`<option value="${p}" ${fProduto===p?"selected":""}>${p}</option>`).join("")}
+    </select>
+    ${hg?`
+    <select onchange="fSituacao=this.value;showTab('cc')">
+      <option value="">Situação</option>${situacoes.map(s=>`<option value="${s}" ${fSituacao===s?"selected":""}>${s}</option>`).join("")}
+    </select>
+    <input type="date" title="Data Abertura" style="width:130px" value="${fDtAb}" onchange="fDtAb=this.value?new Date(this.value).toLocaleDateString('pt-PT'):'';showTab('cc')">
+    <input type="date" title="Data Reabertura" style="width:130px" value="${fDtRe}" onchange="fDtRe=this.value?new Date(this.value).toLocaleDateString('pt-PT'):'';showTab('cc')">
+    <input type="date" title="Data Encerramento" style="width:130px" value="${fDtEnc}" onchange="fDtEnc=this.value?new Date(this.value).toLocaleDateString('pt-PT'):'';showTab('cc')">
+    `:""}
     <button class="${fMulti?"act":""}" onclick="fMulti=!fMulti;showTab('cc')">🔀 Múltiplas apólices${multi.size?`<span class="mb">${multi.size}</span>`:""}</button>
-    <button onclick="fCli='';fMulti=false;showTab('cc')">Limpar</button>
+    <button onclick="fCli='';fMulti=false;fOcorr='';fSinistro='';fSituacao='';fProduto='';fDtAb='';fDtEnc='';fDtRe='';showTab('cc')">✕ Limpar</button>
     <button class="btn-exp" onclick="exportXls()">⬇ Exportar</button>
-  </div>
-  <div class="tw"><table><thead><tr>
-    <th style="width:30px"></th><th>Cliente / Apólice / Ocorrência</th><th>Data Ocorr.</th><th>Produto</th>
-    ${hg?"<th>Qta.</th><th>Situação</th><th>Dt.Abertura</th><th>Dt.Reabertura</th><th>Dt.Encerramento</th>":""}
-    <th style="text-align:right">Saldo</th><th>Estado</th>
+  </div>`;
+
+  // Cabeçalhos com ordenação
+  const th = (label, col, align="left") =>
+    `<th style="cursor:pointer;text-align:${align};user-select:none" onclick="toggleSort('${col}')">${label} ${sortIcon(col)}</th>`;
+
+  h += `<div class="tw"><table><thead><tr>
+    <th style="width:30px"></th>
+    ${th("Cliente","cliente")}
+    ${th("Apólice","apolice")}
+    ${th("Ocorrência","ocorrencia")}
+    ${th("Data Ocorr.","dataocorr")}
+    ${th("Produto","produto")}
+    ${hg?th("Qta.","qta","center"):""}
+    ${hg?th("Situação","situacao"):""}
+    ${hg?th("Dt.Abertura","dataabertura"):""}
+    ${hg?th("Dt.Reabertura","datareabertura"):""}
+    ${hg?th("Dt.Encerramento","dataencerramento"):""}
+    ${th("Saldo","saldo","right")}
+    <th>Estado</th>
   </tr></thead><tbody>`;
 
-  fil.forEach((c,ci)=>{
-    const ck=c.cliente, expC=expCli[ck], bg=ci%2===0?"#e8edf8":"#dce4f5";
-    h+=`<tr style="background:${bg};cursor:pointer" onclick="expCli['${ck}']=!expCli['${ck}'];showTab('cc')">
-      <td style="text-align:center;color:var(--navy);font-weight:700">${expC?"▼":"▶"}</td>
-      <td colspan="3" style="font-weight:700;color:var(--navy)">${c.cliente}${multi.has(c.cliente)?`<span class="mb">${c.apolices.length}</span>`:""}</td>
-      ${hg?"<td colspan='5'></td>":""}
-      <td style="text-align:right" class="${cc(c.saldoT)}">${fmt(c.saldoT)}</td><td>${bdg(c.saldoT)}</td></tr>`;
-    if(expC) c.apolices.forEach(a=>{
-      const ak=ck+"||"+a.apolice, expA=expAp[ak];
-      h+=`<tr style="background:#c5d5ef;cursor:pointer" onclick="expAp['${ak}']=!expAp['${ak}'];showTab('cc')">
-        <td style="padding-left:20px;color:var(--navy);font-weight:700">${expA?"▼":"▶"}</td>
-        <td colspan="3" style="color:var(--navy);font-weight:700"><span style="font-weight:400;color:#666">Apólice </span>${a.apolice}</td>
-        ${hg?"<td colspan='5'></td>":""}
-        <td style="text-align:right" class="${cc(a.saldoT)}">${fmt(a.saldoT)}</td><td>${bdg(a.saldoT)}</td></tr>`;
-      if(expA) a.ocorrencias.forEach(o=>{
-        const ok=ak+"||"+o.ocorrencia, expO=expOc[ok], g=o.gestao;
-        h+=`<tr style="background:#dce6f7;cursor:pointer" onclick="expOc['${ok}']=!expOc['${ok}'];showTab('cc')">
-          <td style="padding-left:40px;color:#1d4ed8;font-weight:700">${expO?"▼":"▶"}</td>
-          <td style="color:#1d4ed8;font-weight:700">${o.ocorrencia}</td>
-          <td style="color:#666">${o.dataocorrencia||"—"}</td><td>${o.produto||"—"}</td>
-          ${hg?`<td style="text-align:center">${g?(g.qtasinistros??"—"):"—"}</td><td>${g?sit(g.situacao):"—"}</td><td>${g?(g.dataabertura||"—"):"—"}</td><td>${g?(g.datareabertura||"—"):"—"}</td><td>${g?(g.dataencerramento||"—"):"—"}</td>`:""}
-          <td style="text-align:right;font-weight:700" class="${cc(o.saldoT)}">${fmt(o.saldoT)}</td><td>${bdg(o.saldoT)}</td></tr>`;
-        if(expO) o.sinistros.forEach(s=>{
-          const sk=ok+"||"+s.sinistro, expM=expMov[sk];
-          h+=`<tr style="background:#eef2fb">
-            <td style="padding-left:60px"><button style="border:none;background:none;cursor:pointer;color:#6366f1;font-weight:700" onclick="expMov['${sk}']=!expMov['${sk}'];showTab('cc')">${expM?"▼":"▶"}</button></td>
-            <td colspan="3"><span style="color:#9ca3af;font-size:11px">Sinistro </span><strong style="color:#6366f1">${s.sinistro}</strong></td>
-            ${hg?"<td colspan='5'></td>":""}
-            <td style="text-align:right" class="${cc(s.saldo)}">${fmt(s.saldo)}</td><td>${bdg(s.saldo)}</td></tr>`;
-          if(expM) h+=`<tr style="background:#eef2fb"><td colspan="${hg?12:7}" style="padding:6px 0 6px 80px">
-            <table style="max-width:500px;font-size:11px">
-              <thead><tr style="background:none;color:#4338ca"><th>Mês</th><th style="text-align:right">Valor Ficheiro</th><th style="text-align:right">Movimento</th><th style="text-align:right">Saldo Acum.</th></tr></thead>
-              <tbody>${s.movimentos.map(m=>`<tr><td>${mm(m.mes)}</td><td class="${cc(m.vf)}" style="text-align:right">${fmt(m.vf)}</td><td class="${cc(m.mov)}" style="text-align:right;font-weight:600">${fmt(m.mov)}</td><td class="${cc(m.saldo)}" style="text-align:right;font-weight:700">${fmt(m.saldo)}</td></tr>`).join("")}</tbody>
-            </table></td></tr>`;
-        });
+  flatOcorr.forEach(({c, a, o}, idx) => {
+    const ocKey = c.cliente+"||"+a.apolice+"||"+o.ocorrencia;
+    const expO = expOc[ocKey];
+    const bg = idx%2===0?"#f8faff":"#fff";
+    const g = o.gestao;
+
+    h+=`<tr style="background:${bg};cursor:pointer" onclick="expOc['${ocKey}']=!expOc['${ocKey}'];showTab('cc')">
+      <td style="text-align:center;color:#1d4ed8;font-weight:700">${expO?"▼":"▶"}</td>
+      <td style="font-weight:700;color:var(--navy)">${c.cliente}${multi.has(c.cliente)?`<span class="mb">${c.apolices.length}</span>`:""}</td>
+      <td style="color:#555">${a.apolice}</td>
+      <td style="font-weight:600;color:#1d4ed8">${o.ocorrencia}</td>
+      <td style="color:#666">${o.dataocorrencia||"—"}</td>
+      <td>${o.produto||"—"}</td>
+      ${hg?`<td style="text-align:center;font-weight:600">${g?(g.qtasinistros??"—"):"—"}</td>
+      <td>${g?sit(g.situacao):"—"}</td>
+      <td>${g?(g.dataabertura||"—"):"—"}</td>
+      <td>${g?(g.datareabertura||"—"):"—"}</td>
+      <td>${g?(g.dataencerramento||"—"):"—"}</td>`:""}
+      <td style="text-align:right;font-weight:700" class="${cc(o.saldoT)}">${fmt(o.saldoT)}</td>
+      <td>${bdg(o.saldoT)}</td>
+    </tr>`;
+
+    if (expO) {
+      // Filtra sinistros se há filtro de sinistro
+      const sins = fSinistro ? o.sinistros.filter(s=>s.sinistro.toLowerCase().includes(fSinistro.toLowerCase())) : o.sinistros;
+      sins.forEach(s => {
+        const sk = ocKey+"||"+s.sinistro;
+        const expM = expMov[sk];
+        h+=`<tr style="background:#eef2fb">
+          <td style="padding-left:40px"><button style="border:none;background:none;cursor:pointer;color:#6366f1;font-weight:700" onclick="expMov['${sk}']=!expMov['${sk}'];showTab('cc')">${expM?"▼":"▶"}</button></td>
+          <td colspan="2"><span style="color:#9ca3af;font-size:11px">Sinistro </span><strong style="color:#6366f1">${s.sinistro}</strong></td>
+          <td colspan="${hg?8:3}"></td>
+          <td style="text-align:right" class="${cc(s.saldo)}">${fmt(s.saldo)}</td>
+          <td>${bdg(s.saldo)}</td>
+        </tr>`;
+        if (expM) h+=`<tr style="background:#eef2fb"><td colspan="${hg?13:8}" style="padding:6px 0 6px 60px">
+          <table style="max-width:500px;font-size:11px">
+            <thead><tr style="background:none;color:#4338ca"><th>Mês</th><th style="text-align:right">Valor Ficheiro</th><th style="text-align:right">Movimento</th><th style="text-align:right">Saldo Acum.</th></tr></thead>
+            <tbody>${s.movimentos.map(m=>`<tr><td>${mm(m.mes)}</td><td class="${cc(m.vf)}" style="text-align:right">${fmt(m.vf)}</td><td class="${cc(m.mov)}" style="text-align:right;font-weight:600">${fmt(m.mov)}</td><td class="${cc(m.saldo)}" style="text-align:right;font-weight:700">${fmt(m.saldo)}</td></tr>`).join("")}</tbody>
+          </table></td></tr>`;
       });
-    });
+    }
   });
-  const gc=hg?9:4;
+
+  const gc = hg ? 11 : 6;
   h+=`</tbody><tfoot>
-    <tr><td colspan="${gc}" style="text-align:right">TOTAL (${fil.length} clientes)</td><td style="text-align:right" class="${cc(ts)}">${fmt(ts)}</td><td></td></tr>
+    <tr><td colspan="${gc}" style="text-align:right">TOTAL (${flatOcorr.length} ocorrências)</td><td style="text-align:right" class="${cc(ts)}">${fmt(ts)}</td><td></td></tr>
     <tr class="sr"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Débito</td><td style="text-align:right;color:#fca5a5">${fmt(td)}</td><td></td></tr>
     <tr class="sr"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Crédito</td><td style="text-align:right;color:#86efac">${fmt(tc)}</td><td></td></tr>
   </tfoot></table></div>`;
