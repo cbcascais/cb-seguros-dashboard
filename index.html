@@ -222,9 +222,20 @@ let expCli={}, expAp={}, expOc={}, expMov={};
 async function loadSP() {
   try {
     showL("A ligar ao SharePoint...");
-    const drives = await graph("/sites/" + SP_HOST + ":/drives");
-    const lib = drives.value.find(d => d.name === SP_LIB || d.webUrl.includes("Documentos"));
-    if (!lib) throw new Error("Biblioteca '" + SP_LIB + "' não encontrada");
+
+    // Obter o site root do SharePoint
+    const site = await graph("/sites/cbcascais.sharepoint.com");
+    const siteId = site.id;
+
+    // Obter as drives do site
+    const drives = await graph("/sites/" + siteId + "/drives");
+    const lib = drives.value.find(d =>
+      d.name === SP_LIB ||
+      d.name === "Documents" ||
+      d.name === "Documentos Partilhados" ||
+      d.webUrl.toLowerCase().includes("documentos")
+    );
+    if (!lib) throw new Error("Biblioteca '" + SP_LIB + "' não encontrada. Drives disponíveis: " + drives.value.map(d=>d.name).join(", "));
     const dId = lib.id;
 
     showL("A ler ficheiros mensais...");
