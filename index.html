@@ -100,6 +100,7 @@ tfoot .sr{background:var(--navy2)}
   <div class="sc"><span>📋</span><div><div class="lbl">Sinistros</div><div class="val" id="st2">Não carregado</div></div></div>
   <div class="sc"><span>🕐</span><div><div class="lbl">Atualizado</div><div class="val" id="st3">—</div></div></div>
   <button id="btn-refresh" onclick="loadSP()">🔄 Atualizar</button>
+  <button onclick="hardReset()" style="background:none;border:1px solid #d1d5db;color:#6b7280;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:11px" title="Limpa cache e recarrega tudo">🗑️ Limpar cache</button>
 </div>
 <div id="kpis" style="grid-template-columns:repeat(6,1fr)">
   <div class="kpi"><div class="lbl">Clientes</div><div class="val" id="k1">0</div></div>
@@ -296,6 +297,12 @@ var sortCol="cliente",sortDir="asc";
 var expCli={},expAp={},expOc={},expMov={};
 var _ckOpen=null;
 
+function hardReset(){
+  try{localStorage.removeItem("cb_files");}catch(e){}
+  STATE.allData=[];STATE.gestData=[];STATE.clientes=[];STATE.meses=[];
+  _token=null;
+  loadSP();
+}
 function getSavedFiles(){try{return JSON.parse(localStorage.getItem("cb_files")||"{}");}catch(e){return{};}}
 function saveFiles(m){try{localStorage.setItem("cb_files",JSON.stringify(m));}catch(e){}}
 
@@ -444,8 +451,15 @@ function build(){
     var mes=STATE.allData[di].mesLabel, rows=STATE.allData[di].rows;
     for(var ri=0;ri<rows.length;ri++){
       var r=rows[ri];
-      var k=r.cliente+"||"+r.apolice+"||"+r.ocorrencia+"||"+r.sinistro;
-      if(!sm[k]) sm[k]={cliente:r.cliente,apolice:r.apolice,produto:r.produto,ocorrencia:r.ocorrencia,dataocorrencia:r.dataocorrencia,sinistro:r.sinistro,comercial:r.comercial,vpm:{}};
+      // Ignora linhas sem dados essenciais (dupla verificação)
+      var cli=String(r.cliente||"").trim();
+      var apo=String(r.apolice||"").trim();
+      var ocr=String(r.ocorrencia||"").trim();
+      var sin=String(r.sinistro||"").trim();
+      if(!cli||!apo||!ocr||!sin) continue;
+      // Ignora linhas com valor zero E sem ocorrência real
+      var k=cli+"||"+apo+"||"+ocr+"||"+sin;
+      if(!sm[k]) sm[k]={cliente:cli,apolice:apo,produto:r.produto,ocorrencia:ocr,dataocorrencia:r.dataocorrencia,sinistro:sin,comercial:r.comercial,vpm:{}};
       sm[k].vpm[mes]=(sm[k].vpm[mes]||0)+r.valor;
       if(r.comercial&&!sm[k].comercial) sm[k].comercial=r.comercial;
     }
