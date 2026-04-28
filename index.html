@@ -322,11 +322,26 @@ async function loadSP(){
     STATE.allData=[];STATE.gestData=[];
     for(const f of xls){
       showL("A processar "+f.name+"...");
+      let mes = getMes(f.name);
+      if (!mes) {
+        // Não conseguiu detetar o mês — pede ao utilizador
+        hideL();
+        const input = prompt(
+          "⚠️ Não consegui detetar o mês do ficheiro:\n\"" + f.name + "\"\n\nIntroduz o mês no formato AAAA-MM (ex: 2026-03):"
+        );
+        if (!input) continue; // utilizador cancelou
+        mes = input.trim();
+        if (!/^\d{4}-\d{2}$/.test(mes)) {
+          alert("Formato inválido. Usa AAAA-MM (ex: 2026-03)");
+          continue;
+        }
+        showL("A processar "+f.name+"...");
+      }
       const item=await graph("/drives/"+dId+"/items/"+f.id);
       const buf=await(await fetch(item["@microsoft.graph.downloadUrl"])).arrayBuffer();
       const rows=parseXls(buf); if(!rows.length) continue;
       const m=autoSin(Object.keys(rows[0])); if(!m) continue;
-      STATE.allData.push({mesLabel:getMes(f.name,f.lastModifiedDateTime),fileName:f.name,rows:rows.map(r=>mapSin(r,m))});
+      STATE.allData.push({mesLabel:mes,fileName:f.name,rows:rows.map(r=>mapSin(r,m))});
     }
     STATE.allData.sort((a,b)=>a.mesLabel.localeCompare(b.mesLabel));
     if(xsin.length){
@@ -345,11 +360,34 @@ async function loadSP(){
   }catch(e){hideL();alert("Erro:\n"+e.message);console.error(e);}
 }
 
-function getMes(name,dt){
-  const m=name.match(/(\d{4})[_\-\s]?(\d{2})/);
-  if(m) return m[1]+"-"+m[2];
-  const d=new Date(dt);
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+const MESES_PT = {
+  "janeiro":"01","fevereiro":"02","março":"03","marco":"03","abril":"04",
+  "maio":"05","junho":"06","julho":"07","agosto":"08","setembro":"09",
+  "outubro":"10","novembro":"11","dezembro":"12",
+  "jan":"01","fev":"02","mar":"03","abr":"04","mai":"05","jun":"06",
+  "jul":"07","ago":"08","set":"09","out":"10","nov":"11","dez":"12"
+};
+
+function getMes(name) {
+  const n = name.toLowerCase();
+
+  // Padrão: 2026-03 ou 2026_03 ou 202603
+  const p1 = name.match(/(\d{4})[-_\s](\d{2})/);
+  if (p1) return p1[1] + "-" + p1[2];
+
+  // Padrão: nome do mês + ano ex: Março2026, março_2026, marco-2026
+  for (const [nome, num] of Object.entries(MESES_PT)) {
+    const re = new RegExp(nome + "[_\\-\\s]?(\\d{4})", "i");
+    const m = n.match(re);
+    if (m) return m[1] + "-" + num;
+    // Também tenta ano antes do mês: 2026Março, 2026_marco
+    const re2 = new RegExp("(\\d{4})[_\\-\\s]?" + nome, "i");
+    const m2 = n.match(re2);
+    if (m2) return m2[1] + "-" + num;
+  }
+
+  // Não conseguiu detetar — retorna null para pedir ao utilizador
+  return null;
 }
 
 // ── EXCEL
@@ -863,14 +901,18 @@ window.addEventListener("resize",()=>{
   isMobile=window.innerWidth<=768;
   if(wasMobile!==isMobile){applyView();showTab(curTab);}
 });
-window.addEventListener("load",async()=>{
-  isMobile=window.innerWidth<=768;
+window.addEventListener("load", async () => {
+  isMobile = window.innerWidth <= 768;
   applyView();
-  try{
-    const app=await initMsalApp();
-    const accounts=app.getAllAccounts();
-    if(accounts.length>0){app.setActiveAccount(accounts[0]);setUser(accounts[0]);await loadSP();}
-  }catch(e){console.error("Auto-login:",e);}
+  try {
+    const app = await initMsalApp();
+    const accounts = app.getAllAccounts();
+    if (accounts.length > 0) {
+      app.setActiveAccount(accounts[0]);
+      setUser(accounts[0]);
+      await checkAndLoad(false); // verifica alterações automaticamente
+    }
+  } catch(e) { console.error("Auto-login:", e); }
 });
 </script>
 </body>
