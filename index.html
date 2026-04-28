@@ -310,7 +310,7 @@ var STATE = { allData: [], gestData: [], clientes: [], meses: [] };
 var curTab = "cc";
 var anualView = "cliente";
 var isMobile = false;
-var fCli = "", fMulti = false, fOcorr = "", fSinistro = "", fSituacao = "", fProduto = "";
+var fCli = [], fMulti = false, fOcorr = "", fSinistro = "", fSituacao = [], fProduto = [];
 var fDtOcDe = "", fDtOcAte = "", fDtAbDe = "", fDtAbAte = "", fDtReDe = "", fDtReAte = "", fDtEnDe = "", fDtEnAte = "";
 var fDtOcMode = "exata", fDtAbMode = "exata", fDtReMode = "exata", fDtEnMode = "exata";
 var sortCol = "cliente", sortDir = "asc";
@@ -626,9 +626,13 @@ function sitBdg(s) {
 }
 
 function getKpiMensal() {
-  var now = new Date();
-  var curYear = now.getFullYear();
-  var curMonth = now.getMonth() + 1;
+  // Usa o mês do último ficheiro carregado
+  var lastMes = STATE.meses.length > 0 ? STATE.meses[STATE.meses.length - 1] : null;
+  if (!lastMes) return [];
+  var parts = lastMes.split("-");
+  var curYear  = parseInt(parts[0]);
+  var curMonth = parseInt(parts[1]);
+  var mesLabel = MN_FULL[curMonth - 1] + " " + curYear;
 
   function isThisMonth(dateStr) {
     if (!dateStr) return false;
@@ -668,11 +672,11 @@ function getKpiMensal() {
   function sum(arr) { return arr.reduce(function(s, v) { return s + v; }, 0); }
 
   return [
-    { lbl: "Abertos " + curMonth + "/" + curYear, n: abertos.length, val: sum(abertos), color: "#1d4ed8", icon: "🔵" },
-    { lbl: "Reabertos " + curMonth + "/" + curYear, n: reabertos.length, val: sum(reabertos), color: "#c2410c", icon: "🟠" },
-    { lbl: "Encerrados " + curMonth + "/" + curYear, n: encerrados.length, val: sum(encerrados), color: "#374151", icon: "⚫" },
-    { lbl: "Reencerrados " + curMonth + "/" + curYear, n: reencerrados.length, val: sum(reencerrados), color: "#6d28d9", icon: "🟣" },
-    { lbl: "Em vigor", n: emVigor.length, val: sum(emVigor), color: "#15803d", icon: "🟢" }
+    { lbl: "Abertos " + mesLabel,      n: abertos.length,      val: sum(abertos),      color: "#1d4ed8", icon: "🔵" },
+    { lbl: "Reabertos " + mesLabel,    n: reabertos.length,    val: sum(reabertos),    color: "#c2410c", icon: "🟠" },
+    { lbl: "Encerrados " + mesLabel,   n: encerrados.length,   val: sum(encerrados),   color: "#374151", icon: "⚫" },
+    { lbl: "Reencerrados " + mesLabel, n: reencerrados.length, val: sum(reencerrados), color: "#6d28d9", icon: "🟣" },
+    { lbl: "Em vigor",                 n: emVigor.length,      val: sum(emVigor),      color: "#15803d", icon: "🟢" }
   ];
 }
 function render() {
@@ -777,9 +781,11 @@ function inRange(val, de, ate) {
   return true;
 }
 function clearFilters() {
-  fCli = ""; fMulti = false; fOcorr = ""; fSinistro = ""; fSituacao = ""; fProduto = "";
+  fCli = []; fMulti = false; fOcorr = ""; fSinistro = ""; fSituacao = []; fProduto = [];
   fDtOcDe = ""; fDtOcAte = ""; fDtAbDe = ""; fDtAbAte = ""; fDtReDe = ""; fDtReAte = ""; fDtEnDe = ""; fDtEnAte = "";
   fDtOcMode = "exata"; fDtAbMode = "exata"; fDtReMode = "exata"; fDtEnMode = "exata";
+  // Fecha todos os dropdowns
+  document.querySelectorAll(".ck-dropdown").forEach(function(d) { d.style.display = "none"; });
   showTab(curTab);
 }
 
@@ -790,15 +796,15 @@ function getFlat() {
   var flat = [];
   for (var ci = 0; ci < STATE.clientes.length; ci++) {
     var c = STATE.clientes[ci];
-    if (fCli && fCli !== c.cliente) continue;
+    if (fCli.length && fCli.indexOf(c.cliente) < 0) continue;
     if (fMulti && !multi[c.cliente]) continue;
     for (var ai = 0; ai < c.apolices.length; ai++) {
       var a = c.apolices[ai];
       for (var oi = 0; oi < a.ocorrencias.length; oi++) {
         var o = a.ocorrencias[oi];
         if (fOcorr && o.ocorrencia.toLowerCase().indexOf(fOcorr.toLowerCase()) < 0) continue;
-        if (fProduto && o.produto !== fProduto) continue;
-        if (fSituacao && (!o.gestao || o.gestao.situacao !== fSituacao)) continue;
+        if (fProduto.length && fProduto.indexOf(o.produto) < 0) continue;
+        if (fSituacao.length && (!o.gestao || fSituacao.indexOf(o.gestao.situacao) < 0)) continue;
         if (fSinistro) {
           var hasSin = false;
           for (var si = 0; si < o.sinistros.length; si++) {
@@ -874,7 +880,83 @@ function dtGrp(label, vDe, vAte, setDe, setAte, mode, setMode) {
     '</div>' + inner + '</div>';
 }
 
-// ── CONTA CORRENTE
+// ── Checklist dropdown reutilizável
+var _ckOpen = null; // id do dropdown aberto
+
+function ckToggle(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (_ckOpen && _ckOpen !== id) {
+    var prev = document.getElementById(_ckOpen);
+    if (prev) prev.style.display = "none";
+  }
+  var isOpen = el.style.display === "block";
+  el.style.display = isOpen ? "none" : "block";
+  _ckOpen = isOpen ? null : id;
+}
+
+// Fecha dropdowns ao clicar fora
+document.addEventListener("click", function(e) {
+  if (_ckOpen && !e.target.closest(".ck-wrap")) {
+    var el = document.getElementById(_ckOpen);
+    if (el) el.style.display = "none";
+    _ckOpen = null;
+  }
+});
+
+function ckToggleItem(varName, val) {
+  var arr = window[varName];
+  var idx = arr.indexOf(val);
+  if (idx >= 0) arr.splice(idx, 1);
+  else arr.push(val);
+  showTab(curTab);
+}
+function ckSelectAll(varName, all) {
+  window[varName] = all.slice();
+  showTab(curTab);
+}
+function ckClear(varName) {
+  window[varName] = [];
+  showTab(curTab);
+}
+
+function ckDropdown(id, varName, items, placeholder, searchable) {
+  var selected = window[varName];
+  var label = selected.length === 0 ? placeholder : (selected.length === items.length ? "Todos (" + items.length + ")" : selected.length + " selecionado(s)");
+  var hasVal = selected.length > 0 && selected.length < items.length;
+
+  var searchHtml = searchable ? '<div style="padding:6px 8px;border-bottom:1px solid #e5e7eb"><input type="text" placeholder="Pesquisar..." style="width:100%;border:1px solid #d1d5db;border-radius:6px;padding:4px 8px;font-size:11px" oninput="ckSearch(\'ck-list-' + id + '\',this.value)"></div>' : '';
+
+  var itemsHtml = items.map(function(v) {
+    var chk = selected.indexOf(v) >= 0 ? "checked" : "";
+    return '<label class="ck-item" style="display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;font-size:12px;white-space:nowrap" onmouseover="this.style.background=\'#f0f3fa\'" onmouseout="this.style.background=\'\'">' +
+      '<input type="checkbox" ' + chk + ' onclick="ckToggleItem(\'' + varName + '\',\'' + v.replace(/'/g, "\\'") + '\')" style="cursor:pointer">' +
+      '<span>' + v + '</span></label>';
+  }).join("");
+
+  return '<div class="ck-wrap" style="position:relative;display:inline-block">' +
+    '<button onclick="ckToggle(\'' + id + '\')" style="border:1px solid #d1d5db;border-radius:6px;padding:5px 10px;font-size:12px;background:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:140px;color:' + (hasVal ? "var(--navy)" : "#374151") + ';font-weight:' + (hasVal ? "700" : "400") + '">' +
+    '<span style="flex:1;text-align:left">' + label + '</span>' +
+    (selected.length > 0 ? '<span onclick="event.stopPropagation();ckClear(\'' + varName + '\')" style="color:#9ca3af;font-size:14px;line-height:1" title="Limpar">✕</span>' : '<span style="color:#9ca3af;font-size:10px">▼</span>') +
+    '</button>' +
+    '<div id="' + id + '" class="ck-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;min-width:200px;max-height:280px;overflow:hidden;display:none">' +
+    searchHtml +
+    '<div style="padding:4px 8px;border-bottom:1px solid #f0f3fa;display:flex;gap:8px">' +
+    '<button onclick="ckSelectAll(\'' + varName + '\',' + JSON.stringify(items) + ')" style="border:none;background:none;cursor:pointer;font-size:11px;color:#1d4ed8;font-weight:600">Todos</button>' +
+    '<button onclick="ckClear(\'' + varName + '\')" style="border:none;background:none;cursor:pointer;font-size:11px;color:#6b7280">Limpar</button>' +
+    '</div>' +
+    '<div id="ck-list-' + id + '" style="overflow-y:auto;max-height:200px">' + itemsHtml + '</div>' +
+    '</div></div>';
+}
+
+function ckSearch(listId, q) {
+  var el = document.getElementById(listId);
+  if (!el) return;
+  el.querySelectorAll(".ck-item").forEach(function(item) {
+    var txt = item.querySelector("span").textContent.toLowerCase();
+    item.style.display = txt.indexOf(q.toLowerCase()) >= 0 ? "" : "none";
+  });
+}
 function rCC() {
   var hg = STATE.gestData.length > 0;
   var multi = {};
