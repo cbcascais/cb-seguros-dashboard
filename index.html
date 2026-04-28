@@ -337,7 +337,15 @@ function checkAndLoad(force) {
         return downloadFile(dId,f.id).then(function(buf){
           var rows=parseXls(buf); if(!rows.length) return;
           var m=autoSin(Object.keys(rows[0])); if(!m) return;
-          STATE.allData.push({mesLabel:mes,fileName:f.name,rows:rows.map(function(r){return mapSin(r,m);})});
+          // Filtra linhas sem dados essenciais (linhas em branco, totais, cabeçalhos extra)
+          var validRows = rows.map(function(r){return mapSin(r,m);}).filter(function(r){
+            return r.cliente && r.cliente.length>0 &&
+                   r.apolice && r.apolice.length>0 &&
+                   r.ocorrencia && r.ocorrencia.length>0 &&
+                   r.sinistro && r.sinistro.length>0;
+          });
+          if(!validRows.length) return;
+          STATE.allData.push({mesLabel:mes,fileName:f.name,rows:validRows});
         });
       });
     });
@@ -404,14 +412,14 @@ function autoSin(h){var m={};var keys=Object.keys(CS);for(var i=0;i<keys.length;
 function autoGest(h){var m={};var keys=Object.keys(CG);for(var i=0;i<keys.length;i++)m[keys[i]]=dc(h,CG[keys[i]]);return m.ocorrencia?m:null;}
 function mapSin(r,m){
   return{
-    cliente:String(r[m.cliente]||""),
-    apolice:String(r[m.apolice]||""),
-    produto:String(r[m.produto]||""),
+    cliente:String(r[m.cliente]||"").trim(),
+    apolice:String(r[m.apolice]||"").trim(),
+    produto:String(r[m.produto]||"").trim(),
     ocorrencia:String(r[m.ocorrencia]||"").trim(),
     dataocorrencia:xDate(r[m.dataocorrencia]),
     sinistro:String(r[m.sinistro]||"").trim(),
     valor:parseFloat(r[m.valor]||0)||0,
-    comercial:m.comercial?String(r[m.comercial]||""):""
+    comercial:m.comercial?String(r[m.comercial]||"").trim():""
   };
 }
 function mapGest(r,m){
