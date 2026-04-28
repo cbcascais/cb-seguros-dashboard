@@ -315,15 +315,27 @@ var fDtOcMode = "exata", fDtAbMode = "exata", fDtReMode = "exata", fDtEnMode = "
 var sortCol = "cliente", sortDir = "asc";
 var expOc = {}, expMov = {};
 
-// ── Descarregar ficheiro via Graph API (mais fiável que downloadUrl)
+// ── Descarregar ficheiro — tenta /content primeiro, fallback para downloadUrl
 function downloadFile(dId, itemId) {
-  return getToken().then(function() {
-    return fetch("https://graph.microsoft.com/v1.0/drives/" + dId + "/items/" + itemId + "/content", {
-      headers: { Authorization: "Bearer " + _token }
+  // Primeiro obter o item para ter o downloadUrl
+  return graph("/drives/" + dId + "/items/" + itemId).then(function(item) {
+    var url = item["@microsoft.graph.downloadUrl"];
+    if (url) {
+      // Usa o downloadUrl pré-autenticado (mais fiável)
+      return fetch(url).then(function(r) {
+        if (!r.ok) throw new Error("Download falhou: " + r.status);
+        return r.arrayBuffer();
+      });
+    }
+    // Fallback: endpoint /content com token
+    return getToken().then(function() {
+      return fetch("https://graph.microsoft.com/v1.0/drives/" + dId + "/items/" + itemId + "/content", {
+        headers: { Authorization: "Bearer " + _token }
+      });
+    }).then(function(r) {
+      if (!r.ok) throw new Error("Download /content falhou: " + r.status);
+      return r.arrayBuffer();
     });
-  }).then(function(r) {
-    if (!r.ok) throw new Error("Download falhou: " + r.status);
-    return r.arrayBuffer();
   });
 }
 function getSavedFiles() {
@@ -396,16 +408,27 @@ function checkAndLoad(force) {
       });
     });
 
-    // Processar sinistros
+    // Processar sinistros com log detalhado
     if (xsin.length) {
       var sf = xsin[xsin.length - 1];
       chain = chain.then(function() {
-        showL("A processar sinistros...");
+        showL("A processar sinistros: " + sf.name + "...");
+        console.log("A descarregar sinistros:", sf.name, sf.id);
         return downloadFile(dId, sf.id).then(function(buf) {
+          console.log("Sinistros descarregados, tamanho:", buf.byteLength);
           var rows = parseXls(buf);
-          if (!rows.length) return;
-          var m = autoGest(Object.keys(rows[0]));
-          if (m) STATE.gestData = rows.map(function(r) { return mapGest(r, m); });
+          console.log("Sinistros linhas:", rows.length);
+          if (!rows.length) { console.warn("Ficheiro sinistros vazio"); return; }
+          var headers = Object.keys(rows[0]);
+          console.log("Headers sinistros:", headers.join(", "));
+          var m = autoGest(headers);
+          if (!m) { console.warn("Colunas não detetadas no ficheiro sinistros"); return; }
+          console.log("Mapeamento sinistros:", JSON.stringify(m));
+          STATE.gestData = rows.map(function(r) { return mapGest(r, m); });
+          console.log("Sinistros processados:", STATE.gestData.length);
+        }).catch(function(err) {
+          console.error("Erro ao processar sinistros:", err);
+          // Não bloqueia — continua sem dados de gestão
         });
       });
     }
@@ -1293,16 +1316,22 @@ function hideL() { document.getElementById("loader").style.display = "none"; }
 window.addEventListener("load", function() {
   isMobile = window.innerWidth <= 768;
   applyView();
-  initMsalApp().then(function(app) {
-    return app.handleRedirectPromise().catch(function() {}).then(function() {
-      var accounts = app.getAllAccounts();
-      if (accounts.length > 0) {
-        app.setActiveAccount(accounts[0]);
-        setUser(accounts[0]);
-        return checkAndLoad(false);
-      }
+  // Aguarda um pouco para garantir que os scripts externos carregaram
+  setTimeout(function() {
+    initMsalApp().then(function(app) {
+      return app.handleRedirectPromise().catch(function() {}).then(function() {
+        var accounts = app.getAllAccounts();
+        console.log("Contas encontradas:", accounts.length);
+        if (accounts.length > 0) {
+          app.setActiveAccount(accounts[0]);
+          setUser(accounts[0]);
+          return checkAndLoad(false);
+        }
+      });
+    }).catch(function(e) {
+      console.error("Auto-login erro:", e);
     });
-  }).catch(function(e) { console.error("Auto-login:", e); });
+  }, 500);
 });
 
 window.addEventListener("resize", function() {
