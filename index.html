@@ -108,6 +108,7 @@ tfoot .sr{background:var(--navy2)}
   <div class="kpi"><div class="lbl">Sinistros</div><div class="val" id="k3">0</div></div>
   <div class="kpi red"><div class="lbl">Total Débito</div><div class="val" id="k4">—</div></div>
 </div>
+<div id="kpis2" style="display:none;grid-template-columns:repeat(5,1fr);gap:10px;padding:0 16px 12px"></div>
 <div class="tabs" id="tabs">
   <div class="tab active" onclick="showTab('cc',this)">Conta Corrente</div>
   <div class="tab" onclick="showTab('mensal',this)">Resumo Mensal</div>
@@ -624,7 +625,56 @@ function sitBdg(s) {
   return '<span class="sit-badge" style="' + st + '">' + s + '</span>';
 }
 
-// ── RENDER
+function getKpiMensal() {
+  var now = new Date();
+  var curYear = now.getFullYear();
+  var curMonth = now.getMonth() + 1;
+
+  function isThisMonth(dateStr) {
+    if (!dateStr) return false;
+    var p = dateStr.split("/");
+    if (p.length !== 3) return false;
+    return parseInt(p[2]) === curYear && parseInt(p[1]) === curMonth;
+  }
+
+  // Mapa ocorrência → saldo financeiro
+  var ocMap = {};
+  STATE.clientes.forEach(function(c) {
+    c.apolices.forEach(function(a) {
+      a.ocorrencias.forEach(function(o) { ocMap[o.ocorrencia] = o.saldoT; });
+    });
+  });
+
+  var abertos = [], reabertos = [], encerrados = [], reencerrados = [], emVigor = [];
+
+  STATE.gestData.forEach(function(g) {
+    var saldo = ocMap[g.ocorrencia] || 0;
+    var sit = (g.situacao || "").toLowerCase();
+
+    if (isThisMonth(g.dataabertura)) abertos.push(saldo);
+    if (isThisMonth(g.datareabertura)) reabertos.push(saldo);
+    if (isThisMonth(g.dataencerramento)) {
+      encerrados.push(saldo);
+      // Reencerrado = encerrado este mês E teve reabertura
+      if (g.datareabertura) reencerrados.push(saldo);
+    }
+    // Em vigor = situação ativa (aberto/ativo/pendente) ou sem encerramento
+    if (sit.indexOf("aber") >= 0 || sit.indexOf("ativo") >= 0 || sit.indexOf("pend") >= 0 ||
+        sit.indexOf("reaber") >= 0 || (!g.dataencerramento && sit && sit.indexOf("encerr") < 0 && sit.indexOf("fech") < 0)) {
+      emVigor.push(saldo);
+    }
+  });
+
+  function sum(arr) { return arr.reduce(function(s, v) { return s + v; }, 0); }
+
+  return [
+    { lbl: "Abertos " + curMonth + "/" + curYear, n: abertos.length, val: sum(abertos), color: "#1d4ed8", icon: "🔵" },
+    { lbl: "Reabertos " + curMonth + "/" + curYear, n: reabertos.length, val: sum(reabertos), color: "#c2410c", icon: "🟠" },
+    { lbl: "Encerrados " + curMonth + "/" + curYear, n: encerrados.length, val: sum(encerrados), color: "#374151", icon: "⚫" },
+    { lbl: "Reencerrados " + curMonth + "/" + curYear, n: reencerrados.length, val: sum(reencerrados), color: "#6d28d9", icon: "🟣" },
+    { lbl: "Em vigor", n: emVigor.length, val: sum(emVigor), color: "#15803d", icon: "🟢" }
+  ];
+}
 function render() {
   document.getElementById("kpis").style.display = "grid";
   var c = STATE.clientes;
@@ -635,7 +685,22 @@ function render() {
   document.getElementById("k3").textContent = totalSin;
   var totalDeb = c.filter(function(x) { return x.saldoT < 0; }).reduce(function(s, x) { return s + x.saldoT; }, 0);
   document.getElementById("k4").textContent = fmt(totalDeb);
-  var mh = document.getElementById("mh"); mh.innerHTML = "";
+  // KPIs mensais (só quando gestData disponível)
+  var k2el = document.getElementById("kpis2");
+  if (STATE.gestData.length > 0) {
+    var km = getKpiMensal();
+    k2el.innerHTML = km.map(function(k) {
+      return '<div class="kpi" style="border-left-color:' + k.color + '">' +
+        '<div class="lbl">' + k.icon + ' ' + k.lbl + '</div>' +
+        '<div style="display:flex;align-items:baseline;gap:8px;margin-top:3px">' +
+        '<div class="val" style="color:' + k.color + ';font-size:24px">' + k.n + '</div>' +
+        '<div style="font-size:11px;font-weight:600;color:' + (k.val < 0 ? "#dc2626" : k.val > 0 ? "#16a34a" : "#9ca3af") + '">' + fmt(k.val) + '</div>' +
+        '</div></div>';
+    }).join("");
+    k2el.style.display = "grid";
+  } else {
+    k2el.style.display = "none";
+  }
   STATE.meses.forEach(function(m) {
     var s = document.createElement("span"); s.className = "mes-badge"; s.textContent = mm(m); mh.appendChild(s);
   });
