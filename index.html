@@ -418,6 +418,7 @@ function checkAndLoad(force) {
       document.getElementById("st1").textContent = xls.length + " ficheiro(s)";
       document.getElementById("st2").textContent = xsin.length ? xsin[xsin.length-1].name : "Não encontrado";
       document.getElementById("st3").textContent = new Date().toLocaleString("pt-PT");
+      hideL();
       if (!force) showToast("✅ Dados atualizados");
     });
   }).catch(function(e) {
