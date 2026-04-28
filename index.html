@@ -6,29 +6,51 @@
 <title>CB Seguros — Dashboard Sinistralidade</title>
 <style>
 :root{--navy:#1B2A5E;--navy2:#263d7a;--gray:#f0f3fa}
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif;font-size:13px}
-body{background:var(--gray)}
-header{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.title{font-size:18px;font-weight:700}.sub{font-size:11px;color:#7eb3f7;letter-spacing:.1em;text-transform:uppercase}
-#btn-login{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:6px 16px;cursor:pointer;font-size:12px;font-weight:600}
-#user-name{font-size:12px;color:#7eb3f7}
-.meses{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
-.mes-badge{background:rgba(255,255,255,.15);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600}
-#loader{display:none;position:fixed;inset:0;background:rgba(27,42,94,.8);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-size:14px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
+body{background:var(--gray);font-size:13px}
+
+/* ── HEADER ── */
+header{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.title{font-size:16px;font-weight:700}.sub{font-size:10px;color:#7eb3f7;letter-spacing:.08em;text-transform:uppercase}
+#btn-login{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:600}
+#user-name{font-size:11px;color:#7eb3f7}
+.meses{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.mes-badge{background:rgba(255,255,255,.15);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600}
+#btn-view{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px}
+
+/* ── LOADER ── */
+#loader{display:none;position:fixed;inset:0;background:rgba(27,42,94,.85);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-size:14px}
 .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#status{padding:12px 24px;background:#fff;border-bottom:1px solid #dde3f0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.sc{display:flex;align-items:center;gap:8px;background:#eef3fc;border:1px solid #c5d5ef;border-radius:8px;padding:6px 14px}
-.sc .lbl{font-size:10px;color:#666}.sc .val{font-size:12px;font-weight:700;color:var(--navy)}
-#btn-refresh{margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:600}
-#kpis{display:none;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 24px}
-.kpi{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:14px 16px;border-left:4px solid var(--navy)}
-.kpi .lbl{font-size:11px;color:#888;margin-bottom:4px}.kpi .val{font-size:22px;font-weight:700;color:var(--navy)}
+
+/* ── STATUS ── */
+#status{padding:10px 16px;background:#fff;border-bottom:1px solid #dde3f0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sc{display:flex;align-items:center;gap:6px;background:#eef3fc;border:1px solid #c5d5ef;border-radius:8px;padding:5px 10px}
+.sc .lbl{font-size:10px;color:#666}.sc .val{font-size:11px;font-weight:700;color:var(--navy)}
+#btn-refresh{margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:11px;font-weight:600}
+
+/* ── KPIs ── */
+#kpis{display:none;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 16px}
+.kpi{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:12px 14px;border-left:4px solid var(--navy)}
+.kpi .lbl{font-size:10px;color:#888;margin-bottom:3px}.kpi .val{font-size:20px;font-weight:700;color:var(--navy)}
 .kpi.red{border-left-color:#dc2626}.kpi.red .val{color:#dc2626}
-.tabs{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 24px;display:none;gap:4px;overflow-x:auto}
-.tab{padding:10px 18px;font-size:13px;font-weight:600;border-bottom:2px solid transparent;color:#6b7280;cursor:pointer;white-space:nowrap}
+
+/* ── DESKTOP TABS ── */
+.tabs{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 16px;display:none;gap:2px;overflow-x:auto}
+.tab{padding:9px 16px;font-size:12px;font-weight:600;border-bottom:2px solid transparent;color:#6b7280;cursor:pointer;white-space:nowrap}
 .tab.active{border-bottom-color:#1d4ed8;color:#1d4ed8}
-#content{padding:16px 24px}
+
+/* ── MOBILE BOTTOM TABS ── */
+#mobile-tabs{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;z-index:100;padding:4px 0 env(safe-area-inset-bottom)}
+.mtab{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 4px;cursor:pointer;color:#9ca3af;font-size:9px;font-weight:600;gap:2px;border:none;background:none}
+.mtab .mi{font-size:20px}
+.mtab.active{color:var(--navy)}
+
+/* ── CONTENT ── */
+#content{padding:12px 16px}
+.pb-mobile{padding-bottom:70px} /* espaço para bottom tabs */
+
+/* ── DESKTOP TABLE ── */
 .tw{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead tr{background:var(--navy);color:#fff}
@@ -37,32 +59,67 @@ td{padding:8px 12px;border-bottom:1px solid #f0f3fa}
 tbody tr:hover{background:#f5f8ff}
 tfoot tr{background:var(--navy);color:#fff;font-weight:700}
 tfoot .sr{background:var(--navy2)}
-.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+
+/* ── MOBILE CARDS ── */
+.m-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:10px;overflow:hidden}
+.m-card-header{padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.m-card-title{font-weight:700;color:var(--navy);font-size:13px}
+.m-card-sub{font-size:11px;color:#6b7280;margin-top:2px}
+.m-card-saldo{font-size:14px;font-weight:700;white-space:nowrap;text-align:right}
+.m-card-body{border-top:1px solid #f0f3fa;padding:10px 14px;display:none}
+.m-card-body.open{display:block}
+.m-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f9fafb;font-size:11px}
+.m-row .lbl{color:#6b7280}.m-row .val{font-weight:600;color:var(--navy)}
+.m-sin{background:#eef2fb;border-radius:8px;padding:8px 10px;margin-top:6px;cursor:pointer}
+.m-sin-title{font-size:11px;font-weight:700;color:#6366f1}
+.m-movs{margin-top:6px;background:#e8eaf8;border-radius:6px;padding:6px 8px}
+.m-movs table{font-size:10px}
+
+/* ── MOBILE FILTROS ── */
+.m-filters{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:10px;overflow:hidden}
+.m-filters-header{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:700;color:var(--navy);font-size:12px}
+.m-filters-body{padding:10px 14px;display:none;flex-direction:column;gap:8px}
+.m-filters-body.open{display:flex}
+.m-filters-body select,.m-filters-body input{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:8px 10px;font-size:12px;background:#fff}
+.m-filters-body label{font-size:11px;font-weight:600;color:#555;margin-bottom:2px}
+.m-dt-grp{background:#f8faff;border:1px solid #c5d5ef;border-radius:8px;padding:8px 10px}
+.m-dt-grp .dt-label{font-size:11px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.m-dt-toggle{display:flex;gap:4px;margin-bottom:6px}
+.m-dt-toggle button{flex:1;border:none;border-radius:6px;padding:5px;font-size:11px;font-weight:600;cursor:pointer}
+.m-clear-btn{background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;width:100%}
+
+/* ── SHARED ── */
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700}
 .deb{background:#fee2e2;color:#b91c1c}.cred{background:#dcfce7;color:#15803d}.sal{background:#f3f4f6;color:#6b7280}
 .neg{color:#dc2626;font-weight:600}.pos{color:#16a34a;font-weight:600}.zero{color:#9ca3af}
-.sit{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
-.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-.filters select{border:1px solid #d1d5db;border-radius:6px;padding:5px 10px;font-size:12px;background:#fff}
-.filters button{border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#6b7280}
+.sit{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600}
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px}
+.filters select,.filters input[type=text]{border:1px solid #d1d5db;border-radius:6px;padding:5px 8px;font-size:12px;background:#fff}
+.filters button{border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#6b7280}
 .filters button.act{background:var(--navy);color:#fff;border-color:var(--navy)}
 .btn-exp{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important;margin-left:auto}
-.mb{background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
-#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 0;color:#9ca3af}
-#empty .ei{font-size:56px;margin-bottom:16px}
-#empty .em{font-size:16px;font-weight:600}
-#empty .es{font-size:12px;margin-top:6px}
-.ano-pill{background:var(--navy);color:#fff;border-radius:8px;padding:2px 14px;font-weight:700;font-size:14px;display:inline-block;margin-bottom:8px}
-.tg{display:flex;gap:6px;margin-bottom:16px}
-.tgb{border:1px solid #d1d5db;background:#fff;border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;color:#6b7280;cursor:pointer}
+.mb{background:#dc2626;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px;font-weight:700;margin-left:3px}
+#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:#9ca3af}
+#empty .ei{font-size:48px;margin-bottom:12px}
+#empty .em{font-size:15px;font-weight:600}
+#empty .es{font-size:11px;margin-top:5px}
+.ano-pill{background:var(--navy);color:#fff;border-radius:8px;padding:2px 12px;font-weight:700;font-size:13px;display:inline-block;margin-bottom:6px}
+.tg{display:flex;gap:6px;margin-bottom:12px}
+.tgb{border:1px solid #d1d5db;background:#fff;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:600;color:#6b7280;cursor:pointer}
 .tgb.act{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  #kpis{grid-template-columns:repeat(2,1fr)!important}
+  .kpi .val{font-size:18px}
+}
 </style>
 </head>
 <body>
-
 <div id="loader"><div class="spinner"></div><div id="lmsg">A carregar...</div></div>
 
 <header>
-  <svg width="44" height="44" viewBox="0 0 200 200" fill="none">
+  <svg width="36" height="36" viewBox="0 0 200 200" fill="none">
     <path d="M90 30 C45 30 15 62 15 100 C15 138 45 170 90 170" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
     <path d="M75 60 C52 60 36 78 36 100 C36 122 52 140 75 140" stroke="#7eb3f7" stroke-width="10" stroke-linecap="round" fill="none"/>
     <rect x="108" y="28" width="12" height="142" rx="6" fill="white"/>
@@ -72,7 +129,8 @@ tfoot .sr{background:var(--navy2)}
     <path d="M130 102 Q160 102 160 120 Q160 138 130 138" stroke="#7eb3f7" stroke-width="8" stroke-linecap="round" fill="none"/>
   </svg>
   <div><div class="sub">CB Seguros | Cascais</div><div class="title">Dashboard Sinistralidade</div></div>
-  <div style="display:flex;align-items:center;gap:10px">
+  <button id="btn-view" onclick="toggleView()" title="Alternar vista">📱</button>
+  <div style="display:flex;align-items:center;gap:8px">
     <span id="user-name">Não autenticado</span>
     <button id="btn-login">🔐 Entrar com M365</button>
   </div>
@@ -80,10 +138,10 @@ tfoot .sr{background:var(--navy2)}
 </header>
 
 <div id="status">
-  <div class="sc"><div>📊</div><div><div class="lbl">Ficheiros Sinistralidade</div><div class="val" id="st1">0 ficheiros</div></div></div>
-  <div class="sc"><div>📋</div><div><div class="lbl">Ficheiro Sinistros</div><div class="val" id="st2">Não carregado</div></div></div>
-  <div class="sc"><div>🕐</div><div><div class="lbl">Última atualização</div><div class="val" id="st3">—</div></div></div>
-  <button id="btn-refresh">🔄 Atualizar dados</button>
+  <div class="sc"><div>📊</div><div><div class="lbl">Sinistralidade</div><div class="val" id="st1">0 ficheiros</div></div></div>
+  <div class="sc"><div>📋</div><div><div class="lbl">Sinistros</div><div class="val" id="st2">Não carregado</div></div></div>
+  <div class="sc"><div>🕐</div><div><div class="lbl">Atualizado</div><div class="val" id="st3">—</div></div></div>
+  <button id="btn-refresh">🔄 Atualizar</button>
 </div>
 
 <div id="kpis">
@@ -93,6 +151,7 @@ tfoot .sr{background:var(--navy2)}
   <div class="kpi red"><div class="lbl">Total Débito</div><div class="val" id="k4">—</div></div>
 </div>
 
+<!-- Desktop tabs -->
 <div class="tabs" id="tabs">
   <div class="tab active" onclick="showTab('cc',this)">Conta Corrente</div>
   <div class="tab" onclick="showTab('mensal',this)">Resumo Mensal</div>
@@ -108,298 +167,236 @@ tfoot .sr{background:var(--navy2)}
   </div>
 </div>
 
-<!-- Scripts no final do body para garantir ordem de carregamento -->
+<!-- Mobile bottom tabs -->
+<div id="mobile-tabs">
+  <div style="display:flex">
+    <button class="mtab active" onclick="showTab('cc');setMTab(this)"><span class="mi">📋</span>Corrente</button>
+    <button class="mtab" onclick="showTab('mensal');setMTab(this)"><span class="mi">📅</span>Mensal</button>
+    <button class="mtab" onclick="showTab('produto');setMTab(this)"><span class="mi">📦</span>Produto</button>
+    <button class="mtab" onclick="showTab('anual');setMTab(this)"><span class="mi">📆</span>Anual</button>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// Carrega MSAL dinamicamente com fallback entre CDNs
-function loadMsal() {
-  return new Promise((resolve, reject) => {
-    if (window.msal) { resolve(); return; }
-    const cdns = [
+function loadMsal(){
+  return new Promise((res,rej)=>{
+    if(window.msal){res();return;}
+    const cdns=[
       "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js",
       "https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/2.38.3/msal-browser.min.js",
       "https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"
     ];
-    let i = 0;
-    function tryNext() {
-      if (i >= cdns.length) { reject(new Error("Não foi possível carregar MSAL")); return; }
-      const s = document.createElement("script");
-      s.src = cdns[i++];
-      s.onload = () => { if (window.msal) resolve(); else tryNext(); };
-      s.onerror = tryNext;
+    let i=0;
+    function tryNext(){
+      if(i>=cdns.length){rej(new Error("Não foi possível carregar MSAL"));return;}
+      const s=document.createElement("script");
+      s.src=cdns[i++]; s.onload=()=>{if(window.msal)res();else tryNext();}; s.onerror=tryNext;
       document.head.appendChild(s);
     }
     tryNext();
   });
 }
-</script>
-<script>
+
 // ── CONFIG
-const TENANT  = "a914409c-82a2-4746-85f0-f51bd2711c33";
-const CLIENT  = "6e166a10-9f36-4888-9a23-1734f238d2d0";
-const SP_HOST = "cbcascais.sharepoint.com";
-const SP_LIB  = "Documentos Partilhados";
-const FOLDER_M= "Sinistralidade 2026/Mensais";
-const FOLDER_S= "Sinistralidade 2026/Sinistros";
-const SCOPES  = ["User.Read","Files.Read.All","Sites.Read.All"];
-const MN      = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const REDIRECT= "https://cbcascais.github.io/cb-seguros-dashboard/";
+const TENANT  ="a914409c-82a2-4746-85f0-f51bd2711c33";
+const CLIENT  ="6e166a10-9f36-4888-9a23-1734f238d2d0";
+const SP_HOST ="cbcascais.sharepoint.com";
+const SP_LIB  ="Documentos Partilhados";
+const FOLDER_M="Sinistralidade 2026/Mensais";
+const FOLDER_S="Sinistralidade 2026/Sinistros";
+const SCOPES  =["User.Read","Files.Read.All","Sites.Read.All"];
+const REDIRECT ="https://cbcascais.github.io/cb-seguros-dashboard/";
+const MN=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-let msalApp = null;
-let _token  = null;
+let msalApp=null, _token=null;
+let isMobile = window.innerWidth <= 768;
+let filtersOpen = false;
 
-async function initMsalApp() {
-  if (msalApp) return msalApp;
-  await loadMsal(); // garante que MSAL está carregado
-  msalApp = new msal.PublicClientApplication({
-    auth: {
-      clientId:    CLIENT,
-      authority:   "https://login.microsoftonline.com/" + TENANT,
-      redirectUri: REDIRECT
-    },
-    cache: { cacheLocation: "localStorage", storeAuthStateInCookie: true }
+async function initMsalApp(){
+  if(msalApp) return msalApp;
+  await loadMsal();
+  msalApp=new msal.PublicClientApplication({
+    auth:{clientId:CLIENT,authority:"https://login.microsoftonline.com/"+TENANT,redirectUri:REDIRECT},
+    cache:{cacheLocation:"localStorage",storeAuthStateInCookie:true}
   });
   await msalApp.initialize();
   return msalApp;
 }
 
-async function doLogin() {
+async function doLogin(){
   showL("A autenticar...");
-  try {
-    const app  = await initMsalApp();
-    const resp = await app.loginPopup({ scopes: SCOPES, prompt: "select_account" });
+  try{
+    const app=await initMsalApp();
+    const resp=await app.loginPopup({scopes:SCOPES,prompt:"select_account"});
     app.setActiveAccount(resp.account);
     setUser(resp.account);
-    _token = resp.accessToken;
+    _token=resp.accessToken;
     await loadSP();
-  } catch(e) {
+  }catch(e){
     hideL();
-    const msg = (e && e.message) ? e.message : "";
-    if (msg.toLowerCase().includes("popup") || msg.toLowerCase().includes("block")) {
-      alert("⚠️ Popup bloqueado!\n\nClica no ícone 🔒 na barra do browser\ne permite popups para cbcascais.github.io");
-    } else if (msg) {
-      alert("Erro: " + msg);
-    }
+    const msg=(e&&e.message)?e.message:"";
+    if(msg.toLowerCase().includes("popup")||msg.toLowerCase().includes("block"))
+      alert("⚠️ Popup bloqueado!\n\nPermite popups para cbcascais.github.io nas definições do browser.");
+    else if(msg) alert("Erro: "+msg);
   }
 }
 
-async function getToken() {
-  if (_token) return;
-  const app = await initMsalApp();
-  const acc = app.getActiveAccount();
-  if (!acc) return;
-  try {
-    const r = await app.acquireTokenSilent({ scopes: SCOPES, account: acc });
-    _token = r.accessToken;
-  } catch(e) {
-    const r = await app.acquireTokenPopup({ scopes: SCOPES, account: acc });
-    _token = r.accessToken;
-  }
+async function getToken(){
+  if(_token) return;
+  const app=await initMsalApp();
+  const acc=app.getActiveAccount();
+  if(!acc) return;
+  try{const r=await app.acquireTokenSilent({scopes:SCOPES,account:acc});_token=r.accessToken;}
+  catch(e){const r=await app.acquireTokenPopup({scopes:SCOPES,account:acc});_token=r.accessToken;}
 }
 
-function setUser(acc) {
-  document.getElementById("user-name").textContent = "👤 " + acc.name;
-  const b = document.getElementById("btn-login");
-  b.textContent = "✅ " + acc.username;
-  b.style.background = "rgba(22,163,74,.4)";
+function setUser(acc){
+  document.getElementById("user-name").textContent="👤 "+acc.name;
+  const b=document.getElementById("btn-login");
+  b.textContent="✅ "+acc.username;
+  b.style.background="rgba(22,163,74,.4)";
 }
 
-// ── GRAPH API
-async function graph(url) {
+async function graph(url){
   await getToken();
-  const r = await fetch("https://graph.microsoft.com/v1.0" + url, {
-    headers: { Authorization: "Bearer " + _token }
-  });
-  if (!r.ok) throw new Error("Graph " + r.status + ": " + url);
+  const r=await fetch("https://graph.microsoft.com/v1.0"+url,{headers:{Authorization:"Bearer "+_token}});
+  if(!r.ok) throw new Error("Graph "+r.status+": "+url);
   return r.json();
 }
 
-// ── SHAREPOINT
-let STATE = { allData:[], gestData:[], clientes:[], meses:[] };
-let curTab="cc", anualView="cliente";
-let fCli="", fMulti=false, fOcorr="", fSinistro="", fSituacao="", fProduto="", fDtAb="", fDtEnc="", fDtRe="";
-let sortCol="cliente", sortDir="asc";
-let expCli={}, expAp={}, expOc={}, expMov={};
-
-async function loadSP() {
-  try {
-    showL("A ligar ao SharePoint...");
-
-    // Obter o site root do SharePoint
-    const site = await graph("/sites/cbcascais.sharepoint.com");
-    const siteId = site.id;
-
-    // Obter as drives do site
-    const drives = await graph("/sites/" + siteId + "/drives");
-    const lib = drives.value.find(d =>
-      d.name === SP_LIB ||
-      d.name === "Documents" ||
-      d.name === "Documentos Partilhados" ||
-      d.webUrl.toLowerCase().includes("documentos")
-    );
-    if (!lib) throw new Error("Biblioteca '" + SP_LIB + "' não encontrada. Drives disponíveis: " + drives.value.map(d=>d.name).join(", "));
-    const dId = lib.id;
-
-    showL("A ler ficheiros mensais...");
-    const men  = await graph("/drives/" + dId + "/root:/" + encodeURIComponent(FOLDER_M) + ":/children");
-    const xls  = men.value.filter(f => f.name.match(/\.(xlsx|xls)$/i));
-
-    showL("A ler ficheiro sinistros...");
-    const sinR = await graph("/drives/" + dId + "/root:/" + encodeURIComponent(FOLDER_S) + ":/children");
-    const xsin = sinR.value.filter(f => f.name.match(/\.(xlsx|xls)$/i));
-
-    STATE.allData  = [];
-    STATE.gestData = [];
-
-    for (const f of xls) {
-      showL("A processar " + f.name + "...");
-      const item = await graph("/drives/" + dId + "/items/" + f.id);
-      const url  = item["@microsoft.graph.downloadUrl"];
-      const buf  = await (await fetch(url)).arrayBuffer();
-      const rows = parseXls(buf);
-      if (!rows.length) continue;
-      const m = autoSin(Object.keys(rows[0]));
-      if (!m) continue;
-      const mes = getMes(f.name, f.lastModifiedDateTime);
-      STATE.allData.push({ mesLabel: mes, fileName: f.name, rows: rows.map(r => mapSin(r, m)) });
-    }
-    STATE.allData.sort((a,b) => a.mesLabel.localeCompare(b.mesLabel));
-
-    if (xsin.length) {
-      const f    = xsin[xsin.length - 1];
-      showL("A processar sinistros...");
-      const item = await graph("/drives/" + dId + "/items/" + f.id);
-      const url  = item["@microsoft.graph.downloadUrl"];
-      const buf  = await (await fetch(url)).arrayBuffer();
-      const rows = parseXls(buf);
-      if (rows.length) {
-        const m = autoGest(Object.keys(rows[0]));
-        if (m) STATE.gestData = rows.map(r => mapGest(r, m));
-      }
-    }
-
-    build();
-    render();
-    document.getElementById("st1").textContent = xls.length + " ficheiro(s)";
-    document.getElementById("st2").textContent = xsin.length ? xsin[xsin.length-1].name : "Não encontrado";
-    document.getElementById("st3").textContent = new Date().toLocaleString("pt-PT");
-    hideL();
-  } catch(e) {
-    hideL();
-    alert("Erro ao carregar dados:\n" + e.message);
-    console.error(e);
+// ── VIEW TOGGLE
+function toggleView(){
+  isMobile=!isMobile;
+  applyView();
+  showTab(curTab);
+}
+function applyView(){
+  const btn=document.getElementById("btn-view");
+  const tabs=document.getElementById("tabs");
+  const mtabs=document.getElementById("mobile-tabs");
+  const content=document.getElementById("content");
+  if(isMobile){
+    btn.textContent="🖥️";
+    btn.title="Mudar para vista desktop";
+    tabs.style.display="none";
+    if(STATE.clientes.length) mtabs.style.display="block";
+    content.classList.add("pb-mobile");
+  } else {
+    btn.textContent="📱";
+    btn.title="Mudar para vista mobile";
+    if(STATE.clientes.length) tabs.style.display="flex";
+    mtabs.style.display="none";
+    content.classList.remove("pb-mobile");
   }
 }
 
-function getMes(name, dt) {
-  const m = name.match(/(\d{4})[_\-\s]?(\d{2})/);
-  if (m) return m[1] + "-" + m[2];
-  const d = new Date(dt);
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+function setMTab(el){
+  document.querySelectorAll(".mtab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+}
+
+// ── SHAREPOINT
+let STATE={allData:[],gestData:[],clientes:[],meses:[]};
+let curTab="cc", anualView="cliente";
+let fCli="",fMulti=false,fOcorr="",fSinistro="",fSituacao="",fProduto="";
+let fDtAbDe="",fDtAbAte="",fDtEncDe="",fDtEncAte="",fDtReDe="",fDtReAte="",fDtOcorrDe="",fDtOcorrAte="";
+let fDtAbMode="exata",fDtEncMode="exata",fDtReMode="exata",fDtOcorrMode="exata";
+let sortCol="cliente",sortDir="asc";
+let expCli={},expAp={},expOc={},expMov={};
+
+async function loadSP(){
+  try{
+    showL("A ligar ao SharePoint...");
+    const site=await graph("/sites/cbcascais.sharepoint.com");
+    const drives=await graph("/sites/"+site.id+"/drives");
+    const lib=drives.value.find(d=>d.name===SP_LIB||d.name==="Documents"||d.webUrl.toLowerCase().includes("documentos"));
+    if(!lib) throw new Error("Biblioteca não encontrada. Drives: "+drives.value.map(d=>d.name).join(", "));
+    const dId=lib.id;
+    showL("A ler ficheiros mensais...");
+    const men=await graph("/drives/"+dId+"/root:/"+encodeURIComponent(FOLDER_M)+":/children");
+    const xls=men.value.filter(f=>f.name.match(/\.(xlsx|xls)$/i));
+    showL("A ler ficheiro sinistros...");
+    const sinR=await graph("/drives/"+dId+"/root:/"+encodeURIComponent(FOLDER_S)+":/children");
+    const xsin=sinR.value.filter(f=>f.name.match(/\.(xlsx|xls)$/i));
+    STATE.allData=[];STATE.gestData=[];
+    for(const f of xls){
+      showL("A processar "+f.name+"...");
+      const item=await graph("/drives/"+dId+"/items/"+f.id);
+      const buf=await(await fetch(item["@microsoft.graph.downloadUrl"])).arrayBuffer();
+      const rows=parseXls(buf); if(!rows.length) continue;
+      const m=autoSin(Object.keys(rows[0])); if(!m) continue;
+      STATE.allData.push({mesLabel:getMes(f.name,f.lastModifiedDateTime),fileName:f.name,rows:rows.map(r=>mapSin(r,m))});
+    }
+    STATE.allData.sort((a,b)=>a.mesLabel.localeCompare(b.mesLabel));
+    if(xsin.length){
+      const f=xsin[xsin.length-1];
+      showL("A processar sinistros...");
+      const item=await graph("/drives/"+dId+"/items/"+f.id);
+      const buf=await(await fetch(item["@microsoft.graph.downloadUrl"])).arrayBuffer();
+      const rows=parseXls(buf);
+      if(rows.length){const m=autoGest(Object.keys(rows[0]));if(m)STATE.gestData=rows.map(r=>mapGest(r,m));}
+    }
+    build(); render();
+    document.getElementById("st1").textContent=xls.length+" ficheiro(s)";
+    document.getElementById("st2").textContent=xsin.length?xsin[xsin.length-1].name:"Não encontrado";
+    document.getElementById("st3").textContent=new Date().toLocaleString("pt-PT");
+    hideL();
+  }catch(e){hideL();alert("Erro:\n"+e.message);console.error(e);}
+}
+
+function getMes(name,dt){
+  const m=name.match(/(\d{4})[_\-\s]?(\d{2})/);
+  if(m) return m[1]+"-"+m[2];
+  const d=new Date(dt);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
 }
 
 // ── EXCEL
-function parseXls(buf) {
-  const wb = XLSX.read(buf, { type:"array" });
-  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:"" });
+function parseXls(buf){
+  const wb=XLSX.read(buf,{type:"array"});
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
 }
-function xDate(v) {
-  if (!v || v === "" || v === 0) return "";
+function xDate(v){
+  if(!v||v===""||v===0) return "";
   let d;
-  if (typeof v === "number") {
-    if (v < 1) return ""; // valor inválido
-    d = new Date(Math.round((v - 25569) * 86400 * 1000));
-  } else {
-    d = new Date(v);
-  }
-  if (isNaN(d.getTime())) return "";
-  if (d.getFullYear() < 1950 || d.getFullYear() > 2100) return ""; // ano fora de intervalo válido
+  if(typeof v==="number"){if(v<1)return"";d=new Date(Math.round((v-25569)*86400*1000));}
+  else d=new Date(v);
+  if(isNaN(d.getTime())) return "";
+  if(d.getFullYear()<1950||d.getFullYear()>2100) return "";
   return d.toLocaleDateString("pt-PT");
 }
 
-const CS = {
-  cliente:["cliente","client","nome cliente","tomador"],
-  apolice:["apólice","apolice","nº apólice","policia"],
-  produto:["produto","ramo","linha","tipo produto"],
-  ocorrencia:["ocorrência","ocorrencia","nº ocorrência","ocorr","nº ocorr"],
-  dataocorrencia:["data ocorrência","data ocorrencia","dt ocorrência","data ocorr","data sinistro"],
-  sinistro:["sinistro","nº sinistro","num sinistro","sin"],
-  valor:["valor","montante","custo","amount"]
-};
-const CG = {
-  ocorrencia:["ocorrência","ocorrencia","nº ocorrência","ocorr","nº ocorr"],
-  dataabertura:["data abertura","dt abertura","abertura"],
-  dataocorrencia:["data ocorrência","data ocorrencia","data ocorr"],
-  datareabertura:["data reabertura","reabertura"],
-  dataencerramento:["data encerramento","encerramento","data fecho"],
-  situacao:["situação","situacao","estado","status"],
-  qtasinistros:["qta sinistros","qtd sinistros","nº sinistros","qt sinistros"]
-};
+const CS={cliente:["cliente","client","nome cliente","tomador"],apolice:["apólice","apolice","nº apólice","policia"],produto:["produto","ramo","linha","tipo produto"],ocorrencia:["ocorrência","ocorrencia","nº ocorrência","ocorr","nº ocorr"],dataocorrencia:["data ocorrência","data ocorrencia","dt ocorrência","data ocorr","data sinistro"],sinistro:["sinistro","nº sinistro","num sinistro","sin"],valor:["valor","montante","custo","amount"]};
+const CG={ocorrencia:["ocorrência","ocorrencia","nº ocorrência","ocorr","nº ocorr"],dataabertura:["data abertura","dt abertura","abertura"],dataocorrencia:["data ocorrência","data ocorrencia","data ocorr"],datareabertura:["data reabertura","reabertura"],dataencerramento:["data encerramento","encerramento","data fecho"],situacao:["situação","situacao","estado","status"],qtasinistros:["qta sinistros","qtd sinistros","nº sinistros","qt sinistros"]};
 
-function dc(headers, cands) {
-  const h = headers.map(x => x?.toString().toLowerCase().trim());
-  for (const c of cands) { const i = h.findIndex(x => x===c||x?.includes(c)); if(i>=0) return headers[i]; }
-  return null;
-}
-function autoSin(h) {
-  const m={};
-  for(const[k,c]of Object.entries(CS)) m[k]=dc(h,c);
-  return ["cliente","apolice","ocorrencia","sinistro","valor"].every(k=>m[k]) ? m : null;
-}
-function autoGest(h) {
-  const m={};
-  for(const[k,c]of Object.entries(CG)) m[k]=dc(h,c);
-  return m.ocorrencia ? m : null;
-}
-function mapSin(r,m) {
-  return {
-    cliente: String(r[m.cliente]??""),
-    apolice: String(r[m.apolice]??""),
-    produto: String(r[m.produto]??""),
-    ocorrencia: String(r[m.ocorrencia]??"").trim(),
-    dataocorrencia: xDate(r[m.dataocorrencia]),
-    sinistro: String(r[m.sinistro]??"").trim(),
-    valor: parseFloat(r[m.valor]??0)||0
-  };
-}
-function mapGest(r,m) {
-  return {
-    ocorrencia: String(r[m.ocorrencia]??"").trim(),
-    dataabertura: xDate(r[m.dataabertura]),
-    dataocorrencia: xDate(r[m.dataocorrencia]),
-    datareabertura: xDate(r[m.datareabertura]),
-    dataencerramento: xDate(r[m.dataencerramento]),
-    situacao: String(r[m.situacao]??""),
-    qtasinistros: (r[m.qtasinistros]!==""&&r[m.qtasinistros]!==undefined) ? (parseInt(r[m.qtasinistros])||0) : null
-  };
-}
+function dc(headers,cands){const h=headers.map(x=>x?.toString().toLowerCase().trim());for(const c of cands){const i=h.findIndex(x=>x===c||x?.includes(c));if(i>=0)return headers[i];}return null;}
+function autoSin(h){const m={};for(const[k,c]of Object.entries(CS))m[k]=dc(h,c);return["cliente","apolice","ocorrencia","sinistro","valor"].every(k=>m[k])?m:null;}
+function autoGest(h){const m={};for(const[k,c]of Object.entries(CG))m[k]=dc(h,c);return m.ocorrencia?m:null;}
+function mapSin(r,m){return{cliente:String(r[m.cliente]??""),apolice:String(r[m.apolice]??""),produto:String(r[m.produto]??""),ocorrencia:String(r[m.ocorrencia]??"").trim(),dataocorrencia:xDate(r[m.dataocorrencia]),sinistro:String(r[m.sinistro]??"").trim(),valor:parseFloat(r[m.valor]??0)||0};}
+function mapGest(r,m){return{ocorrencia:String(r[m.ocorrencia]??"").trim(),dataabertura:xDate(r[m.dataabertura]),dataocorrencia:xDate(r[m.dataocorrencia]),datareabertura:xDate(r[m.datareabertura]),dataencerramento:xDate(r[m.dataencerramento]),situacao:String(r[m.situacao]??""),qtasinistros:(r[m.qtasinistros]!==""&&r[m.qtasinistros]!==undefined)?(parseInt(r[m.qtasinistros])||0):null};}
 
 // ── HIERARQUIA
-function build() {
-  const gm={};
-  for(const r of STATE.gestData) gm[r.ocorrencia]=r;
+function build(){
+  const gm={};for(const r of STATE.gestData)gm[r.ocorrencia]=r;
   const sm={};
-  for(const{mesLabel,rows}of STATE.allData)
-    for(const r of rows) {
-      const k=r.cliente+"||"+r.apolice+"||"+r.ocorrencia+"||"+r.sinistro;
-      if(!sm[k]) sm[k]={...r,vpm:{}};
-      sm[k].vpm[mesLabel]=(sm[k].vpm[mesLabel]??0)+r.valor;
-    }
+  for(const{mesLabel,rows}of STATE.allData)for(const r of rows){
+    const k=r.cliente+"||"+r.apolice+"||"+r.ocorrencia+"||"+r.sinistro;
+    if(!sm[k])sm[k]={...r,vpm:{}};
+    sm[k].vpm[mesLabel]=(sm[k].vpm[mesLabel]??0)+r.valor;
+  }
   const sins=Object.values(sm).map(s=>{
-    const mo=Object.keys(s.vpm).sort(); let saldo=0;
-    const movimentos=mo.map((mes,i)=>{
-      const vA=s.vpm[mes],vP=i===0?0:(s.vpm[mo[i-1]]??0),mov=vA-vP;
-      saldo+=mov; return{mes,vf:vA,mov,saldo};
-    });
+    const mo=Object.keys(s.vpm).sort();let saldo=0;
+    const movimentos=mo.map((mes,i)=>{const vA=s.vpm[mes],vP=i===0?0:(s.vpm[mo[i-1]]??0),mov=vA-vP;saldo+=mov;return{mes,vf:vA,mov,saldo};});
     return{...s,movimentos,saldo};
   });
   const cm={};
   for(const s of sins){
-    if(!cm[s.cliente]) cm[s.cliente]={cliente:s.cliente,apolices:{}};
+    if(!cm[s.cliente])cm[s.cliente]={cliente:s.cliente,apolices:{}};
     const c=cm[s.cliente];
-    if(!c.apolices[s.apolice]) c.apolices[s.apolice]={apolice:s.apolice,ocorrencias:{}};
+    if(!c.apolices[s.apolice])c.apolices[s.apolice]={apolice:s.apolice,ocorrencias:{}};
     const a=c.apolices[s.apolice];
-    if(!a.ocorrencias[s.ocorrencia]) a.ocorrencias[s.ocorrencia]={ocorrencia:s.ocorrencia,dataocorrencia:s.dataocorrencia,produto:s.produto,sinistros:[]};
+    if(!a.ocorrencias[s.ocorrencia])a.ocorrencias[s.ocorrencia]={ocorrencia:s.ocorrencia,dataocorrencia:s.dataocorrencia,produto:s.produto,sinistros:[]};
     a.ocorrencias[s.ocorrencia].sinistros.push(s);
   }
   STATE.clientes=Object.values(cm).map(c=>{
@@ -413,158 +410,167 @@ function build() {
 }
 
 // ── FORMAT
-const fmt = v => { const n=parseFloat(v); if(isNaN(n))return"—"; return new Intl.NumberFormat("pt-PT",{style:"currency",currency:"EUR"}).format(n); };
-const cc  = v => v<0?"neg":v>0?"pos":"zero";
-const mm  = m => { if(!m)return""; const[a,n]=m.split("-"); return MN[parseInt(n,10)-1]+" "+a; };
-const bdg = v => `<span class="badge ${v<0?"deb":v>0?"cred":"sal"}">${v<0?"Débito":v>0?"Crédito":"Saldado"}</span>`;
-const sit = s => {
-  if(!s)return"—";
-  const l=s.toLowerCase(); let st="background:#f3f4f6;color:#6b7280";
-  if(l.includes("encerr")||l.includes("fech")) st="background:#e5e7eb;color:#374151";
-  else if(l.includes("reaber")) st="background:#ffedd5;color:#c2410c";
-  else if(l.includes("aber")||l.includes("ativo")) st="background:#dbeafe;color:#1d4ed8";
-  else if(l.includes("pend")) st="background:#fef9c3;color:#854d0e";
-  return`<span class="sit" style="${st}">${s}</span>`;
-};
+const fmt=v=>{const n=parseFloat(v);if(isNaN(n))return"—";return new Intl.NumberFormat("pt-PT",{style:"currency",currency:"EUR"}).format(n);};
+const cc=v=>v<0?"neg":v>0?"pos":"zero";
+const mm=m=>{if(!m)return"";const[a,n]=m.split("-");return MN[parseInt(n,10)-1]+" "+a;};
+const bdg=v=>`<span class="badge ${v<0?"deb":v>0?"cred":"sal"}">${v<0?"Débito":v>0?"Crédito":"Saldado"}</span>`;
+const sit=s=>{if(!s)return"—";const l=s.toLowerCase();let st="background:#f3f4f6;color:#6b7280";if(l.includes("encerr")||l.includes("fech"))st="background:#e5e7eb;color:#374151";else if(l.includes("reaber"))st="background:#ffedd5;color:#c2410c";else if(l.includes("aber")||l.includes("ativo"))st="background:#dbeafe;color:#1d4ed8";else if(l.includes("pend"))st="background:#fef9c3;color:#854d0e";return`<span class="sit" style="${st}">${s}</span>`;};
 
 // ── RENDER
-function render() {
+function render(){
   const c=STATE.clientes;
   document.getElementById("kpis").style.display="grid";
-  document.getElementById("tabs").style.display="flex";
   document.getElementById("k1").textContent=c.length;
   document.getElementById("k2").textContent=c.reduce((s,x)=>s+x.apolices.reduce((s2,a)=>s2+a.ocorrencias.length,0),0);
   document.getElementById("k3").textContent=c.reduce((s,x)=>s+x.apolices.reduce((s2,a)=>s2+a.ocorrencias.reduce((s3,o)=>s3+o.sinistros.length,0),0),0);
   document.getElementById("k4").textContent=fmt(c.filter(x=>x.saldoT<0).reduce((s,x)=>s+x.saldoT,0));
-  const mh=document.getElementById("mh"); mh.innerHTML="";
+  const mh=document.getElementById("mh");mh.innerHTML="";
   STATE.meses.forEach(m=>{const s=document.createElement("span");s.className="mes-badge";s.textContent=mm(m);mh.appendChild(s);});
+  applyView();
   showTab(curTab);
 }
 
-function showTab(id,el) {
+function showTab(id,el){
   curTab=id;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  if(el) el.classList.add("active");
+  if(el)el.classList.add("active");
   else document.querySelectorAll(".tab").forEach(t=>{if(t.getAttribute("onclick")?.includes("'"+id+"'"))t.classList.add("active");});
   const d=document.getElementById("content");
-  if(id==="cc") d.innerHTML=rCC();
-  else if(id==="mensal") d.innerHTML=rMensal();
-  else if(id==="produto") d.innerHTML=rProduto();
-  else if(id==="anual") d.innerHTML=rAnual();
+  if(isMobile){
+    if(id==="cc")d.innerHTML=rCCMobile();
+    else if(id==="mensal")d.innerHTML=rMensalMobile();
+    else if(id==="produto")d.innerHTML=rProdutoMobile();
+    else if(id==="anual")d.innerHTML=rAnualMobile();
+  } else {
+    if(id==="cc")d.innerHTML=rCC();
+    else if(id==="mensal")d.innerHTML=rMensal();
+    else if(id==="produto")d.innerHTML=rProduto();
+    else if(id==="anual")d.innerHTML=rAnual();
+  }
 }
 
-// ── CONTA CORRENTE
-function sortIcon(col) {
-  if (sortCol !== col) return `<span style="opacity:.3;font-size:10px">⇅</span>`;
-  return sortDir === "asc" ? `<span style="font-size:10px">▲</span>` : `<span style="font-size:10px">▼</span>`;
-}
-function toggleSort(col) {
-  if (sortCol === col) sortDir = sortDir === "asc" ? "desc" : "asc";
-  else { sortCol = col; sortDir = "asc"; }
-  showTab("cc");
+// ── FILTROS COMUNS
+function ptToDate(s){if(!s)return null;const[d,m,y]=s.split("/");if(!d||!m||!y)return null;return new Date(+y,+m-1,+d);}
+function inRange(val,de,ate){
+  if(!de&&!ate)return true;
+  const d=ptToDate(val);if(!d)return false;
+  if(de&&d<new Date(de))return false;
+  if(ate&&d>new Date(ate))return false;
+  return true;
 }
 
-function rCC() {
-  const hg = STATE.gestData.length > 0;
-  const multi = new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
-  const situacoes = [...new Set(STATE.clientes.flatMap(c=>c.apolices.flatMap(a=>a.ocorrencias.map(o=>o.gestao?.situacao).filter(Boolean))))].sort();
-  const produtos = [...new Set(STATE.clientes.flatMap(c=>c.apolices.flatMap(a=>a.ocorrencias.map(o=>o.produto).filter(Boolean))))].sort();
-
-  // Flatten para ocorrências para filtrar e ordenar
-  let flatOcorr = [];
-  for (const c of STATE.clientes) {
-    for (const a of c.apolices) {
-      for (const o of a.ocorrencias) {
-        // Aplica filtros
-        if (fCli && fCli !== c.cliente) continue;
-        if (fMulti && !multi.has(c.cliente)) continue;
-        if (fOcorr && !o.ocorrencia.toLowerCase().includes(fOcorr.toLowerCase())) continue;
-        if (fProduto && o.produto !== fProduto) continue;
-        if (fSituacao && o.gestao?.situacao !== fSituacao) continue;
-        if (o.sinistros.some(s => fSinistro && !s.sinistro.toLowerCase().includes(fSinistro.toLowerCase()))) {
-          if (fSinistro) continue;
+function getFlatOcorr(){
+  const hg=STATE.gestData.length>0;
+  const multi=new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
+  let flat=[];
+  for(const c of STATE.clientes){
+    for(const a of c.apolices){
+      for(const o of a.ocorrencias){
+        if(fCli&&fCli!==c.cliente)continue;
+        if(fMulti&&!multi.has(c.cliente))continue;
+        if(fOcorr&&!o.ocorrencia.toLowerCase().includes(fOcorr.toLowerCase()))continue;
+        if(fProduto&&o.produto!==fProduto)continue;
+        if(fSituacao&&o.gestao?.situacao!==fSituacao)continue;
+        if(fSinistro&&!o.sinistros.some(s=>s.sinistro.toLowerCase().includes(fSinistro.toLowerCase())))continue;
+        if(!inRange(o.dataocorrencia,fDtOcorrDe,fDtOcorrAte))continue;
+        if(hg){
+          if(!inRange(o.gestao?.dataabertura,fDtAbDe,fDtAbAte))continue;
+          if(!inRange(o.gestao?.dataencerramento,fDtEncDe,fDtEncAte))continue;
+          if(!inRange(o.gestao?.datareabertura,fDtReDe,fDtReAte))continue;
         }
-        if (hg && fDtAb && o.gestao?.dataabertura !== fDtAb) continue;
-        if (hg && fDtEnc && o.gestao?.dataencerramento !== fDtEnc) continue;
-        if (hg && fDtRe && o.gestao?.datareabertura !== fDtRe) continue;
-        flatOcorr.push({ c, a, o });
+        flat.push({c,a,o});
       }
     }
   }
-
   // Ordenação
-  flatOcorr.sort((x, y) => {
-    let va, vb;
-    switch(sortCol) {
-      case "cliente":    va=x.c.cliente; vb=y.c.cliente; break;
-      case "apolice":    va=x.a.apolice; vb=y.a.apolice; break;
-      case "ocorrencia": va=x.o.ocorrencia; vb=y.o.ocorrencia; break;
-      case "produto":    va=x.o.produto||""; vb=y.o.produto||""; break;
-      case "dataocorr":  va=x.o.dataocorrencia||""; vb=y.o.dataocorrencia||""; break;
-      case "saldo":      va=x.o.saldoT; vb=y.o.saldoT; break;
-      case "situacao":   va=x.o.gestao?.situacao||""; vb=y.o.gestao?.situacao||""; break;
-      case "dataabertura": va=x.o.gestao?.dataabertura||""; vb=y.o.gestao?.dataabertura||""; break;
-      case "dataencerramento": va=x.o.gestao?.dataencerramento||""; vb=y.o.gestao?.dataencerramento||""; break;
-      case "datareabertura": va=x.o.gestao?.datareabertura||""; vb=y.o.gestao?.dataabertura||""; break;
-      default: va=x.c.cliente; vb=y.c.cliente;
+  flat.sort((x,y)=>{
+    let va,vb;
+    switch(sortCol){
+      case"cliente":va=x.c.cliente;vb=y.c.cliente;break;
+      case"apolice":va=x.a.apolice;vb=y.a.apolice;break;
+      case"ocorrencia":va=x.o.ocorrencia;vb=y.o.ocorrencia;break;
+      case"produto":va=x.o.produto||"";vb=y.o.produto||"";break;
+      case"dataocorr":va=x.o.dataocorrencia||"";vb=y.o.dataocorrencia||"";break;
+      case"saldo":va=x.o.saldoT;vb=y.o.saldoT;break;
+      case"situacao":va=x.o.gestao?.situacao||"";vb=y.o.gestao?.situacao||"";break;
+      case"dataabertura":va=x.o.gestao?.dataabertura||"";vb=y.o.gestao?.dataabertura||"";break;
+      case"dataencerramento":va=x.o.gestao?.dataencerramento||"";vb=y.o.gestao?.dataencerramento||"";break;
+      default:va=x.c.cliente;vb=y.c.cliente;
     }
-    if (typeof va === "number") return sortDir==="asc" ? va-vb : vb-va;
-    return sortDir==="asc" ? String(va).localeCompare(String(vb),"pt") : String(vb).localeCompare(String(va),"pt");
+    if(typeof va==="number")return sortDir==="asc"?va-vb:vb-va;
+    return sortDir==="asc"?String(va).localeCompare(String(vb),"pt"):String(vb).localeCompare(String(va),"pt");
   });
+  return flat;
+}
 
-  const ts = flatOcorr.reduce((s,{o})=>s+o.saldoT,0);
-  const td = flatOcorr.filter(({o})=>o.saldoT<0).reduce((s,{o})=>s+o.saldoT,0);
-  const tc = flatOcorr.filter(({o})=>o.saldoT>0).reduce((s,{o})=>s+o.saldoT,0);
+function clearAllFilters(){fCli="";fMulti=false;fOcorr="";fSinistro="";fSituacao="";fProduto="";fDtOcorrDe="";fDtOcorrAte="";fDtAbDe="";fDtAbAte="";fDtEncDe="";fDtEncAte="";fDtReDe="";fDtReAte="";fDtAbMode="exata";fDtEncMode="exata";fDtReMode="exata";fDtOcorrMode="exata";showTab(curTab);}
 
-  const cliOpts = STATE.clientes.map(c=>`<option value="${c.cliente}" ${fCli===c.cliente?"selected":""}>${c.cliente}</option>`).join("");
+// ── DESKTOP CONTA CORRENTE
+function sortIcon(col){if(sortCol!==col)return`<span style="opacity:.3;font-size:10px">⇅</span>`;return sortDir==="asc"?`<span style="font-size:10px">▲</span>`:`<span style="font-size:10px">▼</span>`;}
+function toggleSort(col){if(sortCol===col)sortDir=sortDir==="asc"?"desc":"asc";else{sortCol=col;sortDir="asc";}showTab("cc");}
 
-  // Filtros
-  let h=`<div class="filters" style="flex-wrap:wrap;gap:6px;margin-bottom:10px">
-    <select onchange="fCli=this.value;showTab('cc')"><option value="">Todos os clientes</option>${cliOpts}</select>
-    <input placeholder="Ocorrência" style="width:110px" value="${fOcorr}" oninput="fOcorr=this.value;showTab('cc')">
-    <input placeholder="Sinistro" style="width:100px" value="${fSinistro}" oninput="fSinistro=this.value;showTab('cc')">
-    <select onchange="fProduto=this.value;showTab('cc')">
-      <option value="">Produto</option>${produtos.map(p=>`<option value="${p}" ${fProduto===p?"selected":""}>${p}</option>`).join("")}
-    </select>
-    ${hg?`
-    <select onchange="fSituacao=this.value;showTab('cc')">
-      <option value="">Situação</option>${situacoes.map(s=>`<option value="${s}" ${fSituacao===s?"selected":""}>${s}</option>`).join("")}
-    </select>
-    <input type="date" title="Data Abertura" style="width:130px" value="${fDtAb}" onchange="fDtAb=this.value?new Date(this.value).toLocaleDateString('pt-PT'):'';showTab('cc')">
-    <input type="date" title="Data Reabertura" style="width:130px" value="${fDtRe}" onchange="fDtRe=this.value?new Date(this.value).toLocaleDateString('pt-PT'):'';showTab('cc')">
-    <input type="date" title="Data Encerramento" style="width:130px" value="${fDtEnc}" onchange="fDtEnc=this.value?new Date(this.value).toLocaleDateString('pt-PT'):'';showTab('cc')">
-    `:""}
-    <button class="${fMulti?"act":""}" onclick="fMulti=!fMulti;showTab('cc')">🔀 Múltiplas apólices${multi.size?`<span class="mb">${multi.size}</span>`:""}</button>
-    <button onclick="fCli='';fMulti=false;fOcorr='';fSinistro='';fSituacao='';fProduto='';fDtAb='';fDtEnc='';fDtRe='';showTab('cc')">✕ Limpar</button>
-    <button class="btn-exp" onclick="exportXls()">⬇ Exportar</button>
+function dtGrpDesktop(label,vDe,vAte,setDe,setAte,mode,setMode){
+  const isRange=mode==="intervalo";
+  return`<div style="display:flex;flex-direction:column;gap:3px;font-size:10px;background:#f8faff;border:1px solid #c5d5ef;border-radius:8px;padding:6px 10px;min-width:240px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+      <span style="font-weight:700;color:var(--navy);font-size:11px">${label}</span>
+      <div style="display:flex;gap:2px">
+        <button onclick="${setMode}='exata';${setAte}='';showTab('cc')" style="border:none;border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;font-weight:600;background:${!isRange?"var(--navy)":"#e5e7eb"};color:${!isRange?"#fff":"#555"}">= Exata</button>
+        <button onclick="${setMode}='intervalo';showTab('cc')" style="border:none;border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;font-weight:600;background:${isRange?"var(--navy)":"#e5e7eb"};color:${isRange?"#fff":"#555"}">↔ Intervalo</button>
+      </div>
+    </div>
+    ${!isRange?`<div style="display:flex;align-items:center;gap:4px">
+      <input type="date" style="width:130px;font-size:11px" value="${vDe}" onchange="${setDe}=this.value;${setAte}=this.value;showTab('cc')">
+      ${vDe?`<button onclick="${setDe}='';${setAte}='';showTab('cc')" style="border:none;background:none;cursor:pointer;color:#999">✕</button>`:""}
+    </div>`:`<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+      <span>De</span><input type="date" style="width:120px;font-size:11px" value="${vDe}" onchange="${setDe}=this.value;showTab('cc')">
+      <span>Até</span><input type="date" style="width:120px;font-size:11px" value="${vAte}" onchange="${setAte}=this.value;showTab('cc')">
+      ${(vDe||vAte)?`<button onclick="${setDe}='';${setAte}='';showTab('cc')" style="border:none;background:none;cursor:pointer;color:#999">✕</button>`:""}
+    </div>`}
   </div>`;
+}
 
-  // Cabeçalhos com ordenação
-  const th = (label, col, align="left") =>
-    `<th style="cursor:pointer;text-align:${align};user-select:none" onclick="toggleSort('${col}')">${label} ${sortIcon(col)}</th>`;
+function rCC(){
+  const hg=STATE.gestData.length>0;
+  const multi=new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
+  const cliSort=[...STATE.clientes].sort((a,b)=>a.cliente.localeCompare(b.cliente,"pt"));
+  const situacoes=[...new Set(STATE.clientes.flatMap(c=>c.apolices.flatMap(a=>a.ocorrencias.map(o=>o.gestao?.situacao).filter(Boolean))))].sort((a,b)=>a.localeCompare(b,"pt"));
+  const produtos=[...new Set(STATE.clientes.flatMap(c=>c.apolices.flatMap(a=>a.ocorrencias.map(o=>o.produto).filter(Boolean))))].sort((a,b)=>a.localeCompare(b,"pt"));
+  const flatOcorr=getFlatOcorr();
+  const ts=flatOcorr.reduce((s,{o})=>s+o.saldoT,0);
+  const td=flatOcorr.filter(({o})=>o.saldoT<0).reduce((s,{o})=>s+o.saldoT,0);
+  const tc=flatOcorr.filter(({o})=>o.saldoT>0).reduce((s,{o})=>s+o.saldoT,0);
+  const cliOpts=cliSort.map(c=>`<option value="${c.cliente}" ${fCli===c.cliente?"selected":""}>${c.cliente}</option>`).join("");
+  const th=(label,col,align="left")=>`<th style="cursor:pointer;text-align:${align};user-select:none" onclick="toggleSort('${col}')">${label} ${sortIcon(col)}</th>`;
 
-  h += `<div class="tw"><table><thead><tr>
+  let h=`<div class="filters" style="flex-direction:column;align-items:flex-start;gap:8px">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%">
+      <select onchange="fCli=this.value;showTab('cc')"><option value="">Todos os clientes</option>${cliOpts}</select>
+      <input placeholder="🔍 Ocorrência" style="width:120px" type="text" value="${fOcorr}" oninput="fOcorr=this.value;showTab('cc')">
+      <input placeholder="🔍 Sinistro" style="width:110px" type="text" value="${fSinistro}" oninput="fSinistro=this.value;showTab('cc')">
+      <select onchange="fProduto=this.value;showTab('cc')"><option value="">Produto</option>${produtos.map(p=>`<option value="${p}" ${fProduto===p?"selected":""}>${p}</option>`).join("")}</select>
+      ${hg?`<select onchange="fSituacao=this.value;showTab('cc')"><option value="">Situação</option>${situacoes.map(s=>`<option value="${s}" ${fSituacao===s?"selected":""}>${s}</option>`).join("")}</select>`:""}
+      <button class="${fMulti?"act":""}" onclick="fMulti=!fMulti;showTab('cc')">🔀 Múltiplas apólices${multi.size?`<span class="mb">${multi.size}</span>`:""}</button>
+      <button onclick="clearAllFilters()">✕ Limpar</button>
+      <button class="btn-exp" onclick="exportXls()">⬇ Exportar</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${dtGrpDesktop("📅 Data Ocorrência",fDtOcorrDe,fDtOcorrAte,"fDtOcorrDe","fDtOcorrAte",fDtOcorrMode,"fDtOcorrMode")}
+      ${hg?dtGrpDesktop("📅 Data Abertura",fDtAbDe,fDtAbAte,"fDtAbDe","fDtAbAte",fDtAbMode,"fDtAbMode"):""}
+      ${hg?dtGrpDesktop("📅 Data Reabertura",fDtReDe,fDtReAte,"fDtReDe","fDtReAte",fDtReMode,"fDtReMode"):""}
+      ${hg?dtGrpDesktop("📅 Data Encerramento",fDtEncDe,fDtEncAte,"fDtEncDe","fDtEncAte",fDtEncMode,"fDtEncMode"):""}
+    </div>
+  </div>
+  <div class="tw"><table><thead><tr>
     <th style="width:30px"></th>
-    ${th("Cliente","cliente")}
-    ${th("Apólice","apolice")}
-    ${th("Ocorrência","ocorrencia")}
-    ${th("Data Ocorr.","dataocorr")}
-    ${th("Produto","produto")}
-    ${hg?th("Qta.","qta","center"):""}
-    ${hg?th("Situação","situacao"):""}
-    ${hg?th("Dt.Abertura","dataabertura"):""}
-    ${hg?th("Dt.Reabertura","datareabertura"):""}
-    ${hg?th("Dt.Encerramento","dataencerramento"):""}
-    ${th("Saldo","saldo","right")}
-    <th>Estado</th>
+    ${th("Cliente","cliente")}${th("Apólice","apolice")}${th("Ocorrência","ocorrencia")}${th("Data Ocorr.","dataocorr")}${th("Produto","produto")}
+    ${hg?th("Qta.","qta","center"):""}${hg?th("Situação","situacao"):""}${hg?th("Dt.Abertura","dataabertura"):""}${hg?th("Dt.Reabertura","datareabertura"):""}${hg?th("Dt.Encerramento","dataencerramento"):""}
+    ${th("Saldo","saldo","right")}<th>Estado</th>
   </tr></thead><tbody>`;
 
-  flatOcorr.forEach(({c, a, o}, idx) => {
-    const ocKey = c.cliente+"||"+a.apolice+"||"+o.ocorrencia;
-    const expO = expOc[ocKey];
-    const bg = idx%2===0?"#f8faff":"#fff";
-    const g = o.gestao;
-
+  flatOcorr.forEach(({c,a,o},idx)=>{
+    const ocKey=c.cliente+"||"+a.apolice+"||"+o.ocorrencia;
+    const expO=expOc[ocKey];const bg=idx%2===0?"#f8faff":"#fff";const g=o.gestao;
     h+=`<tr style="background:${bg};cursor:pointer" onclick="expOc['${ocKey}']=!expOc['${ocKey}'];showTab('cc')">
       <td style="text-align:center;color:#1d4ed8;font-weight:700">${expO?"▼":"▶"}</td>
       <td style="font-weight:700;color:var(--navy)">${c.cliente}${multi.has(c.cliente)?`<span class="mb">${c.apolices.length}</span>`:""}</td>
@@ -572,38 +578,23 @@ function rCC() {
       <td style="font-weight:600;color:#1d4ed8">${o.ocorrencia}</td>
       <td style="color:#666">${o.dataocorrencia||"—"}</td>
       <td>${o.produto||"—"}</td>
-      ${hg?`<td style="text-align:center;font-weight:600">${g?(g.qtasinistros??"—"):"—"}</td>
-      <td>${g?sit(g.situacao):"—"}</td>
-      <td>${g?(g.dataabertura||"—"):"—"}</td>
-      <td>${g?(g.datareabertura||"—"):"—"}</td>
-      <td>${g?(g.dataencerramento||"—"):"—"}</td>`:""}
-      <td style="text-align:right;font-weight:700" class="${cc(o.saldoT)}">${fmt(o.saldoT)}</td>
-      <td>${bdg(o.saldoT)}</td>
-    </tr>`;
-
-    if (expO) {
-      // Filtra sinistros se há filtro de sinistro
-      const sins = fSinistro ? o.sinistros.filter(s=>s.sinistro.toLowerCase().includes(fSinistro.toLowerCase())) : o.sinistros;
-      sins.forEach(s => {
-        const sk = ocKey+"||"+s.sinistro;
-        const expM = expMov[sk];
-        h+=`<tr style="background:#eef2fb">
-          <td style="padding-left:40px"><button style="border:none;background:none;cursor:pointer;color:#6366f1;font-weight:700" onclick="expMov['${sk}']=!expMov['${sk}'];showTab('cc')">${expM?"▼":"▶"}</button></td>
+      ${hg?`<td style="text-align:center">${g?(g.qtasinistros??"—"):"—"}</td><td>${g?sit(g.situacao):"—"}</td><td>${g?(g.dataabertura||"—"):"—"}</td><td>${g?(g.datareabertura||"—"):"—"}</td><td>${g?(g.dataencerramento||"—"):"—"}</td>`:""}
+      <td style="text-align:right;font-weight:700" class="${cc(o.saldoT)}">${fmt(o.saldoT)}</td><td>${bdg(o.saldoT)}</td></tr>`;
+    if(expO){
+      const sins=fSinistro?o.sinistros.filter(s=>s.sinistro.toLowerCase().includes(fSinistro.toLowerCase())):o.sinistros;
+      sins.forEach(s=>{
+        const sk=ocKey+"||"+s.sinistro,expM=expMov[sk];
+        h+=`<tr style="background:#eef2fb"><td style="padding-left:40px"><button style="border:none;background:none;cursor:pointer;color:#6366f1;font-weight:700" onclick="expMov['${sk}']=!expMov['${sk}'];showTab('cc')">${expM?"▼":"▶"}</button></td>
           <td colspan="2"><span style="color:#9ca3af;font-size:11px">Sinistro </span><strong style="color:#6366f1">${s.sinistro}</strong></td>
           <td colspan="${hg?8:3}"></td>
-          <td style="text-align:right" class="${cc(s.saldo)}">${fmt(s.saldo)}</td>
-          <td>${bdg(s.saldo)}</td>
-        </tr>`;
-        if (expM) h+=`<tr style="background:#eef2fb"><td colspan="${hg?13:8}" style="padding:6px 0 6px 60px">
-          <table style="max-width:500px;font-size:11px">
-            <thead><tr style="background:none;color:#4338ca"><th>Mês</th><th style="text-align:right">Valor Ficheiro</th><th style="text-align:right">Movimento</th><th style="text-align:right">Saldo Acum.</th></tr></thead>
-            <tbody>${s.movimentos.map(m=>`<tr><td>${mm(m.mes)}</td><td class="${cc(m.vf)}" style="text-align:right">${fmt(m.vf)}</td><td class="${cc(m.mov)}" style="text-align:right;font-weight:600">${fmt(m.mov)}</td><td class="${cc(m.saldo)}" style="text-align:right;font-weight:700">${fmt(m.saldo)}</td></tr>`).join("")}</tbody>
-          </table></td></tr>`;
+          <td style="text-align:right" class="${cc(s.saldo)}">${fmt(s.saldo)}</td><td>${bdg(s.saldo)}</td></tr>`;
+        if(expM)h+=`<tr style="background:#eef2fb"><td colspan="${hg?13:8}" style="padding:6px 0 6px 60px">
+          <table style="max-width:500px;font-size:11px"><thead><tr style="background:none;color:#4338ca"><th>Mês</th><th style="text-align:right">Valor Ficheiro</th><th style="text-align:right">Movimento</th><th style="text-align:right">Saldo Acum.</th></tr></thead>
+          <tbody>${s.movimentos.map(m=>`<tr><td>${mm(m.mes)}</td><td class="${cc(m.vf)}" style="text-align:right">${fmt(m.vf)}</td><td class="${cc(m.mov)}" style="text-align:right;font-weight:600">${fmt(m.mov)}</td><td class="${cc(m.saldo)}" style="text-align:right;font-weight:700">${fmt(m.saldo)}</td></tr>`).join("")}</tbody></table></td></tr>`;
       });
     }
   });
-
-  const gc = hg ? 11 : 6;
+  const gc=hg?11:6;
   h+=`</tbody><tfoot>
     <tr><td colspan="${gc}" style="text-align:right">TOTAL (${flatOcorr.length} ocorrências)</td><td style="text-align:right" class="${cc(ts)}">${fmt(ts)}</td><td></td></tr>
     <tr class="sr"><td colspan="${gc}" style="text-align:right;color:#7eb3f7">Débito</td><td style="text-align:right;color:#fca5a5">${fmt(td)}</td><td></td></tr>
@@ -612,78 +603,250 @@ function rCC() {
   return h;
 }
 
-// ── RESUMO MENSAL
-function rMensal() {
+// ── MOBILE CONTA CORRENTE
+function rCCMobile(){
+  const hg=STATE.gestData.length>0;
+  const multi=new Set(STATE.clientes.filter(c=>c.apolices.length>1).map(c=>c.cliente));
+  const cliSort=[...STATE.clientes].sort((a,b)=>a.cliente.localeCompare(b.cliente,"pt"));
+  const situacoes=[...new Set(STATE.clientes.flatMap(c=>c.apolices.flatMap(a=>a.ocorrencias.map(o=>o.gestao?.situacao).filter(Boolean))))].sort((a,b)=>a.localeCompare(b,"pt"));
+  const produtos=[...new Set(STATE.clientes.flatMap(c=>c.apolices.flatMap(a=>a.ocorrencias.map(o=>o.produto).filter(Boolean))))].sort((a,b)=>a.localeCompare(b,"pt"));
+  const flatOcorr=getFlatOcorr();
+  const ts=flatOcorr.reduce((s,{o})=>s+o.saldoT,0);
+
+  const cliOpts=cliSort.map(c=>`<option value="${c.cliente}" ${fCli===c.cliente?"selected":""}>${c.cliente}</option>`).join("");
+
+  function mDtGrp(label,vDe,vAte,setDe,setAte,mode,setMode){
+    const isRange=mode==="intervalo";
+    return`<div class="m-dt-grp">
+      <div class="dt-label">${label}</div>
+      <div class="m-dt-toggle">
+        <button onclick="${setMode}='exata';${setAte}='';showTab('cc')" style="background:${!isRange?"var(--navy)":"#e5e7eb"};color:${!isRange?"#fff":"#555"}">= Exata</button>
+        <button onclick="${setMode}='intervalo';showTab('cc')" style="background:${isRange?"var(--navy)":"#e5e7eb"};color:${isRange?"#fff":"#555"}">↔ Intervalo</button>
+      </div>
+      ${!isRange?`<input type="date" style="width:100%;font-size:12px;border:1px solid #d1d5db;border-radius:6px;padding:6px" value="${vDe}" onchange="${setDe}=this.value;${setAte}=this.value;showTab('cc')">`
+      :`<div style="display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;width:25px">De</span><input type="date" style="flex:1;font-size:12px;border:1px solid #d1d5db;border-radius:6px;padding:6px" value="${vDe}" onchange="${setDe}=this.value;showTab('cc')"></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;width:25px">Até</span><input type="date" style="flex:1;font-size:12px;border:1px solid #d1d5db;border-radius:6px;padding:6px" value="${vAte}" onchange="${setAte}=this.value;showTab('cc')"></div>
+      </div>`}
+    </div>`;
+  }
+
+  let h=`
+  <!-- Filtros mobile -->
+  <div class="m-filters">
+    <div class="m-filters-header" onclick="document.getElementById('mfb').classList.toggle('open');this.querySelector('.arr').textContent=document.getElementById('mfb').classList.contains('open')?'▲':'▼'">
+      🔍 Filtros <span style="font-size:11px;color:#6b7280;font-weight:400;margin-left:4px">(${flatOcorr.length} resultados)</span>
+      <span class="arr" style="margin-left:auto">▼</span>
+    </div>
+    <div class="m-filters-body" id="mfb">
+      <div><label>Cliente</label><select onchange="fCli=this.value;showTab('cc')"><option value="">Todos</option>${cliOpts}</select></div>
+      <div><label>Ocorrência</label><input type="text" placeholder="Pesquisar..." value="${fOcorr}" oninput="fOcorr=this.value;showTab('cc')"></div>
+      <div><label>Sinistro</label><input type="text" placeholder="Pesquisar..." value="${fSinistro}" oninput="fSinistro=this.value;showTab('cc')"></div>
+      <div><label>Produto</label><select onchange="fProduto=this.value;showTab('cc')"><option value="">Todos</option>${produtos.map(p=>`<option value="${p}" ${fProduto===p?"selected":""}>${p}</option>`).join("")}</select></div>
+      ${hg?`<div><label>Situação</label><select onchange="fSituacao=this.value;showTab('cc')"><option value="">Todas</option>${situacoes.map(s=>`<option value="${s}" ${fSituacao===s?"selected":""}>${s}</option>`).join("")}</select></div>`:""}
+      ${mDtGrp("📅 Data Ocorrência",fDtOcorrDe,fDtOcorrAte,"fDtOcorrDe","fDtOcorrAte",fDtOcorrMode,"fDtOcorrMode")}
+      ${hg?mDtGrp("📅 Data Abertura",fDtAbDe,fDtAbAte,"fDtAbDe","fDtAbAte",fDtAbMode,"fDtAbMode"):""}
+      ${hg?mDtGrp("📅 Data Reabertura",fDtReDe,fDtReAte,"fDtReDe","fDtReAte",fDtReMode,"fDtReMode"):""}
+      ${hg?mDtGrp("📅 Data Encerramento",fDtEncDe,fDtEncAte,"fDtEncDe","fDtEncAte",fDtEncMode,"fDtEncMode"):""}
+      <button class="m-clear-btn" onclick="clearAllFilters()">✕ Limpar todos os filtros</button>
+    </div>
+  </div>
+
+  <!-- Total -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 2px">
+    <span style="font-size:11px;color:#6b7280">${flatOcorr.length} ocorrências</span>
+    <span style="font-size:13px;font-weight:700" class="${cc(ts)}">${fmt(ts)}</span>
+  </div>`;
+
+  // Cards
+  flatOcorr.forEach(({c,a,o},idx)=>{
+    const ocKey=c.cliente+"||"+a.apolice+"||"+o.ocorrencia;
+    const expO=expOc[ocKey];const g=o.gestao;
+    h+=`<div class="m-card">
+      <div class="m-card-header" onclick="expOc['${ocKey}']=!expOc['${ocKey}'];showTab('cc')">
+        <div style="flex:1">
+          <div class="m-card-title">${c.cliente}</div>
+          <div class="m-card-sub">Apólice ${a.apolice} · Ocorr. ${o.ocorrencia}</div>
+          ${o.produto?`<div style="margin-top:3px">${o.produto?`<span style="background:#e0e7ff;color:#3730a3;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:600">${o.produto}</span>`:""}</div>`:""}
+        </div>
+        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <div class="m-card-saldo ${cc(o.saldoT)}">${fmt(o.saldoT)}</div>
+          ${bdg(o.saldoT)}
+          <span style="font-size:18px;color:#1d4ed8">${expO?"▼":"▶"}</span>
+        </div>
+      </div>
+      ${expO?`<div class="m-card-body open">
+        ${o.dataocorrencia?`<div class="m-row"><span class="lbl">Data Ocorrência</span><span class="val">${o.dataocorrencia}</span></div>`:""}
+        ${g?`
+          ${g.situacao?`<div class="m-row"><span class="lbl">Situação</span><span>${sit(g.situacao)}</span></div>`:""}
+          ${g.qtasinistros!=null?`<div class="m-row"><span class="lbl">Qta. Sinistros</span><span class="val">${g.qtasinistros}</span></div>`:""}
+          ${g.dataabertura?`<div class="m-row"><span class="lbl">Data Abertura</span><span class="val">${g.dataabertura}</span></div>`:""}
+          ${g.datareabertura?`<div class="m-row"><span class="lbl">Data Reabertura</span><span class="val">${g.datareabertura}</span></div>`:""}
+          ${g.dataencerramento?`<div class="m-row"><span class="lbl">Data Encerramento</span><span class="val">${g.dataencerramento}</span></div>`:""}
+        `:""}
+        <div style="margin-top:8px;font-size:11px;font-weight:700;color:var(--navy);margin-bottom:4px">Sinistros</div>
+        ${o.sinistros.map(s=>{
+          const sk=ocKey+"||"+s.sinistro,expM=expMov[sk];
+          return`<div class="m-sin" onclick="expMov['${sk}']=!expMov['${sk}'];showTab('cc')">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="m-sin-title">${s.sinistro}</div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span class="${cc(s.saldo)}" style="font-weight:700;font-size:12px">${fmt(s.saldo)}</span>
+                <span style="color:#6366f1">${expM?"▼":"▶"}</span>
+              </div>
+            </div>
+            ${expM?`<div class="m-movs">
+              <table style="width:100%"><thead><tr style="background:none;color:#4338ca"><th style="text-align:left;padding:2px 4px">Mês</th><th style="text-align:right;padding:2px 4px">Movimento</th><th style="text-align:right;padding:2px 4px">Saldo</th></tr></thead>
+              <tbody>${s.movimentos.map(m=>`<tr><td style="padding:2px 4px">${mm(m.mes)}</td><td class="${cc(m.mov)}" style="text-align:right;padding:2px 4px;font-weight:600">${fmt(m.mov)}</td><td class="${cc(m.saldo)}" style="text-align:right;padding:2px 4px;font-weight:700">${fmt(m.saldo)}</td></tr>`).join("")}</tbody></table>
+            </div>`:""}
+          </div>`;
+        }).join("")}
+      </div>`:""}</div>`;
+  });
+  return h;
+}
+
+// ── RESUMO MENSAL (desktop + mobile)
+function rMensalMobile(){
   const map={};
   for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias){
     const k=c.cliente+"||"+(o.produto||"—");
-    if(!map[k]) map[k]={cliente:c.cliente,produto:o.produto,meses:{}};
-    for(const s of o.sinistros)for(const m of s.movimentos) map[k].meses[m.mes]=(map[k].meses[m.mes]??0)+m.mov;
+    if(!map[k])map[k]={cliente:c.cliente,produto:o.produto,meses:{}};
+    for(const s of o.sinistros)for(const m of s.movimentos)map[k].meses[m.mes]=(map[k].meses[m.mes]??0)+m.mov;
   }
-  const rows=Object.values(map), ms=STATE.meses, ts=STATE.clientes.reduce((s,c)=>s+c.saldoT,0);
-  let h=`<div class="tw"><table><thead><tr><th>Cliente</th><th>Produto</th>${ms.map(x=>`<th style="text-align:right">${mm(x)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
-  rows.forEach((r,i)=>{
-    const t=Object.values(r.meses).reduce((s,v)=>s+v,0);
-    h+=`<tr><td style="font-weight:600">${r.cliente}</td><td style="color:#6b7280">${r.produto||"—"}</td>${ms.map(x=>`<td class="${cc(r.meses[x]??0)}" style="text-align:right">${r.meses[x]!==undefined?fmt(r.meses[x]):"—"}</td>`).join("")}<td class="${cc(t)}" style="text-align:right;font-weight:700">${fmt(t)}</td></tr>`;
+  const rows=Object.values(map).sort((a,b)=>a.cliente.localeCompare(b.cliente,"pt"));
+  const ms=STATE.meses;
+  let h="";
+  rows.forEach(row=>{
+    const total=Object.values(row.meses).reduce((s,v)=>s+v,0);
+    h+=`<div class="m-card" style="margin-bottom:8px">
+      <div style="padding:10px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div><div style="font-weight:700;color:var(--navy);font-size:13px">${row.cliente}</div><div style="font-size:11px;color:#6b7280">${row.produto||"—"}</div></div>
+          <div class="${cc(total)}" style="font-weight:700;font-size:14px">${fmt(total)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          ${ms.map(m=>row.meses[m]!==undefined?`<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f0f3fa"><span style="color:#6b7280">${mm(m)}</span><span class="${cc(row.meses[m])}">${fmt(row.meses[m])}</span></div>`:"").join("")}
+        </div>
+      </div>
+    </div>`;
   });
+  return h;
+}
+
+function rMensal(){
+  const map={};
+  for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias){
+    const k=c.cliente+"||"+(o.produto||"—");
+    if(!map[k])map[k]={cliente:c.cliente,produto:o.produto,meses:{}};
+    for(const s of o.sinistros)for(const m of s.movimentos)map[k].meses[m.mes]=(map[k].meses[m.mes]??0)+m.mov;
+  }
+  const rows=Object.values(map).sort((a,b)=>a.cliente.localeCompare(b.cliente,"pt"));
+  const ms=STATE.meses,ts=STATE.clientes.reduce((s,c)=>s+c.saldoT,0);
+  let h=`<div class="tw"><table><thead><tr><th>Cliente</th><th>Produto</th>${ms.map(x=>`<th style="text-align:right">${mm(x)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{const t=Object.values(r.meses).reduce((s,v)=>s+v,0);h+=`<tr><td style="font-weight:600">${r.cliente}</td><td style="color:#6b7280">${r.produto||"—"}</td>${ms.map(x=>`<td class="${cc(r.meses[x]??0)}" style="text-align:right">${r.meses[x]!==undefined?fmt(r.meses[x]):"—"}</td>`).join("")}<td class="${cc(t)}" style="text-align:right;font-weight:700">${fmt(t)}</td></tr>`;});
   h+=`</tbody><tfoot><tr><td colspan="2" style="text-align:right">TOTAL</td>${ms.map(x=>{const t=rows.reduce((s,r)=>s+(r.meses[x]??0),0);return`<td style="text-align:right" class="${cc(t)}">${fmt(t)}</td>`;}).join("")}<td style="text-align:right" class="${cc(ts)}">${fmt(ts)}</td></tr></tfoot></table></div>`;
   return h;
 }
 
-// ── POR PRODUTO
-function rProduto() {
+// ── POR PRODUTO (desktop + mobile)
+function getProdutoData(){
   const map={};
   for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias){
     const p=o.produto||"(sem produto)";
-    if(!map[p]) map[p]={produto:p,meses:{},cs:new Set(),oc:0,sin:0};
-    map[p].cs.add(c.cliente); map[p].oc++; map[p].sin+=o.sinistros.length;
-    for(const s of o.sinistros)for(const m of s.movimentos) map[p].meses[m.mes]=(map[p].meses[m.mes]??0)+m.mov;
+    if(!map[p])map[p]={produto:p,meses:{},cs:new Set(),oc:0,sin:0};
+    map[p].cs.add(c.cliente);map[p].oc++;map[p].sin+=o.sinistros.length;
+    for(const s of o.sinistros)for(const m of s.movimentos)map[p].meses[m.mes]=(map[p].meses[m.mes]??0)+m.mov;
   }
-  const rows=Object.values(map).map(r=>({...r,nc:r.cs.size,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.total-b.total);
-  const ms=STATE.meses, ts=STATE.clientes.reduce((s,c)=>s+c.saldoT,0);
-  const cards=rows.map(p=>`<div class="kpi"><div class="lbl" style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">${p.produto}</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:11px;color:#6b7280;margin-bottom:8px"><div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.nc}</div>Clientes</div><div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.oc}</div>Ocorrências</div><div><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.sin}</div>Sinistros</div></div><div class="${cc(p.total)}" style="font-size:15px;font-weight:700">${fmt(p.total)}</div></div>`).join("");
-  let h=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">${cards}</div>
+  return Object.values(map).map(r=>({...r,nc:r.cs.size,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.total-b.total);
+}
+
+function rProdutoMobile(){
+  const rows=getProdutoData(),ms=STATE.meses;
+  let h="";
+  rows.forEach(p=>{
+    h+=`<div class="m-card" style="margin-bottom:8px"><div style="padding:12px 14px">
+      <div style="font-weight:700;color:var(--navy);font-size:13px;margin-bottom:8px">${p.produto}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;text-align:center">
+        <div style="background:#f0f3fa;border-radius:6px;padding:6px"><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.nc}</div><div style="font-size:10px;color:#6b7280">Clientes</div></div>
+        <div style="background:#f0f3fa;border-radius:6px;padding:6px"><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.oc}</div><div style="font-size:10px;color:#6b7280">Ocorrências</div></div>
+        <div style="background:#f0f3fa;border-radius:6px;padding:6px"><div style="font-size:18px;font-weight:700;color:var(--navy)">${p.sin}</div><div style="font-size:10px;color:#6b7280">Sinistros</div></div>
+      </div>
+      <div class="${cc(p.total)}" style="font-size:16px;font-weight:700;margin-bottom:8px">${fmt(p.total)}</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        ${ms.map(m=>p.meses[m]!==undefined?`<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f0f3fa"><span style="color:#6b7280">${mm(m)}</span><span class="${cc(p.meses[m])}">${fmt(p.meses[m])}</span></div>`:"").join("")}
+      </div>
+    </div></div>`;
+  });
+  return h;
+}
+
+function rProduto(){
+  const rows=getProdutoData(),ms=STATE.meses,ts=STATE.clientes.reduce((s,c)=>s+c.saldoT,0);
+  const cards=rows.map(p=>`<div class="kpi"><div class="lbl" style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">${p.produto}</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:10px;color:#6b7280;margin-bottom:8px"><div><div style="font-size:16px;font-weight:700;color:var(--navy)">${p.nc}</div>Clientes</div><div><div style="font-size:16px;font-weight:700;color:var(--navy)">${p.oc}</div>Ocorrências</div><div><div style="font-size:16px;font-weight:700;color:var(--navy)">${p.sin}</div>Sinistros</div></div><div class="${cc(p.total)}" style="font-size:14px;font-weight:700">${fmt(p.total)}</div></div>`).join("");
+  let h=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">${cards}</div>
   <div class="tw"><table><thead><tr><th>Produto</th><th style="text-align:center">Clientes</th><th style="text-align:center">Ocorrências</th><th style="text-align:center">Sinistros</th>${ms.map(x=>`<th style="text-align:right">${mm(x)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>`;
-  rows.forEach((r,i)=>{h+=`<tr><td style="font-weight:600">${r.produto}</td><td style="text-align:center">${r.nc}</td><td style="text-align:center">${r.oc}</td><td style="text-align:center">${r.sin}</td>${ms.map(x=>`<td class="${cc(r.meses[x]??0)}" style="text-align:right">${r.meses[x]!==undefined?fmt(r.meses[x]):"—"}</td>`).join("")}<td class="${cc(r.total)}" style="text-align:right;font-weight:700">${fmt(r.total)}</td></tr>`;});
+  rows.forEach(r=>{h+=`<tr><td style="font-weight:600">${r.produto}</td><td style="text-align:center">${r.nc}</td><td style="text-align:center">${r.oc}</td><td style="text-align:center">${r.sin}</td>${ms.map(x=>`<td class="${cc(r.meses[x]??0)}" style="text-align:right">${r.meses[x]!==undefined?fmt(r.meses[x]):"—"}</td>`).join("")}<td class="${cc(r.total)}" style="text-align:right;font-weight:700">${fmt(r.total)}</td></tr>`;});
   h+=`</tbody><tfoot><tr><td colspan="4" style="text-align:right">TOTAL</td>${ms.map(x=>{const t=rows.reduce((s,r)=>s+(r.meses[x]??0),0);return`<td style="text-align:right" class="${cc(t)}">${fmt(t)}</td>`;}).join("")}<td style="text-align:right" class="${cc(ts)}">${fmt(ts)}</td></tr></tfoot></table></div>`;
   return h;
 }
 
-// ── RESUMO ANUAL
-function rAnual() {
-  const anos=[...new Set(STATE.meses.map(m=>m.split("-")[0]))].sort();
-  function buildMap(kfn){
-    const map={};
-    for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias)for(const s of o.sinistros)for(const m of s.movimentos){
-      const[ano,mes]=m.mes.split("-"), k=kfn(c,o)+"||"+ano;
-      if(!map[k]) map[k]={label:kfn(c,o),ano,meses:{}};
-      const mn=parseInt(mes,10); map[k].meses[mn]=(map[k].meses[mn]??0)+m.mov;
-    }
-    return Object.values(map).map(r=>({...r,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.ano.localeCompare(b.ano)||a.label.localeCompare(b.label));
+// ── RESUMO ANUAL (desktop + mobile)
+function getAnualData(kfn){
+  const map={};
+  for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias)for(const s of o.sinistros)for(const m of s.movimentos){
+    const[ano,mes]=m.mes.split("-"),k=kfn(c,o)+"||"+ano;
+    if(!map[k])map[k]={label:kfn(c,o),ano,meses:{}};
+    const mn=parseInt(mes,10);map[k].meses[mn]=(map[k].meses[mn]??0)+m.mov;
   }
-  const rows=anualView==="cliente"?buildMap((c,o)=>c.cliente):buildMap((c,o)=>o.produto||"(sem produto)");
+  return Object.values(map).map(r=>({...r,total:Object.values(r.meses).reduce((s,v)=>s+v,0)})).sort((a,b)=>a.ano.localeCompare(b.ano)||a.label.localeCompare(b.label,"pt"));
+}
+
+function rAnualMobile(){
+  const anos=[...new Set(STATE.meses.map(m=>m.split("-")[0]))].sort();
+  const rows=anualView==="cliente"?getAnualData((c,o)=>c.cliente):getAnualData((c,o)=>o.produto||"(sem produto)");
   let h=`<div class="tg"><button class="tgb ${anualView==="cliente"?"act":""}" onclick="anualView='cliente';showTab('anual')">Por Cliente</button><button class="tgb ${anualView==="produto"?"act":""}" onclick="anualView='produto';showTab('anual')">Por Produto</button></div>`;
   anos.forEach(ano=>{
-    const ar=rows.filter(r=>r.ano===ano); if(!ar.length)return;
-    const tm={}, tg=ar.reduce((s,r)=>s+r.total,0);
-    for(let m=1;m<=12;m++) tm[m]=ar.reduce((s,r)=>s+(r.meses[m]??0),0);
+    const ar=rows.filter(r=>r.ano===ano);if(!ar.length)return;
+    const tg=ar.reduce((s,r)=>s+r.total,0);
+    h+=`<div style="margin-bottom:4px;display:flex;align-items:center;gap:8px"><span class="ano-pill">${ano}</span><span class="${cc(tg)}" style="font-weight:700">${fmt(tg)}</span></div>`;
+    ar.forEach(r=>{
+      h+=`<div class="m-card" style="margin-bottom:6px"><div style="padding:10px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-weight:700;color:var(--navy);font-size:12px">${r.label}</div>
+          <div class="${cc(r.total)}" style="font-weight:700">${fmt(r.total)}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:2px">
+          ${Array.from({length:12},(_,idx)=>{const v=r.meses[idx+1];return v!==undefined?`<div style="display:flex;justify-content:space-between;font-size:10px;padding:2px 4px;background:${idx%2===0?"#f8faff":"#fff"};border-radius:4px"><span style="color:#6b7280">${MN[idx].slice(0,3)}</span><span class="${cc(v)}">${fmt(v)}</span></div>`:"";}).join("")}
+        </div>
+      </div></div>`;
+    });
+  });
+  return h;
+}
+
+function rAnual(){
+  const anos=[...new Set(STATE.meses.map(m=>m.split("-")[0]))].sort();
+  const rows=anualView==="cliente"?getAnualData((c,o)=>c.cliente):getAnualData((c,o)=>o.produto||"(sem produto)");
+  let h=`<div class="tg"><button class="tgb ${anualView==="cliente"?"act":""}" onclick="anualView='cliente';showTab('anual')">Por Cliente</button><button class="tgb ${anualView==="produto"?"act":""}" onclick="anualView='produto';showTab('anual')">Por Produto</button></div>`;
+  anos.forEach(ano=>{
+    const ar=rows.filter(r=>r.ano===ano);if(!ar.length)return;
+    const tm={},tg=ar.reduce((s,r)=>s+r.total,0);
+    for(let m=1;m<=12;m++)tm[m]=ar.reduce((s,r)=>s+(r.meses[m]??0),0);
     h+=`<div style="margin-bottom:24px"><div style="margin-bottom:8px"><span class="ano-pill">${ano}</span> <span class="${cc(tg)}" style="font-weight:700">${fmt(tg)}</span></div>
     <div class="tw"><table><thead><tr><th style="min-width:150px;position:sticky;left:0;background:var(--navy)">${anualView==="cliente"?"Cliente":"Produto"}</th>${MN.map(m=>`<th style="text-align:right;min-width:78px">${m.slice(0,3)}</th>`).join("")}<th style="text-align:right;min-width:95px">Total</th></tr></thead><tbody>`;
-    ar.forEach((r,i)=>{
-      const bg=i%2===0?"white":"#f9fafb";
-      h+=`<tr><td style="font-weight:600;position:sticky;left:0;background:${bg};border-right:1px solid #e5e7eb">${r.label}</td>${Array.from({length:12},(_,idx)=>{const v=r.meses[idx+1];return`<td class="${v!==undefined?cc(v):"zero"}" style="text-align:right">${v!==undefined?fmt(v):"—"}</td>`;}).join("")}<td class="${cc(r.total)}" style="text-align:right;font-weight:700;border-left:1px solid #e5e7eb">${fmt(r.total)}</td></tr>`;
-    });
+    ar.forEach((r,i)=>{const bg=i%2===0?"white":"#f9fafb";h+=`<tr><td style="font-weight:600;position:sticky;left:0;background:${bg};border-right:1px solid #e5e7eb">${r.label}</td>${Array.from({length:12},(_,idx)=>{const v=r.meses[idx+1];return`<td class="${v!==undefined?cc(v):"zero"}" style="text-align:right">${v!==undefined?fmt(v):"—"}</td>`;}).join("")}<td class="${cc(r.total)}" style="text-align:right;font-weight:700;border-left:1px solid #e5e7eb">${fmt(r.total)}</td></tr>`;});
     h+=`</tbody><tfoot><tr><td style="position:sticky;left:0;background:var(--navy)">TOTAL</td>${Array.from({length:12},(_,idx)=>{const t=tm[idx+1]??0;return`<td class="${cc(t)}" style="text-align:right">${t!==0?fmt(t):"—"}</td>`;}).join("")}<td class="${cc(tg)}" style="text-align:right;font-weight:700">${fmt(tg)}</td></tr></tfoot></table></div></div>`;
   });
   return h;
 }
 
 // ── EXPORT
-function exportXls() {
+function exportXls(){
   const rows=[];
   for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias)for(const s of o.sinistros)
     rows.push({Cliente:c.cliente,Apolice:a.apolice,Produto:o.produto,Ocorrencia:o.ocorrencia,"Data Ocorrencia":o.dataocorrencia,Sinistro:s.sinistro,"Saldo Sinistro":s.saldo,"Saldo Ocorrencia":o.saldoT,Estado:o.saldoT<0?"Debito":o.saldoT>0?"Credito":"Saldado",Situacao:o.gestao?.situacao??"—","Data Abertura":o.gestao?.dataabertura??"—","Data Reabertura":o.gestao?.datareabertura??"—","Data Encerramento":o.gestao?.dataencerramento??"—"});
-  const ws=XLSX.utils.json_to_sheet(rows), wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,"ContaCorrente");
   XLSX.writeFile(wb,"CB_Seguros_ContaCorrente.xlsx");
 }
@@ -693,19 +856,21 @@ function showL(m){document.getElementById("loader").style.display="flex";documen
 function hideL(){document.getElementById("loader").style.display="none";}
 
 // ── INIT
-document.getElementById("btn-login").addEventListener("click", doLogin);
-document.getElementById("btn-refresh").addEventListener("click", loadSP);
-
-window.addEventListener("load", async () => {
-  try {
-    const app = await initMsalApp();
-    const accounts = app.getAllAccounts();
-    if (accounts.length > 0) {
-      app.setActiveAccount(accounts[0]);
-      setUser(accounts[0]);
-      await loadSP();
-    }
-  } catch(e) { console.error("Auto-login:", e); }
+document.getElementById("btn-login").addEventListener("click",doLogin);
+document.getElementById("btn-refresh").addEventListener("click",loadSP);
+window.addEventListener("resize",()=>{
+  const wasMobile=isMobile;
+  isMobile=window.innerWidth<=768;
+  if(wasMobile!==isMobile){applyView();showTab(curTab);}
+});
+window.addEventListener("load",async()=>{
+  isMobile=window.innerWidth<=768;
+  applyView();
+  try{
+    const app=await initMsalApp();
+    const accounts=app.getAllAccounts();
+    if(accounts.length>0){app.setActiveAccount(accounts[0]);setUser(accounts[0]);await loadSP();}
+  }catch(e){console.error("Auto-login:",e);}
 });
 </script>
 </body>
