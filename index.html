@@ -155,6 +155,7 @@ tfoot .sr{background:var(--navy2)}
 <div class="tabs" id="tabs">
   <div class="tab active" onclick="showTab('cc',this)">Conta Corrente</div>
   <div class="tab" onclick="showTab('mensal',this)">Resumo Mensal</div>
+  <div class="tab" onclick="showTab('grupos',this)">Por Ramos</div>
   <div class="tab" onclick="showTab('produto',this)">Por Produto</div>
   <div class="tab" onclick="showTab('anual',this)">Resumo Anual</div>
 </div>
@@ -172,6 +173,7 @@ tfoot .sr{background:var(--navy2)}
   <div style="display:flex">
     <button class="mtab active" onclick="showTab('cc');setMTab(this)"><span class="mi">📋</span>Corrente</button>
     <button class="mtab" onclick="showTab('mensal');setMTab(this)"><span class="mi">📅</span>Mensal</button>
+    <button class="mtab" onclick="showTab('grupos');setMTab(this)"><span class="mi">🗂️</span>Ramos</button>
     <button class="mtab" onclick="showTab('produto');setMTab(this)"><span class="mi">📦</span>Produto</button>
     <button class="mtab" onclick="showTab('anual');setMTab(this)"><span class="mi">📆</span>Anual</button>
   </div>
@@ -360,7 +362,26 @@ async function loadSP(){
   }catch(e){hideL();alert("Erro:\n"+e.message);console.error(e);}
 }
 
-const MESES_PT = {
+const GRUPOS = {
+  "Acidentes Trabalho":  ["ATFIX","ATINP","ATVAR"],
+  "Acidentes Pessoais":  ["APDCQ","APDCR","APIND","ESCOL"],
+  "Automóvel":           ["AUFRO","AUT2R","AUTLG","AUTOM"],
+  "Saúde":               ["SANEG","SANFP","SASEN","SASOR","SATRQ"],
+  "Multirrisco":         ["MRCON","MRCDM","MREMP","MREST","MRHCA","MRHCC","MRHSC","MRVAL"],
+  "Vida":                ["VIDDO","VTCC1","VTCC2","VTCC3"],
+};
+const GRUPO_ICONS = {
+  "Acidentes Trabalho":"🦺","Acidentes Pessoais":"🏥",
+  "Automóvel":"🚗","Saúde":"❤️","Multirrisco":"🏠","Vida":"🌿"
+};
+function getProdutoGrupo(produto) {
+  if (!produto) return "Outros";
+  const p = produto.toUpperCase().trim();
+  for (const [grupo, prods] of Object.entries(GRUPOS)) {
+    if (prods.includes(p)) return grupo;
+  }
+  return "Outros";
+}
   "janeiro":"01","fevereiro":"02","março":"03","marco":"03","abril":"04",
   "maio":"05","junho":"06","julho":"07","agosto":"08","setembro":"09",
   "outubro":"10","novembro":"11","dezembro":"12",
@@ -477,11 +498,13 @@ function showTab(id,el){
   if(isMobile){
     if(id==="cc")d.innerHTML=rCCMobile();
     else if(id==="mensal")d.innerHTML=rMensalMobile();
+    else if(id==="grupos")d.innerHTML=rGruposMobile();
     else if(id==="produto")d.innerHTML=rProdutoMobile();
     else if(id==="anual")d.innerHTML=rAnualMobile();
   } else {
     if(id==="cc")d.innerHTML=rCC();
     else if(id==="mensal")d.innerHTML=rMensal();
+    else if(id==="grupos")d.innerHTML=rGrupos();
     else if(id==="produto")d.innerHTML=rProduto();
     else if(id==="anual")d.innerHTML=rAnual();
   }
@@ -787,7 +810,168 @@ function rMensal(){
   return h;
 }
 
-// ── POR PRODUTO (desktop + mobile)
+// ── POR GRUPOS
+function getGruposData() {
+  const map = {};
+  // Inicializa todos os grupos incluindo Outros
+  for (const g of [...Object.keys(GRUPOS), "Outros"]) {
+    map[g] = { grupo: g, meses: {}, cs: new Set(), ocs: 0, sins: 0, produtos: new Set(), saldoT: 0 };
+  }
+  for (const c of STATE.clientes)
+    for (const a of c.apolices)
+      for (const o of a.ocorrencias) {
+        const g = getProdutoGrupo(o.produto);
+        if (!map[g]) map[g] = { grupo: g, meses: {}, cs: new Set(), ocs: 0, sins: 0, produtos: new Set(), saldoT: 0 };
+        map[g].cs.add(c.cliente);
+        map[g].ocs++;
+        map[g].sins += o.sinistros.length;
+        if (o.produto) map[g].produtos.add(o.produto);
+        map[g].saldoT += o.saldoT;
+        for (const s of o.sinistros)
+          for (const m of s.movimentos)
+            map[g].meses[m.mes] = (map[g].meses[m.mes] ?? 0) + m.mov;
+      }
+  // Remove grupos sem dados
+  return Object.values(map)
+    .filter(r => r.ocs > 0)
+    .sort((a, b) => a.saldoT - b.saldoT);
+}
+
+function rGrupos() {
+  const rows = getGruposData();
+  const ms   = STATE.meses;
+  const ts   = rows.reduce((s, r) => s + r.saldoT, 0);
+
+  // Cards de resumo
+  const cards = rows.map(g => `
+    <div class="kpi" style="border-left-color:var(--navy)">
+      <div style="font-size:22px;margin-bottom:4px">${GRUPO_ICONS[g.grupo] || "📁"}</div>
+      <div class="lbl" style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px">${g.grupo}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:10px;color:#6b7280;margin-bottom:8px">
+        <div><div style="font-size:16px;font-weight:700;color:var(--navy)">${g.cs.size}</div>Clientes</div>
+        <div><div style="font-size:16px;font-weight:700;color:var(--navy)">${g.ocs}</div>Ocorrências</div>
+        <div><div style="font-size:16px;font-weight:700;color:var(--navy)">${g.sins}</div>Sinistros</div>
+      </div>
+      <div class="${cc(g.saldoT)}" style="font-size:15px;font-weight:700;margin-bottom:6px">${fmt(g.saldoT)}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px">
+        ${[...g.produtos].sort().map(p => `<span style="background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600">${p}</span>`).join("")}
+      </div>
+    </div>`).join("");
+
+  let h = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">${cards}</div>
+
+  <!-- Tabela mensal por grupo -->
+  <div class="tw"><table><thead><tr>
+    <th>Grupo</th>
+    <th style="text-align:center">Clientes</th>
+    <th style="text-align:center">Ocorrências</th>
+    <th style="text-align:center">Sinistros</th>
+    ${ms.map(m => `<th style="text-align:right">${mm(m)}</th>`).join("")}
+    <th style="text-align:right">Total</th>
+  </tr></thead><tbody>`;
+
+  rows.forEach((r, i) => {
+    const expKey = "grp_" + r.grupo;
+    const exp = expCli[expKey];
+    // Linha do grupo
+    h += `<tr style="background:${i%2===0?"#f8faff":"#fff"};cursor:pointer" onclick="expCli['${expKey}']=!expCli['${expKey}'];showTab('grupos')">
+      <td style="font-weight:700;color:var(--navy)">
+        <span style="font-size:16px;margin-right:6px">${GRUPO_ICONS[r.grupo]||"📁"}</span>${r.grupo}
+        <span style="font-size:10px;color:#888;font-weight:400;margin-left:4px">${exp?"▼":"▶"} ver produtos</span>
+      </td>
+      <td style="text-align:center">${r.cs.size}</td>
+      <td style="text-align:center">${r.ocs}</td>
+      <td style="text-align:center">${r.sins}</td>
+      ${ms.map(m => `<td class="${cc(r.meses[m]??0)}" style="text-align:right">${r.meses[m]!==undefined?fmt(r.meses[m]):"—"}</td>`).join("")}
+      <td class="${cc(r.saldoT)}" style="text-align:right;font-weight:700">${fmt(r.saldoT)}</td>
+    </tr>`;
+
+    // Linhas de detalhe por produto dentro do grupo (expandível)
+    if (exp) {
+      const prodMap = {};
+      for (const c of STATE.clientes)
+        for (const a of c.apolices)
+          for (const o of a.ocorrencias) {
+            if (getProdutoGrupo(o.produto) !== r.grupo) continue;
+            const p = o.produto || "(sem produto)";
+            if (!prodMap[p]) prodMap[p] = { produto: p, meses: {}, cs: new Set(), ocs: 0, sins: 0, saldoT: 0 };
+            prodMap[p].cs.add(c.cliente); prodMap[p].ocs++; prodMap[p].sins += o.sinistros.length;
+            prodMap[p].saldoT += o.saldoT;
+            for (const s of o.sinistros)
+              for (const m of s.movimentos)
+                prodMap[p].meses[m.mes] = (prodMap[p].meses[m.mes] ?? 0) + m.mov;
+          }
+      Object.values(prodMap).sort((a,b) => a.produto.localeCompare(b.produto)).forEach(p => {
+        h += `<tr style="background:#e8edf8">
+          <td style="padding-left:32px;color:#3730a3;font-weight:600">
+            <span style="background:#e0e7ff;color:#3730a3;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:700">${p.produto}</span>
+          </td>
+          <td style="text-align:center;font-size:11px">${p.cs.size}</td>
+          <td style="text-align:center;font-size:11px">${p.ocs}</td>
+          <td style="text-align:center;font-size:11px">${p.sins}</td>
+          ${ms.map(m => `<td class="${cc(p.meses[m]??0)}" style="text-align:right;font-size:11px">${p.meses[m]!==undefined?fmt(p.meses[m]):"—"}</td>`).join("")}
+          <td class="${cc(p.saldoT)}" style="text-align:right;font-weight:600;font-size:11px">${fmt(p.saldoT)}</td>
+        </tr>`;
+      });
+    }
+  });
+
+  // Totais
+  h += `</tbody><tfoot>
+    <tr>
+      <td colspan="4" style="text-align:right">TOTAL</td>
+      ${ms.map(m => { const t = rows.reduce((s,r) => s+(r.meses[m]??0), 0); return `<td class="${cc(t)}" style="text-align:right">${fmt(t)}</td>`; }).join("")}
+      <td class="${cc(ts)}" style="text-align:right">${fmt(ts)}</td>
+    </tr>
+    <tr class="sr">
+      <td colspan="4" style="text-align:right;color:#7eb3f7">Débito total</td>
+      <td colspan="${ms.length}" style="color:#fca5a5;text-align:right">${fmt(rows.filter(r=>r.saldoT<0).reduce((s,r)=>s+r.saldoT,0))}</td><td></td>
+    </tr>
+    <tr class="sr">
+      <td colspan="4" style="text-align:right;color:#7eb3f7">Crédito total</td>
+      <td colspan="${ms.length}" style="color:#86efac;text-align:right">${fmt(rows.filter(r=>r.saldoT>0).reduce((s,r)=>s+r.saldoT,0))}</td><td></td>
+    </tr>
+  </tfoot></table></div>`;
+  return h;
+}
+
+function rGruposMobile() {
+  const rows = getGruposData();
+  const ms   = STATE.meses;
+  let h = "";
+  rows.forEach(g => {
+    const expKey = "grp_" + g.grupo;
+    const exp = expCli[expKey];
+    h += `<div class="m-card" style="margin-bottom:10px">
+      <div class="m-card-header" onclick="expCli['${expKey}']=!expCli['${expKey}'];showTab('grupos')">
+        <div style="flex:1">
+          <div style="font-size:22px;margin-bottom:2px">${GRUPO_ICONS[g.grupo]||"📁"}</div>
+          <div class="m-card-title">${g.grupo}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">
+            ${[...g.produtos].sort().map(p=>`<span style="background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600">${p}</span>`).join("")}
+          </div>
+        </div>
+        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <div class="${cc(g.saldoT)}" style="font-weight:700;font-size:14px">${fmt(g.saldoT)}</div>
+          <span class="badge ${g.saldoT<0?"deb":g.saldoT>0?"cred":"sal"}">${g.saldoT<0?"Débito":g.saldoT>0?"Crédito":"Saldado"}</span>
+          <span style="font-size:18px;color:#1d4ed8">${exp?"▼":"▶"}</span>
+        </div>
+      </div>
+      ${exp ? `<div class="m-card-body open">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;text-align:center">
+          <div style="background:#f0f3fa;border-radius:6px;padding:6px"><div style="font-size:16px;font-weight:700;color:var(--navy)">${g.cs.size}</div><div style="font-size:10px;color:#6b7280">Clientes</div></div>
+          <div style="background:#f0f3fa;border-radius:6px;padding:6px"><div style="font-size:16px;font-weight:700;color:var(--navy)">${g.ocs}</div><div style="font-size:10px;color:#6b7280">Ocorrências</div></div>
+          <div style="background:#f0f3fa;border-radius:6px;padding:6px"><div style="font-size:16px;font-weight:700;color:var(--navy)">${g.sins}</div><div style="font-size:10px;color:#6b7280">Sinistros</div></div>
+        </div>
+        <div style="margin-bottom:8px;font-size:11px;font-weight:700;color:var(--navy)">Por mês:</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          ${ms.map(m => g.meses[m]!==undefined ? `<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f0f3fa"><span style="color:#6b7280">${mm(m)}</span><span class="${cc(g.meses[m])}">${fmt(g.meses[m])}</span></div>` : "").join("")}
+        </div>
+      </div>` : ""}
+    </div>`;
+  });
+  return h;
+}
 function getProdutoData(){
   const map={};
   for(const c of STATE.clientes)for(const a of c.apolices)for(const o of a.ocorrencias){
