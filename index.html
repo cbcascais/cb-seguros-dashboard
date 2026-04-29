@@ -432,12 +432,15 @@ function loadSP() {
     if (!lib) throw new Error("Biblioteca '"+SP_LIB+"' não encontrada. Drives disponíveis: "+drives.value.map(function(d){return d.name;}).join(", "));
     var dId = lib.id;
 
+    var pathM = FOLDER_M.split("/").map(function(p){return encodeURIComponent(p);}).join("/");
+    var pathS = FOLDER_S.split("/").map(function(p){return encodeURIComponent(p);}).join("/");
+
     showL("A ler ficheiros mensais...");
-    return graph("/drives/"+dId+"/root:/"+encodeURIComponent(FOLDER_M)+":/children").then(function(men) {
+    return graph("/drives/"+dId+"/root:/"+pathM+":/children").then(function(men) {
       var xls = men.value.filter(function(f) { return f.name.match(/\.(xlsx|xls)$/i); });
 
       showL("A ler ficheiros de sinistros...");
-      return graph("/drives/"+dId+"/root:/"+encodeURIComponent(FOLDER_S)+":/children").then(function(sin) {
+      return graph("/drives/"+dId+"/root:/"+pathS+":/children").then(function(sin) {
         var xsin = sin.value.filter(function(f) { return f.name.match(/\.(xlsx|xls)$/i); });
         return processFiles(dId, xls, xsin);
       });
@@ -449,31 +452,22 @@ function loadSP() {
   });
 }
 
+function downloadFile(dId, fileId) {
+  return fetch("https://graph.microsoft.com/v1.0/drives/"+dId+"/items/"+fileId+"/content", {
+    headers: { Authorization: "Bearer "+_token }
+  }).then(function(r) {
+    if (!r.ok) throw new Error("Download "+r.status);
+    return r.arrayBuffer();
+  });
+}
+
 function processFiles(dId, xlsFiles, sinFiles) {
   showL("A processar "+xlsFiles.length+" ficheiro(s)...");
   var proms = xlsFiles.map(function(f) {
-    return graph("/drives/"+dId+"/items/"+f.id+"/content").then(function(r) {
-      // graph retorna redirect — precisamos do fetch direto
-      return fetch("https://graph.microsoft.com/v1.0/drives/"+dId+"/items/"+f.id+"/content", {
-        headers:{Authorization:"Bearer "+_token}
-      }).then(function(r2) { return r2.arrayBuffer(); }).then(function(buf) {
-        return { name:f.name, buf:buf };
-      });
-    }).catch(function() {
-      return fetch("https://graph.microsoft.com/v1.0/drives/"+dId+"/items/"+f.id+"/content", {
-        headers:{Authorization:"Bearer "+_token}
-      }).then(function(r2) { return r2.arrayBuffer(); }).then(function(buf) {
-        return { name:f.name, buf:buf };
-      });
-    });
+    return downloadFile(dId, f.id).then(function(buf) { return { name:f.name, buf:buf }; });
   });
-
   var sinProms = sinFiles.map(function(f) {
-    return fetch("https://graph.microsoft.com/v1.0/drives/"+dId+"/items/"+f.id+"/content", {
-      headers:{Authorization:"Bearer "+_token}
-    }).then(function(r) { return r.arrayBuffer(); }).then(function(buf) {
-      return { name:f.name, buf:buf };
-    });
+    return downloadFile(dId, f.id).then(function(buf) { return { name:f.name, buf:buf }; });
   });
 
   return Promise.all(proms).then(function(results) {
