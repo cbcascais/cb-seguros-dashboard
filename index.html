@@ -461,21 +461,25 @@ function processarFicheiros(xlsM, xlsS) {
       if(rows.length>0) debug("COLUNAS: "+Object.keys(rows[0]).join(" | "));
       var out = [];
       rows.forEach(function(r) {
-        var cli = col(r,"Cliente","CLIENTE","client","Tomador","Tomador do Seguro","TOMADOR","Segurado","SEGURADO");
-        var apo = col(r,"Apólice","Apolice","APOLICE","apólice","apolice","Apol","Nº Apólice","N.º Apólice","Num Apolice","NumApolice","Nr Apolice","NrApolice","Numero Apolice","Nº Apolice","N Apolice","Apolice ");
-        var ocr = col(r,"Ocorrência","Ocorrencia","OCORRENCIA","ocorrência","Ocorr","Ocorrencia ","Nº Ocorrência","N.º Ocorrência","Num Ocorrencia","Nr Ocorrencia","NrOcorrencia","Numero Ocorrencia","Nº Ocorrencia","N Ocorrencia");
+        var cli = col(r,"Cliente","CLIENTE","Tomador","Tomador do Seguro","Segurado");
+        var apo = col(r,"Número Apólice","Numero Apolice","Apólice","Apolice","Nº Apólice","N.º Apólice");
+        var ocr = col(r,"Número Ocorrência","Numero Ocorrencia","Ocorrência","Ocorrencia","Nº Ocorrência","N.º Ocorrência");
         if (!cli||!apo||!ocr) return;
         out.push({
           mesKey: ym||"2026-00",
           cliente: cli,
           apolice: apo,
           ocorrencia: ocr,
-          sinistro: col(r,"Sinistro","SINISTRO","Nº Sinistro","nº sinistro","N. Sinistro","NrSinistro"),
-          produto: col(r,"Produto","PRODUTO","product"),
-          comercial: col(r,"Comercial H60 Associado","Comercial H60","Comercial","COMERCIAL","comercial"),
-          situacao: col(r,"Situação","Situacao","SITUACAO","situação","Sit"),
-          dataocorrencia: col(r,"Data Ocorrência","Data Ocorrencia","DataOcorrencia","DATA OCORRENCIA","Dt Ocorrencia"),
-          valor: parseValor(col(r,"Valor","VALOR","valor","Montante","montante"))
+          sinistro: col(r,"Número Sinistro","Numero Sinistro","Sinistro","Nº Sinistro","N.º Sinistro"),
+          produto: col(r,"Produto MC","Descrição Produto","Produto","PRODUTO"),
+          comercial: col(r,"Comercial H60 Associado","Estrutura H60 Comercial - Parceiro MC","Comercial H60","Comercial"),
+          situacao: col(r,"Situação","Situacao","Sit"),
+          dataocorrencia: col(r,"data ocorrência","Data Ocorrência","Data Ocorrencia","Dt Ocorrencia"),
+          valor: parseValor(col(r,
+            "Custos Reais Sinistros - Detalhe Ocorrências - Mediador Grupo Total (VTRQFIN19)",
+            "Custos Reais Sinistros - Detalhe Ocorrências - Mediador Grupo Total",
+            "Margem Comercial - Mediador Grupo Total (VTRQFIN19 )",
+            "Valor","VALOR","Montante","montante"))
         });
       });
       debug("Ficheiro "+f.name+": "+out.length+" linhas válidas");
