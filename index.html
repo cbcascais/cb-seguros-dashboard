@@ -297,7 +297,11 @@ var sortCol="cliente",sortDir="asc";
 var expCli={},expAp={},expOc={},expMov={};
 var _ckOpen=null;
 
-function hardReset(){
+function isValid(v) {
+  if (!v) return false;
+  var s = String(v).trim().replace(/\s+/g,"");
+  return s.length > 0 && s !== "0" && s.toLowerCase() !== "null" && s.toLowerCase() !== "undefined";
+}
   try{localStorage.removeItem("cb_files");}catch(e){}
   STATE.allData=[];STATE.gestData=[];STATE.clientes=[];STATE.meses=[];
   _token=null;
@@ -346,10 +350,7 @@ function checkAndLoad(force) {
           var m=autoSin(Object.keys(rows[0])); if(!m) return;
           // Filtra linhas sem dados essenciais (linhas em branco, totais, cabeçalhos extra)
           var validRows = rows.map(function(r){return mapSin(r,m);}).filter(function(r){
-            return r.cliente && r.cliente.length>0 &&
-                   r.apolice && r.apolice.length>0 &&
-                   r.ocorrencia && r.ocorrencia.length>0 &&
-                   r.sinistro && r.sinistro.length>0;
+            return isValid(r.cliente) && isValid(r.apolice) && isValid(r.ocorrencia) && isValid(r.sinistro);
           });
           if(!validRows.length) return;
           STATE.allData.push({mesLabel:mes,fileName:f.name,rows:validRows});
@@ -456,7 +457,7 @@ function build(){
       var apo=String(r.apolice||"").trim();
       var ocr=String(r.ocorrencia||"").trim();
       var sin=String(r.sinistro||"").trim();
-      if(!cli||!apo||!ocr||!sin) continue;
+      if(!isValid(cli)||!isValid(apo)||!isValid(ocr)||!isValid(sin)) continue;
       // Ignora linhas com valor zero E sem ocorrência real
       var k=cli+"||"+apo+"||"+ocr+"||"+sin;
       if(!sm[k]) sm[k]={cliente:cli,apolice:apo,produto:r.produto,ocorrencia:ocr,dataocorrencia:r.dataocorrencia,sinistro:sin,comercial:r.comercial,vpm:{}};
