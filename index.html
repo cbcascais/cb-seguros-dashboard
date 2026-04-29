@@ -5,1140 +5,1000 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>CB Seguros — Dashboard Sinistralidade 2026</title>
 <style>
-:root{--navy:#1B2A5E;--navy2:#263d7a;--gray:#f0f3fa;--red:#dc2626;--green:#16a34a}
+:root{--navy:#1B2A5E;--navy2:#263d7a;--bg:#f0f3fa;--red:#dc2626;--green:#16a34a;--purple:#7c3aed}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
-body{background:var(--gray);font-size:13px}
+body{background:var(--bg);font-size:13px}
+/* HEADER */
 header{background:var(--navy);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.title{font-size:15px;font-weight:700}.sub{font-size:10px;color:#7eb3f7;letter-spacing:.08em;text-transform:uppercase}
+.logo{font-size:15px;font-weight:700}.sub{font-size:10px;color:#7eb3f7;text-transform:uppercase;letter-spacing:.08em}
 #btn-login{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:600}
-#user-name{font-size:11px;color:#7eb3f7;margin-left:4px}
-.meses-wrap{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+#user-info{font-size:11px;color:#7eb3f7}
+.mes-badges{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
 .mes-badge{background:rgba(255,255,255,.15);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600}
-#btn-view{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:600}
-#loader{display:none;position:fixed;inset:0;background:rgba(27,42,94,.88);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-size:14px}
-.spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-#status{padding:8px 16px;background:#fff;border-bottom:1px solid #dde3f0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.sc{display:flex;align-items:center;gap:6px;background:#eef3fc;border:1px solid #c5d5ef;border-radius:8px;padding:4px 10px}
-.sc .lbl{font-size:10px;color:#666}.sc .val{font-size:11px;font-weight:700;color:var(--navy)}
-#btn-refresh{margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600}
-#btn-refresh:hover{background:var(--navy2)}
-#btn-hard{background:none;border:1px solid #d1d5db;color:#6b7280;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:11px}
-#btn-hard:hover{background:#fee2e2;border-color:#fca5a5;color:#dc2626}
-#kpis{display:none;grid-template-columns:repeat(6,1fr);gap:8px;padding:10px 16px;background:#fff;border-bottom:1px solid #dde3f0}
-.kpi{background:var(--gray);border-radius:8px;padding:8px 12px;text-align:center;border-left:3px solid var(--navy)}
-.kpi.red{border-left-color:var(--red)}.kpi.grn{border-left-color:var(--green)}.kpi.pur{border-left-color:#7c3aed}
-.kpi .lbl{font-size:10px;color:#666;margin-bottom:2px}.kpi .val{font-size:13px;font-weight:700;color:var(--navy)}
-#kpis2{display:none;grid-template-columns:repeat(5,1fr);gap:8px;padding:0 16px 10px;background:#fff;border-bottom:1px solid #dde3f0}
-/* FILTERS */
-#filters{background:#fff;border-bottom:1px solid #dde3f0;padding:8px 16px;display:none;gap:8px;flex-wrap:wrap;align-items:flex-end}
-.fgrp{display:flex;flex-direction:column;gap:3px;min-width:140px;position:relative}
-.fgrp label{font-size:10px;color:#666;font-weight:600;text-transform:uppercase}
-.dd-btn{border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:140px;text-align:left}
+/* LOADER */
+#loader{display:none;position:fixed;inset:0;background:rgba(27,42,94,.9);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff}
+.spin{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* STATUS BAR */
+#statusbar{background:#fff;border-bottom:1px solid #dde3f0;padding:8px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sc{background:#eef3fc;border:1px solid #c5d5ef;border-radius:8px;padding:4px 10px;font-size:11px}
+.sc b{color:var(--navy)}
+#btn-atualizar{margin-left:auto;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600}
+#btn-atualizar:hover{background:var(--navy2)}
+#btn-cache{background:none;border:1px solid #d1d5db;color:#6b7280;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:11px}
+#btn-cache:hover{background:#fee2e2;color:var(--red);border-color:#fca5a5}
+/* DEBUG */
+#debug-bar{display:none;background:#fefce8;border-bottom:2px solid #fbbf24;padding:8px 16px;font-size:11px;color:#78350f}
+/* KPIs */
+#kpis{display:none;padding:10px 16px;background:#fff;border-bottom:1px solid #dde3f0;grid-template-columns:repeat(6,1fr);gap:8px}
+.kpi{background:var(--bg);border-radius:8px;padding:8px 12px;text-align:center}
+.kpi.k-def{border-left:3px solid var(--navy)}.kpi.k-red{border-left:3px solid var(--red)}.kpi.k-grn{border-left:3px solid var(--green)}.kpi.k-pur{border-left:3px solid var(--purple)}
+.kpi .lbl{font-size:10px;color:#666;margin-bottom:2px}.kpi .val{font-size:14px;font-weight:700;color:var(--navy)}
+/* FILTROS */
+#filtros{display:none;background:#fff;border-bottom:1px solid #dde3f0;padding:8px 16px;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:3px;position:relative}
+.fg label{font-size:10px;color:#666;font-weight:600;text-transform:uppercase}
+.dd-btn{border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:130px;text-align:left;white-space:nowrap}
 .dd-btn:hover{border-color:#93c5fd}
-.dd-panel{position:absolute;top:100%;left:0;z-index:200;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:200px;max-height:260px;overflow:auto;display:none}
+.dd-panel{position:absolute;top:calc(100% + 2px);left:0;z-index:300;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:210px;max-height:250px;overflow:auto;display:none}
 .dd-panel.open{display:block}
-.dd-search{padding:6px 8px;border-bottom:1px solid #eee;display:flex}
-.dd-search input{border:1px solid #d1d5db;border-radius:4px;padding:4px 8px;font-size:11px;width:100%}
-.dd-actions{padding:4px 8px;border-bottom:1px solid #eee;display:flex;gap:8px}
-.dd-actions button{background:none;border:none;font-size:11px;color:#3b82f6;cursor:pointer;padding:0}
+.dd-srch{padding:6px 8px;border-bottom:1px solid #eee}
+.dd-srch input{width:100%;border:1px solid #d1d5db;border-radius:4px;padding:4px 8px;font-size:11px}
+.dd-acts{padding:4px 8px;border-bottom:1px solid #eee;display:flex;gap:8px}
+.dd-acts button{background:none;border:none;font-size:11px;color:#3b82f6;cursor:pointer}
 .dd-item{display:flex;align-items:center;gap:8px;padding:5px 10px;cursor:pointer;font-size:11px}
 .dd-item:hover{background:#f0f7ff}
-.dd-item input[type=checkbox]{cursor:pointer}
-.date-grp{display:flex;gap:4px;align-items:center}
-.date-grp input[type=date]{border:1px solid #d1d5db;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer}
-.date-mode-btn{border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:10px;font-weight:600;color:#6b7280}
-.date-mode-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
-.flt-clear{background:none;border:1px solid #d1d5db;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;color:#6b7280;align-self:flex-end}
-.flt-clear:hover{background:#fee2e2;border-color:#fca5a5;color:#dc2626}
+.f-input{border:1px solid #d1d5db;border-radius:6px;padding:5px 10px;font-size:11px;min-width:130px}
+.dt-wrap{display:flex;gap:4px;align-items:center}
+.dt-wrap input[type=date]{border:1px solid #d1d5db;border-radius:6px;padding:5px 8px;font-size:11px}
+.dt-mode{border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:10px;font-weight:600;color:#6b7280}
+.dt-mode.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-x{background:none;border:none;cursor:pointer;color:#9ca3af;font-size:13px;padding:0 2px}
+.btn-x:hover{color:var(--red)}
+.btn-limpar{background:none;border:1px solid #d1d5db;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;color:#6b7280;align-self:flex-end}
+.btn-limpar:hover{background:#fee2e2;color:var(--red);border-color:#fca5a5}
 /* TABS */
-.tabs{display:flex;background:#fff;border-bottom:2px solid #dde3f0;padding:0 16px;gap:0;overflow-x:auto}
-.tab{padding:10px 16px;cursor:pointer;font-size:12px;font-weight:600;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap}
-.tab.active{color:var(--navy);border-bottom-color:var(--navy)}
-.tab:hover{color:var(--navy2)}
-#content{padding:16px;min-height:300px}
-#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:#9ca3af}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #dde3f0;padding:0 16px;overflow-x:auto}
+.tab{padding:10px 14px;cursor:pointer;font-size:12px;font-weight:600;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tab.on{color:var(--navy);border-bottom-color:var(--navy)}
+.tab:hover:not(.on){color:var(--navy2)}
+/* CONTENT */
+#content{padding:14px;min-height:300px}
+#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:#9ca3af;text-align:center}
 /* TABLE */
+.tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07)}
 th{background:var(--navy);color:#fff;padding:8px 10px;text-align:left;font-size:11px;font-weight:600;white-space:nowrap}
-td{padding:7px 10px;border-bottom:1px solid #edf1f7;font-size:12px;vertical-align:top}
-tr:hover td{background:#f5f8ff}
-.tree-row td{cursor:pointer}
-.tree-row:hover td{background:#eef3fc}
-.tree-row td:first-child{font-weight:600}
-.expand-ico{display:inline-block;width:14px;text-align:center;color:#94a3b8;font-size:10px;margin-right:4px}
-.indent1{padding-left:20px!important}.indent2{padding-left:36px!important}.indent3{padding-left:52px!important}
-.neg{color:var(--red)}.pos{color:var(--green)}
+td{padding:7px 10px;border-bottom:1px solid #edf1f7;font-size:12px;vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.tr-cli{background:#f8f9ff;cursor:pointer}.tr-cli:hover td{background:#eef3fc}
+.tr-ap{cursor:pointer}.tr-ap:hover td{background:#f5f8ff}
+.tr-oc{cursor:pointer;background:#fafbff}.tr-oc:hover td{background:#f0f4ff}
+.tr-det{background:#f9f9f9}
+.ico{display:inline-block;width:14px;text-align:center;font-size:10px;color:#94a3b8;margin-right:3px}
+.i1{padding-left:20px!important}.i2{padding-left:36px!important}.i3{padding-left:52px!important}
+.neg{color:var(--red)!important}.pos{color:var(--green)!important}.bold{font-weight:700}
 .badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
-.badge-ab{background:#dcfce7;color:#166534}
-.badge-en{background:#fee2e2;color:#991b1b}
-.badge-re{background:#fef3c7;color:#92400e}
-.badge-out{background:#e0e7ff;color:#3730a3}
-/* CARDS RAMOS/MENSAL */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:16px}
+.b-ab{background:#dcfce7;color:#166534}.b-en{background:#fee2e2;color:#991b1b}
+.b-re{background:#fef3c7;color:#92400e}.b-out{background:#e0e7ff;color:#3730a3}
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
 .card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
-.card-hdr{background:var(--navy);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
-.card-hdr .name{font-size:12px;font-weight:700}.card-hdr .icon{font-size:18px}
-.card-row{display:flex;justify-content:space-between;align-items:center;padding:6px 14px;border-bottom:1px solid #f0f3fa}
-.card-row:last-child{border:none}
-.card-row .cl{font-size:11px;color:#444}.card-row .cv{font-size:11px;font-weight:700;color:var(--navy)}
-.card-row .cv.neg{color:var(--red)}
-/* SECTION HDR */
-.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.sec-hdr h3{font-size:14px;font-weight:700;color:var(--navy)}
-/* EXPORT BTN */
-.export-btn{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600;margin-left:auto}
-.export-btn:hover{background:var(--navy2)}
-/* MOBILE */
-#mobile-tabs{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dde3f0;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.1)}
-.mtab{flex:1;background:none;border:none;padding:8px 4px;cursor:pointer;font-size:10px;font-weight:600;color:#6b7280;display:flex;flex-direction:column;align-items:center;gap:2px}
-.mtab.active{color:var(--navy)}.mi{font-size:16px}
+.card-h{background:var(--navy);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.card-h .n{font-size:12px;font-weight:700}.card-h .ic{font-size:18px}
+.card-r{display:flex;justify-content:space-between;padding:6px 14px;border-bottom:1px solid #f0f3fa;font-size:11px}
+.card-r:last-child{border:none}
+.card-r .cv{font-weight:700;color:var(--navy)}
+/* SEC HDR */
+.sec-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sec-h h3{font-size:14px;font-weight:700;color:var(--navy)}
+.btn-exp{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600;margin-left:auto}
+.btn-exp:hover{background:var(--navy2)}
+/* MOBILE TABS */
+#mob-tabs{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dde3f0;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.1)}
+.mtab{flex:1;background:none;border:none;padding:8px 2px;cursor:pointer;font-size:10px;font-weight:600;color:#6b7280;display:flex;flex-direction:column;align-items:center;gap:2px}
+.mtab.on{color:var(--navy)}.mtab .mi{font-size:16px}
 @media(max-width:768px){
   #kpis{grid-template-columns:repeat(3,1fr)}
-  #kpis2{grid-template-columns:repeat(2,1fr);padding-bottom:14px}
   .tabs{display:none}
-  #mobile-tabs{display:block}
+  #mob-tabs{display:block}
   #content{padding:10px 10px 80px}
-  header{gap:6px}
-  .title{font-size:13px}
-  #filters{gap:6px}
-  .fgrp{min-width:120px}
-  .dd-btn{min-width:120px}
 }
 </style>
 </head>
 <body>
-
-<div id="loader"><div class="spinner"></div><div id="lmsg">A carregar...</div></div>
+<div id="loader"><div class="spin"></div><div id="lmsg">A carregar...</div></div>
 
 <header>
-  <div>
-    <div class="title">🛡️ CB Seguros</div>
-    <div class="sub">Dashboard Sinistralidade 2026</div>
-  </div>
-  <button id="btn-login" onclick="doLogin()">🔐 Entrar com M365</button>
-  <span id="user-name"></span>
-  <div class="meses-wrap" id="meses-wrap"></div>
-  <button id="btn-view" onclick="toggleView()" style="display:none">📱</button>
+  <div><div class="logo">🛡️ CB Seguros</div><div class="sub">Dashboard Sinistralidade 2026</div></div>
+  <button id="btn-login">🔐 Entrar com M365</button>
+  <span id="user-info"></span>
+  <div class="mes-badges" id="mes-badges"></div>
 </header>
 
-<div id="status">
-  <div class="sc"><span class="lbl">Ficheiros</span><span class="val" id="k-files">—</span></div>
-  <div class="sc"><span class="lbl">Atualizado</span><span class="val" id="k-time">—</span></div>
-  <button id="btn-refresh" onclick="loadSP()">🔄 Atualizar</button>
-  <button id="btn-hard" onclick="hardReset()" title="Limpa todo o cache e recarrega">🗑️ Limpar Cache</button>
+<div id="statusbar">
+  <div class="sc">Ficheiros <b id="s-files">—</b></div>
+  <div class="sc">Atualizado <b id="s-time">—</b></div>
+  <button id="btn-atualizar">🔄 Atualizar</button>
+  <button id="btn-cache" title="Limpa todo o cache e recarrega a página">🗑️ Limpar Cache</button>
 </div>
+
+<div id="debug-bar" id="debug-bar"></div>
 
 <div id="kpis">
-  <div class="kpi"><div class="lbl">Clientes</div><div class="val" id="k1">0</div></div>
-  <div class="kpi"><div class="lbl">Apólices</div><div class="val" id="k2">0</div></div>
-  <div class="kpi"><div class="lbl">Sinistros</div><div class="val" id="k3">0</div></div>
-  <div class="kpi red"><div class="lbl">Total Débito</div><div class="val" id="k4">—</div></div>
-  <div class="kpi grn"><div class="lbl">Total Crédito</div><div class="val" id="k5">—</div></div>
-  <div class="kpi pur"><div class="lbl">Saldo</div><div class="val" id="k6">—</div></div>
+  <div class="kpi k-def"><div class="lbl">Clientes</div><div class="val" id="k1">0</div></div>
+  <div class="kpi k-def"><div class="lbl">Apólices</div><div class="val" id="k2">0</div></div>
+  <div class="kpi k-def"><div class="lbl">Sinistros</div><div class="val" id="k3">0</div></div>
+  <div class="kpi k-red"><div class="lbl">Total Débito</div><div class="val" id="k4">0,00 €</div></div>
+  <div class="kpi k-grn"><div class="lbl">Total Crédito</div><div class="val" id="k5">0,00 €</div></div>
+  <div class="kpi k-pur"><div class="lbl">Saldo</div><div class="val" id="k6">0,00 €</div></div>
 </div>
-<div id="kpis2"></div>
 
-<div id="filters">
-  <!-- Comercial -->
-  <div class="fgrp">
+<div id="filtros">
+  <div class="fg">
     <label>Comercial</label>
-    <button class="dd-btn" id="dd-com-btn" onclick="toggleDD('com')">Todos <span>▼</span></button>
-    <div class="dd-panel" id="dd-com">
-      <div class="dd-search"><input type="text" placeholder="Pesquisar..." oninput="filterDDSearch('com',this.value)"></div>
-      <div class="dd-actions">
-        <button onclick="selectAllDD('com')">Todos</button>
-        <button onclick="clearDD('com')">Limpar</button>
-      </div>
-      <div id="dd-com-list"></div>
+    <button class="dd-btn" id="ddb-com" onclick="toggleDD('com')"><span id="ddl-com">Todos</span> ▼</button>
+    <div class="dd-panel" id="ddp-com">
+      <div class="dd-srch"><input type="text" placeholder="Pesquisar..." oninput="srchDD('com',this.value)"></div>
+      <div class="dd-acts"><button onclick="allDD('com')">Todos</button><button onclick="noneDD('com')">Limpar</button></div>
+      <div id="ddl-com-list"></div>
     </div>
   </div>
-  <!-- Cliente -->
-  <div class="fgrp">
+  <div class="fg">
     <label>Cliente</label>
-    <button class="dd-btn" id="dd-cli-btn" onclick="toggleDD('cli')">Todos <span>▼</span></button>
-    <div class="dd-panel" id="dd-cli">
-      <div class="dd-search"><input type="text" placeholder="Pesquisar..." oninput="filterDDSearch('cli',this.value)"></div>
-      <div class="dd-actions">
-        <button onclick="selectAllDD('cli')">Todos</button>
-        <button onclick="clearDD('cli')">Limpar</button>
-      </div>
-      <div id="dd-cli-list"></div>
+    <button class="dd-btn" id="ddb-cli" onclick="toggleDD('cli')"><span id="ddl-cli">Todos</span> ▼</button>
+    <div class="dd-panel" id="ddp-cli">
+      <div class="dd-srch"><input type="text" placeholder="Pesquisar..." oninput="srchDD('cli',this.value)"></div>
+      <div class="dd-acts"><button onclick="allDD('cli')">Todos</button><button onclick="noneDD('cli')">Limpar</button></div>
+      <div id="ddl-cli-list"></div>
     </div>
   </div>
-  <!-- Produto -->
-  <div class="fgrp">
+  <div class="fg">
     <label>Produto</label>
-    <button class="dd-btn" id="dd-prod-btn" onclick="toggleDD('prod')">Todos <span>▼</span></button>
-    <div class="dd-panel" id="dd-prod">
-      <div class="dd-actions">
-        <button onclick="selectAllDD('prod')">Todos</button>
-        <button onclick="clearDD('prod')">Limpar</button>
-      </div>
-      <div id="dd-prod-list"></div>
+    <button class="dd-btn" id="ddb-prod" onclick="toggleDD('prod')"><span id="ddl-prod">Todos</span> ▼</button>
+    <div class="dd-panel" id="ddp-prod">
+      <div class="dd-acts"><button onclick="allDD('prod')">Todos</button><button onclick="noneDD('prod')">Limpar</button></div>
+      <div id="ddl-prod-list"></div>
     </div>
   </div>
-  <!-- Situação -->
-  <div class="fgrp" id="fgrp-sit" style="display:none">
+  <div class="fg">
     <label>Situação</label>
-    <button class="dd-btn" id="dd-sit-btn" onclick="toggleDD('sit')">Todas <span>▼</span></button>
-    <div class="dd-panel" id="dd-sit">
-      <div class="dd-actions">
-        <button onclick="selectAllDD('sit')">Todas</button>
-        <button onclick="clearDD('sit')">Limpar</button>
-      </div>
-      <div id="dd-sit-list"></div>
+    <button class="dd-btn" id="ddb-sit" onclick="toggleDD('sit')"><span id="ddl-sit">Todas</span> ▼</button>
+    <div class="dd-panel" id="ddp-sit">
+      <div class="dd-acts"><button onclick="allDD('sit')">Todas</button><button onclick="noneDD('sit')">Limpar</button></div>
+      <div id="ddl-sit-list"></div>
     </div>
   </div>
-  <!-- Data Ocorrência -->
-  <div class="fgrp">
+  <div class="fg">
     <label>Data Ocorrência</label>
-    <div class="date-grp">
-      <button class="date-mode-btn active" id="dtocm-btn" onclick="toggleDtMode('dtoc')">= Exata</button>
-      <input type="date" id="dtoc-de" onchange="applyFilters()" placeholder="De">
-      <span id="dtoc-ate-wrap" style="display:none">→<input type="date" id="dtoc-ate" onchange="applyFilters()"></span>
-      <button onclick="clearDate('dtoc')" title="Limpar">✕</button>
+    <div class="dt-wrap">
+      <button class="dt-mode on" id="dtm-oc" onclick="togDtMode('oc')">= Exata</button>
+      <input type="date" id="dt-oc-de" onchange="render()">
+      <span id="dt-oc-ate-w" style="display:none">→<input type="date" id="dt-oc-ate" onchange="render()"></span>
+      <button class="btn-x" onclick="clrDt('oc')">✕</button>
     </div>
   </div>
-  <!-- Data Abertura (só CC) -->
-  <div class="fgrp" id="fgrp-dtab" style="display:none">
+  <div class="fg" id="fg-dtab" style="display:none">
     <label>Data Abertura</label>
-    <div class="date-grp">
-      <button class="date-mode-btn active" id="dtabm-btn" onclick="toggleDtMode('dtab')">= Exata</button>
-      <input type="date" id="dtab-de" onchange="applyFilters()">
-      <span id="dtab-ate-wrap" style="display:none">→<input type="date" id="dtab-ate" onchange="applyFilters()"></span>
-      <button onclick="clearDate('dtab')">✕</button>
+    <div class="dt-wrap">
+      <button class="dt-mode on" id="dtm-ab" onclick="togDtMode('ab')">= Exata</button>
+      <input type="date" id="dt-ab-de" onchange="render()">
+      <span id="dt-ab-ate-w" style="display:none">→<input type="date" id="dt-ab-ate" onchange="render()"></span>
+      <button class="btn-x" onclick="clrDt('ab')">✕</button>
     </div>
   </div>
-  <!-- Sinistro / Ocorrência pesquisa -->
-  <div class="fgrp">
+  <div class="fg">
     <label>Nº Sinistro</label>
-    <input type="text" id="f-sin" placeholder="Pesquisar..." oninput="applyFilters()" style="border:1px solid #d1d5db;border-radius:6px;padding:5px 10px;font-size:11px">
+    <input class="f-input" type="text" id="f-sin" placeholder="Pesquisar..." oninput="render()">
   </div>
-  <button class="flt-clear" onclick="clearAllFilters()">✕ Limpar tudo</button>
+  <button class="btn-limpar" onclick="limparFiltros()">✕ Limpar tudo</button>
 </div>
 
 <div class="tabs" id="tabs">
-  <div class="tab active" onclick="showTab('cc',this)">Conta Corrente</div>
-  <div class="tab" onclick="showTab('mensal',this)">Resumo Mensal</div>
-  <div class="tab" onclick="showTab('ramos',this)">Ramos</div>
-  <div class="tab" onclick="showTab('produto',this)">Por Produto</div>
-  <div class="tab" onclick="showTab('anual',this)">Resumo Anual</div>
+  <div class="tab on" onclick="setTab('cc',this)">Conta Corrente</div>
+  <div class="tab" onclick="setTab('mensal',this)">Resumo Mensal</div>
+  <div class="tab" onclick="setTab('ramos',this)">Ramos</div>
+  <div class="tab" onclick="setTab('produto',this)">Por Produto</div>
+  <div class="tab" onclick="setTab('anual',this)">Resumo Anual</div>
 </div>
 
 <div id="content">
   <div id="empty">
     <div style="font-size:48px;margin-bottom:12px">🔐</div>
     <div style="font-size:15px;font-weight:600">Inicia sessão com a tua conta M365</div>
-    <div style="font-size:11px;margin-top:5px;color:#9ca3af">Os dados são carregados automaticamente do SharePoint</div>
+    <div style="font-size:11px;margin-top:6px">Os dados são carregados automaticamente do SharePoint</div>
   </div>
 </div>
 
-<div id="mobile-tabs">
+<div id="mob-tabs">
   <div style="display:flex">
-    <button class="mtab active" onclick="showTab('cc');setMTab(this)"><span class="mi">📋</span>Corrente</button>
-    <button class="mtab" onclick="showTab('mensal');setMTab(this)"><span class="mi">📅</span>Mensal</button>
-    <button class="mtab" onclick="showTab('ramos');setMTab(this)"><span class="mi">🗂️</span>Ramos</button>
-    <button class="mtab" onclick="showTab('produto');setMTab(this)"><span class="mi">📦</span>Produto</button>
-    <button class="mtab" onclick="showTab('anual');setMTab(this)"><span class="mi">📆</span>Anual</button>
+    <button class="mtab on" onclick="setTab('cc');setMtab(this)"><span class="mi">📋</span>Corrente</button>
+    <button class="mtab" onclick="setTab('mensal');setMtab(this)"><span class="mi">📅</span>Mensal</button>
+    <button class="mtab" onclick="setTab('ramos');setMtab(this)"><span class="mi">🗂️</span>Ramos</button>
+    <button class="mtab" onclick="setTab('produto');setMtab(this)"><span class="mi">📦</span>Produto</button>
+    <button class="mtab" onclick="setTab('anual');setMtab(this)"><span class="mi">📆</span>Anual</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// ── MSAL LOADER com fallback
-function loadMsalLib() {
-  return new Promise(function(res, rej) {
-    if (window.msal) { res(); return; }
-    var urls = [
-      "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/2.38.3/msal-browser.min.js",
-      "https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"
-    ];
-    var idx = 0;
-    function next() {
-      if (idx >= urls.length) { rej(new Error("MSAL não carregou")); return; }
-      var s = document.createElement("script");
-      s.src = urls[idx++];
-      s.onload = function() { if (window.msal) res(); else next(); };
-      s.onerror = next;
-      document.head.appendChild(s);
-    }
-    next();
-  });
-}
+// ═══════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════
+var CFG = {
+  tenant:   "a914409c-82a2-4746-85f0-f51bd2711c33",
+  client:   "6e166a10-9f36-4888-9a23-1734f238d2d0",
+  redirect: "https://cbcascais.github.io/cb-seguros-dashboard/",
+  scopes:   ["User.Read","Files.Read.All","Sites.Read.All"],
+  folderM:  "Sinistralidade 2026/Mensais",
+  folderS:  "Sinistralidade 2026/Sinistros",
+  libName:  "Documentos Partilhados"
+};
 
-function isInFrame() { try { return window.self !== window.top; } catch(e) { return true; } }
-function isMobileUA() { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
-function useRedirect() { return isInFrame() || isMobileUA(); }
-
-// ── CONFIG
-var TENANT   = "a914409c-82a2-4746-85f0-f51bd2711c33";
-var CLIENT   = "6e166a10-9f36-4888-9a23-1734f238d2d0";
-var SP_LIB   = "Documentos Partilhados";
-var FOLDER_M = "Sinistralidade 2026/Mensais";
-var FOLDER_S = "Sinistralidade 2026/Sinistros";
-var SCOPES   = ["User.Read","Files.Read.All","Sites.Read.All"];
-var REDIRECT = "https://cbcascais.github.io/cb-seguros-dashboard/";
-var MN_FULL  = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-
-// ── RAMOS
 var RAMOS = {
   "Acidentes Trabalho": ["ATFIX","ATINP","ATVAR"],
   "Acidentes Pessoais": ["APDCQ","APDCR","APIND","ESCOL","APMDA"],
-  "Automovel":          ["AUFRO","AUT2R","AUTLG","AUTOM","AUGAR","AUTRE"],
-  "Saude":              ["SANEG","SANFP","SASEN","SASOR","SATRQ"],
+  "Automóvel":          ["AUFRO","AUT2R","AUTLG","AUTOM","AUGAR","AUTRE"],
+  "Saúde":              ["SANEG","SANFP","SASEN","SASOR","SATRQ"],
   "Multirrisco":        ["MRCON","MRCDM","MREMP","MREST","MRHCA","MRHCC","MRHSC","MRVAL","MREIM","MRHAB"],
   "Vida":               ["VIDDO","VTCC1","VTCC2","VTCC3"]
 };
-var RAMO_ICONS  = {"Acidentes Trabalho":"🦺","Acidentes Pessoais":"🏥","Automovel":"🚗","Saude":"❤️","Multirrisco":"🏠","Vida":"🌿"};
-var RAMO_LABELS = {"Acidentes Trabalho":"Acidentes Trabalho","Acidentes Pessoais":"Acidentes Pessoais","Automovel":"Automóvel","Saude":"Saúde","Multirrisco":"Multirrisco","Vida":"Vida"};
-function getProdutoRamo(p) {
-  if (!p) return "Outros";
-  var u = p.toUpperCase().trim();
-  var keys = Object.keys(RAMOS);
-  for (var i=0;i<keys.length;i++) { if (RAMOS[keys[i]].indexOf(u)>=0) return keys[i]; }
-  return "Outros";
-}
-
-// ── MESES PT (extração do nome do ficheiro)
-var MESES_PT_MAP = {
-  "janeiro":"01","fevereiro":"02","marco":"03","março":"03","abril":"04","maio":"05",
-  "junho":"06","julho":"07","agosto":"08","setembro":"09","outubro":"10","novembro":"11","dezembro":"12",
-  "jan":"01","fev":"02","mar":"03","abr":"04","mai":"05","jun":"06",
-  "jul":"07","ago":"08","set":"09","out":"10","nov":"11","dez":"12"
+var RAMO_ICONS = {"Acidentes Trabalho":"🦺","Acidentes Pessoais":"🏥","Automóvel":"🚗","Saúde":"❤️","Multirrisco":"🏠","Vida":"🌿"};
+var MN = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+var MMAP = {
+  janeiro:"01",fevereiro:"02",marco:"03","março":"03",abril:"04",maio:"05",junho:"06",
+  julho:"07",agosto:"08",setembro:"09",outubro:"10",novembro:"11",dezembro:"12",
+  jan:"01",fev:"02",mar:"03",abr:"04",mai:"05",jun:"06",jul:"07",ago:"08",set:"09",out:"10",nov:"11",dez:"12"
 };
-function getMes(name) {
-  var n = name.toLowerCase()
-    .replace(/ç/g,"c").replace(/ã/g,"a").replace(/á/g,"a").replace(/â/g,"a")
-    .replace(/é/g,"e").replace(/ê/g,"e").replace(/í/g,"i")
-    .replace(/ó/g,"o").replace(/ô/g,"o").replace(/ú/g,"u");
-  var p1 = name.match(/(\d{4})[-_](\d{2})/);
-  if (p1) return p1[1]+"-"+p1[2];
-  var keys = Object.keys(MESES_PT_MAP);
-  for (var i=0;i<keys.length;i++) {
-    var k = keys[i];
-    var m1 = n.match(new RegExp(k+"[_\\-\\s]?(\\d{4})","i"));
-    if (m1) return m1[1]+"-"+MESES_PT_MAP[k];
-    var m2 = n.match(new RegExp("(\\d{4})[_\\-\\s]?"+k,"i"));
-    if (m2) return m2[1]+"-"+MESES_PT_MAP[k];
-  }
-  return null;
-}
-function mesLabel(ym) {
-  if (!ym) return "—";
-  var parts = ym.split("-");
-  var m = parseInt(parts[1],10);
-  return (MN_FULL[m-1]||ym) + " " + parts[0];
+
+// ═══════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════
+var S = { rows:[], gestao:{}, meses:[], tree:[] };
+var curTab = "cc";
+var F = { com:[], cli:[], prod:[], sit:[], sinistro:"", dtOcDe:"", dtOcAte:"", dtOcMode:"exata", dtAbDe:"", dtAbAte:"", dtAbMode:"exata" };
+var EXP = { cli:{}, ap:{}, oc:{} };
+var DD = { com:[], cli:[], prod:[], sit:[] };
+
+// ═══════════════════════════════════════════════════
+// MSAL
+// ═══════════════════════════════════════════════════
+var _msal = null, _token = null;
+
+function loadMsal() {
+  return new Promise(function(ok,fail) {
+    if (window.msal) { ok(); return; }
+    var urls = [
+      "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/2.38.3/msal-browser.min.js"
+    ];
+    var i=0;
+    function tryNext() {
+      if (i>=urls.length) { fail(new Error("MSAL não carregou")); return; }
+      var s=document.createElement("script"); s.src=urls[i++];
+      s.onload=function(){ if(window.msal) ok(); else tryNext(); };
+      s.onerror=tryNext;
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
 }
 
-// ── AUTH
-var msalApp = null, _token = null;
+function inFrame() { try { return window.self!==window.top; } catch(e) { return true; } }
+function isMob()   { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
 
-function initMsalApp() {
-  return loadMsalLib().then(function() {
-    if (msalApp) return msalApp;
-    msalApp = new msal.PublicClientApplication({
-      auth: { clientId:CLIENT, authority:"https://login.microsoftonline.com/"+TENANT, redirectUri:REDIRECT },
-      cache: { cacheLocation:"localStorage", storeAuthStateInCookie:true }
+function getMsal() {
+  return loadMsal().then(function() {
+    if (_msal) return _msal;
+    _msal = new msal.PublicClientApplication({
+      auth:{ clientId:CFG.client, authority:"https://login.microsoftonline.com/"+CFG.tenant, redirectUri:CFG.redirect },
+      cache:{ cacheLocation:"localStorage", storeAuthStateInCookie:true }
     });
-    return msalApp.initialize().then(function() { return msalApp; });
+    return _msal.initialize().then(function(){ return _msal; });
   });
 }
 
 function doLogin() {
   showL("A autenticar...");
-  initMsalApp().then(function(app) {
-    if (useRedirect()) {
-      return app.loginRedirect({ scopes:SCOPES });
-    } else {
-      return app.loginPopup({ scopes:SCOPES, prompt:"select_account" }).then(function(r) {
-        app.setActiveAccount(r.account);
-        setUser(r.account);
-        _token = r.accessToken;
-        hideL();
-        return loadSP();
-      });
-    }
-  }).catch(function(e) {
+  getMsal().then(function(app) {
+    if (inFrame()||isMob()) return app.loginRedirect({scopes:CFG.scopes});
+    return app.loginPopup({scopes:CFG.scopes,prompt:"select_account"}).then(function(r) {
+      app.setActiveAccount(r.account);
+      setUser(r.account);
+      _token = r.accessToken;
+      hideL();
+      return carregarDados();
+    });
+  }).catch(function(e){
     hideL();
-    var msg = (e&&e.message)?e.message:"";
-    if (msg.indexOf("popup")>=0||msg.indexOf("block")>=0)
-      alert("Popup bloqueado! Permite popups para cbcascais.github.io.");
-    else if (msg && msg.indexOf("cancel")<0) alert("Erro: "+msg);
-    console.error(e);
+    if (!e||!e.message||e.message.indexOf("cancel")>=0) return;
+    alert("Erro auth: "+e.message);
   });
 }
 
 function getToken() {
   if (_token) return Promise.resolve();
-  return initMsalApp().then(function(app) {
+  return getMsal().then(function(app) {
     var acc = app.getActiveAccount();
     if (!acc) return;
-    return app.acquireTokenSilent({scopes:SCOPES,account:acc}).then(function(r){
-      _token = r.accessToken;
-    }).catch(function() {
-      if (useRedirect()) return app.acquireTokenRedirect({scopes:SCOPES,account:acc});
-      return app.acquireTokenPopup({scopes:SCOPES,account:acc}).then(function(r){_token=r.accessToken;});
-    });
+    return app.acquireTokenSilent({scopes:CFG.scopes,account:acc})
+      .then(function(r){ _token=r.accessToken; })
+      .catch(function(){
+        if (inFrame()||isMob()) return app.acquireTokenRedirect({scopes:CFG.scopes,account:acc});
+        return app.acquireTokenPopup({scopes:CFG.scopes,account:acc}).then(function(r){ _token=r.accessToken; });
+      });
   });
 }
 
 function setUser(acc) {
-  document.getElementById("user-name").textContent = "👤 "+acc.name;
-  var b = document.getElementById("btn-login");
-  b.textContent = "✅ "+acc.username;
-  b.style.background = "rgba(22,163,74,.4)";
+  document.getElementById("user-info").textContent = "👤 "+acc.name;
+  var b=document.getElementById("btn-login");
+  b.textContent="✅ "+acc.username;
+  b.style.background="rgba(22,163,74,.4)";
 }
 
-function graph(url) {
+function graphFetch(path) {
   return getToken().then(function() {
-    return fetch("https://graph.microsoft.com/v1.0"+url, {headers:{Authorization:"Bearer "+_token}});
+    return fetch("https://graph.microsoft.com/v1.0"+path, {headers:{Authorization:"Bearer "+_token}});
   }).then(function(r) {
-    if (!r.ok) throw new Error("Graph "+r.status+": "+url);
+    if (!r.ok) throw new Error("Graph "+r.status+" → "+path);
     return r.json();
   });
 }
 
-// ── STATE
-var STATE = { allData:[], gestData:[], clientes:[], meses:[] };
-var curTab = "cc";
-var isMobile = window.innerWidth <= 768;
-
-// filtros activos
-var fCom=[], fCli=[], fProd=[], fSit=[];
-var fDtOcDe="", fDtOcAte="", fDtOcMode="exata";
-var fDtAbDe="", fDtAbAte="", fDtAbMode="exata";
-var fSin="";
-
-// ── HARD RESET (CORRETO)
+// ═══════════════════════════════════════════════════
+// SHAREPOINT — CARREGAR DADOS
+// ═══════════════════════════════════════════════════
 function hardReset() {
   try { localStorage.clear(); } catch(e) {}
   location.reload(true);
 }
 
-// ── SHAREPOINT
-function loadSP() {
+function carregarDados() {
   showL("A ligar ao SharePoint...");
-  return getToken().then(function() {
-    showL("A obter site SharePoint...");
-    return graph("/sites/root");
-  }).then(function(site) {
-    showL("A listar drives...");
-    return graph("/sites/"+site.id+"/drives");
-  }).then(function(drives) {
-    var lib = null;
-    // Tenta encontrar por nome exato primeiro
-    lib = drives.value.find(function(d){ return d.name === SP_LIB; });
-    // Fallback: contém "documentos" no nome ou URL
-    if (!lib) lib = drives.value.find(function(d){ return d.name.toLowerCase().indexOf("doc")>=0 || d.webUrl.toLowerCase().indexOf("documentos")>=0; });
-    // Fallback: primeira drive disponível
-    if (!lib) lib = drives.value[0];
-    if (!lib) throw new Error("Nenhuma drive encontrada. Site: "+drives["@odata.context"]);
-
-    console.log("Drive encontrada:", lib.name, lib.id);
-    var dId = lib.id;
-
-    var pathM = FOLDER_M.split("/").map(function(p){return encodeURIComponent(p);}).join("/");
-    var pathS = FOLDER_S.split("/").map(function(p){return encodeURIComponent(p);}).join("/");
-
-    showL("A ler pasta Mensais...");
-    return graph("/drives/"+dId+"/root:/"+pathM+":/children").then(function(men) {
-      var xls = men.value.filter(function(f){ return f.name.match(/\.(xlsx|xls)$/i); });
-      console.log("Ficheiros mensais encontrados:", xls.map(function(f){return f.name;}));
-      showL("A ler pasta Sinistros...");
-      // pasta Sinistros é opcional — não falha se não existir
-      return graph("/drives/"+dId+"/root:/"+pathS+":/children").then(function(sin) {
-        var xsin = sin.value.filter(function(f){ return f.name.match(/\.(xlsx|xls)$/i); });
-        return processFiles(xls, xsin);
-      }).catch(function() {
-        console.warn("Pasta Sinistros não encontrada ou vazia — continua sem ela");
-        return processFiles(xls, []);
-      });
+  return graphFetch("/sites/root")
+    .then(function(site) {
+      showL("A listar drives...");
+      return graphFetch("/sites/"+site.id+"/drives");
+    })
+    .then(function(resp) {
+      var drives = resp.value;
+      debug("Drives encontradas: "+drives.map(function(d){return d.name;}).join(", "));
+      // Procura a biblioteca de documentos
+      var lib = drives.find(function(d){ return d.name===CFG.libName; })
+             || drives.find(function(d){ return d.name.toLowerCase().indexOf("doc")>=0; })
+             || drives[0];
+      if (!lib) throw new Error("Nenhuma drive encontrada");
+      debug("Drive usada: "+lib.name+" ("+lib.id+")");
+      return lib.id;
+    })
+    .then(function(driveId) {
+      var pathM = CFG.folderM.split("/").map(encodeURIComponent).join("/");
+      var pathS = CFG.folderS.split("/").map(encodeURIComponent).join("/");
+      showL("A ler pasta Mensais...");
+      return graphFetch("/drives/"+driveId+"/root:/"+pathM+":/children")
+        .then(function(res) {
+          var xlsM = res.value.filter(function(f){ return /\.(xlsx|xls)$/i.test(f.name); });
+          debug("Ficheiros Mensais: "+xlsM.map(function(f){return f.name;}).join(", ")||"nenhum");
+          showL("A ler pasta Sinistros...");
+          return graphFetch("/drives/"+driveId+"/root:/"+pathS+":/children")
+            .catch(function(){ return {value:[]}; })  // pasta opcional
+            .then(function(res2) {
+              var xlsS = res2.value.filter(function(f){ return /\.(xlsx|xls)$/i.test(f.name); });
+              debug("Ficheiros Sinistros: "+xlsS.map(function(f){return f.name;}).join(", ")||"nenhum");
+              return processarFicheiros(xlsM, xlsS);
+            });
+        });
+    })
+    .catch(function(e) {
+      hideL();
+      debug("ERRO: "+e.message);
+      alert("Erro ao carregar: "+e.message);
     });
-  }).catch(function(e) {
-    hideL();
-    console.error(e);
-    alert("Erro: "+e.message);
-  });
 }
 
-// Usa @microsoft.graph.downloadUrl — URL pré-autenticado que vem na listagem
-function downloadFile(file) {
+function dlFile(file) {
+  // Usa @microsoft.graph.downloadUrl (já vem na listagem, sem precisar de token)
   var url = file["@microsoft.graph.downloadUrl"];
-  if (url) {
-    return fetch(url).then(function(r){
-      if(!r.ok) throw new Error("Download HTTP "+r.status);
-      return r.arrayBuffer();
-    });
-  }
-  // fallback via Graph API com token
-  return fetch("https://graph.microsoft.com/v1.0/drives/"+file.parentReference.driveId+"/items/"+file.id+"/content", {
-    headers: { Authorization: "Bearer "+_token }
-  }).then(function(r){
-    if(!r.ok) throw new Error("Download fallback HTTP "+r.status);
+  if (!url) throw new Error("downloadUrl não disponível para "+file.name);
+  return fetch(url).then(function(r) {
+    if (!r.ok) throw new Error("Download HTTP "+r.status+" ("+file.name+")");
     return r.arrayBuffer();
   });
 }
 
-function processFiles(xlsFiles, sinFiles) {
-  showL("A processar "+xlsFiles.length+" ficheiro(s)...");
-  var proms = xlsFiles.map(function(f) {
-    return downloadFile(f).then(function(buf) { return { name:f.name, buf:buf }; });
-  });
-  var sinProms = sinFiles.map(function(f) {
-    return downloadFile(f).then(function(buf) { return { name:f.name, buf:buf }; });
-  });
+// Extrai o mês a partir do nome do ficheiro
+function getMes(name) {
+  var n = name.toLowerCase()
+    .replace(/[çÇ]/g,"c").replace(/[ãâáàÃÂÁÀ]/g,"a")
+    .replace(/[éêèÉÊÈ]/g,"e").replace(/[íîìÍÎÌ]/g,"i")
+    .replace(/[óôòÓÔÒ]/g,"o").replace(/[úûùÚÛÙ]/g,"u");
+  // formato AAAA-MM ou AAAAMM
+  var m1 = name.match(/(\d{4})[-_]?(\d{2})/);
+  if (m1 && parseInt(m1[2])>=1 && parseInt(m1[2])<=12) return m1[1]+"-"+m1[2];
+  // nome do mês + ano
+  for (var k in MMAP) {
+    var re1 = new RegExp(k+"[_\\-\\s]?(\\d{4})","i");
+    var re2 = new RegExp("(\\d{4})[_\\-\\s]?"+k,"i");
+    var r1=n.match(re1), r2=n.match(re2);
+    if (r1) return r1[1]+"-"+MMAP[k];
+    if (r2) return r2[1]+"-"+MMAP[k];
+  }
+  return null;
+}
+function mesLabel(ym) {
+  if (!ym) return "—";
+  var p=ym.split("-"); return (MN[parseInt(p[1])-1]||p[1])+" "+p[0];
+}
 
-  return Promise.all(proms).then(function(results) {
-    var allData = [];
-    results.forEach(function(res) {
-      var ym = getMes(res.name);
-      var wb = XLSX.read(new Uint8Array(res.buf), {type:"array",cellDates:true});
+// Deteta nome de coluna de forma flexível (ignora acentos, maiúsculas, espaços extras)
+function normKey(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,""); }
+function col(row, ...names) {
+  var keys = Object.keys(row);
+  for (var n of names) {
+    var nn = normKey(n);
+    var found = keys.find(function(k){ return normKey(k)===nn; });
+    if (found!==undefined && row[found]!==undefined && row[found]!=="") return String(row[found]).trim();
+  }
+  return "";
+}
+
+function processarFicheiros(xlsM, xlsS) {
+  var totalM = xlsM.length;
+  if (totalM===0) {
+    debug("Nenhum ficheiro Excel encontrado na pasta Mensais!");
+    buildTree([],[]);
+    return;
+  }
+
+  var promsM = xlsM.map(function(f) {
+    return dlFile(f).then(function(buf) {
+      var ym = getMes(f.name);
+      var wb = XLSX.read(new Uint8Array(buf), {type:"array",cellDates:true});
       var ws = wb.Sheets[wb.SheetNames[0]];
-      var rows = XLSX.utils.sheet_to_json(ws, {defval:""});
-      var cleaned = [];
+      var rows = XLSX.utils.sheet_to_json(ws, {defval:"",raw:false});
+      debug("Ficheiro "+f.name+": "+rows.length+" linhas brutas, mês="+ym);
+      var out = [];
       rows.forEach(function(r) {
-        var cli = String(r["Cliente"]||r["CLIENTE"]||"").trim();
-        var apo = String(r["Apólice"]||r["Apolice"]||r["APOLICE"]||r["apólice"]||"").trim();
-        var ocr = String(r["Ocorrência"]||r["Ocorrencia"]||r["OCORRENCIA"]||r["ocorrência"]||"").trim();
-        var sin = String(r["Sinistro"]||r["SINISTRO"]||r["nº sinistro"]||r["Nº Sinistro"]||"").trim();
-        if (!cli||!apo||!ocr) return; // ignora linhas vazias
-        var com = String(r["Comercial H60 Associado"]||r["Comercial"]||r["comercial"]||"").trim();
-        var sit = String(r["Situação"]||r["Situacao"]||r["SITUACAO"]||r["situação"]||"").trim();
-        var prod = String(r["Produto"]||r["PRODUTO"]||"").trim();
-        var dtoc = r["Data Ocorrência"]||r["Data Ocorrencia"]||r["DATA OCORRENCIA"]||"";
-        var val = parseFloat(String(r["Valor"]||r["VALOR"]||r["valor"]||"0").replace(/[^\d.,-]/g,"").replace(",",".")) || 0;
-        cleaned.push({
-          cliente:cli, apolice:apo, ocorrencia:ocr, sinistro:sin,
-          produto:prod, comercial:com, situacao:sit,
-          dataocorrencia:dtoc, valor:val,
-          mesKey:ym||"2026-00"
+        var cli = col(r,"Cliente","CLIENTE","client");
+        var apo = col(r,"Apólice","Apolice","APOLICE","apólice","apolice","Apol");
+        var ocr = col(r,"Ocorrência","Ocorrencia","OCORRENCIA","ocorrência","Ocorr","Ocorrencia ");
+        if (!cli||!apo||!ocr) return;
+        out.push({
+          mesKey: ym||"2026-00",
+          cliente: cli,
+          apolice: apo,
+          ocorrencia: ocr,
+          sinistro: col(r,"Sinistro","SINISTRO","Nº Sinistro","nº sinistro","N. Sinistro","NrSinistro"),
+          produto: col(r,"Produto","PRODUTO","product"),
+          comercial: col(r,"Comercial H60 Associado","Comercial H60","Comercial","COMERCIAL","comercial"),
+          situacao: col(r,"Situação","Situacao","SITUACAO","situação","Sit"),
+          dataocorrencia: col(r,"Data Ocorrência","Data Ocorrencia","DataOcorrencia","DATA OCORRENCIA","Dt Ocorrencia"),
+          valor: parseValor(col(r,"Valor","VALOR","valor","Montante","montante"))
         });
       });
-      if (cleaned.length > 0) allData.push({ mesKey:ym||"2026-00", mesLabel:mesLabel(ym), rows:cleaned });
+      debug("Ficheiro "+f.name+": "+out.length+" linhas válidas");
+      return { mesKey:ym, nome:f.name, rows:out };
+    }).catch(function(e){
+      debug("ERRO ficheiro "+f.name+": "+e.message);
+      return null;
     });
-    STATE.allData = allData;
+  });
 
-    return Promise.all(sinProms).then(function(sresults) {
-      var gestData = [];
-      sresults.forEach(function(res) {
-        var wb = XLSX.read(new Uint8Array(res.buf), {type:"array",cellDates:true});
-        var ws = wb.Sheets[wb.SheetNames[0]];
-        var rows = XLSX.utils.sheet_to_json(ws, {defval:""});
-        rows.forEach(function(r) {
-          var sin = String(r["Sinistro"]||r["SINISTRO"]||r["Nº Sinistro"]||"").trim();
-          if (!sin) return;
-          gestData.push({
-            sinistro:sin,
-            situacao:String(r["Situação"]||r["Situacao"]||r["SITUACAO"]||"").trim(),
-            dataabertura:r["Data Abertura"]||r["DATA ABERTURA"]||"",
-            dataencerramento:r["Data Encerramento"]||r["DATA ENCERRAMENTO"]||"",
-            datareabertura:r["Data Reabertura"]||r["DATA REABERTURA"]||"",
-            obs:String(r["Observações"]||r["Observacoes"]||"").trim()
-          });
-        });
-      });
-      STATE.gestData = gestData;
-      buildState();
+  var promsS = xlsS.map(function(f) {
+    return dlFile(f).then(function(buf) {
+      var wb = XLSX.read(new Uint8Array(buf), {type:"array",cellDates:true});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      return XLSX.utils.sheet_to_json(ws, {defval:"",raw:false});
+    }).catch(function(){ return []; });
+  });
+
+  showL("A processar ficheiros...");
+  return Promise.all([Promise.all(promsM), Promise.all(promsS)]).then(function(res) {
+    var rowsM = [], gestMap = {};
+
+    // Mensais
+    res[0].forEach(function(f) {
+      if (!f) return;
+      f.rows.forEach(function(r) { rowsM.push(r); });
     });
+
+    // Sinistros / gestão
+    res[1].forEach(function(rows) {
+      rows.forEach(function(r) {
+        var sin = col(r,"Sinistro","SINISTRO","Nº Sinistro","N. Sinistro");
+        if (!sin) return;
+        gestMap[sin] = {
+          situacao: col(r,"Situação","Situacao","SITUACAO","situação"),
+          dataabertura: col(r,"Data Abertura","DataAbertura","DATA ABERTURA","Dt Abertura"),
+          dataencerramento: col(r,"Data Encerramento","DataEncerramento","DATA ENCERRAMENTO","Dt Encerramento"),
+          datareabertura: col(r,"Data Reabertura","DataReabertura","DATA REABERTURA","Dt Reabertura"),
+          obs: col(r,"Observações","Observacoes","Obs","OBS")
+        };
+      });
+    });
+
+    debug("Total linhas processadas: "+rowsM.length+", registos gestão: "+Object.keys(gestMap).length);
+    buildTree(rowsM, gestMap);
   });
 }
 
-function buildState() {
-  // Agrupa por chave única cliente|apolice|ocorrencia|sinistro
+function parseValor(s) {
+  if (!s) return 0;
+  var v = String(s).replace(/[^\d,.\-]/g,"").replace(",",".");
+  return parseFloat(v)||0;
+}
+
+// ═══════════════════════════════════════════════════
+// BUILD TREE
+// ═══════════════════════════════════════════════════
+function buildTree(allRows, gestMap) {
+  // Extrai meses únicos
+  var mesSet = {};
+  allRows.forEach(function(r){ if(r.mesKey) mesSet[r.mesKey]=1; });
+  S.meses = Object.keys(mesSet).sort();
+
+  // Agrega por chave única
   var map = {};
-  STATE.allData.forEach(function(mes) {
-    mes.rows.forEach(function(r) {
-      if (!r.cliente||!r.apolice||!r.ocorrencia) return;
-      var k = r.cliente+"||"+r.apolice+"||"+r.ocorrencia+"||"+r.sinistro;
-      if (!map[k]) {
-        map[k] = {
-          cliente:r.cliente, apolice:r.apolice, ocorrencia:r.ocorrencia,
-          sinistro:r.sinistro, produto:r.produto, comercial:r.comercial,
-          situacao:r.situacao, dataocorrencia:r.dataocorrencia,
-          movimentos:{}, gestao:null
-        };
-      }
-      if (r.mesKey && r.valor !== 0) map[k].movimentos[r.mesKey] = (map[k].movimentos[r.mesKey]||0)+r.valor;
+  allRows.forEach(function(r) {
+    var k = r.cliente+"||"+r.apolice+"||"+r.ocorrencia+"||"+r.sinistro;
+    if (!map[k]) {
+      var g = r.sinistro ? gestMap[r.sinistro] : null;
+      map[k] = {
+        cliente:r.cliente, apolice:r.apolice, ocorrencia:r.ocorrencia, sinistro:r.sinistro,
+        produto:r.produto, comercial:r.comercial,
+        situacao: (g&&g.situacao) ? g.situacao : r.situacao,
+        dataocorrencia:r.dataocorrencia,
+        gestao: g||null,
+        movs:{}
+      };
+    }
+    if (r.mesKey && r.valor!==0) {
+      map[k].movs[r.mesKey] = (map[k].movs[r.mesKey]||0) + r.valor;
+    }
+  });
+
+  // Calcula saldos e monta árvore
+  var cliMap = {};
+  Object.values(map).forEach(function(o) {
+    o.saldo = Object.values(o.movs).reduce(function(s,v){return s+v;},0);
+    if (!cliMap[o.cliente]) cliMap[o.cliente] = {nome:o.cliente, comercial:o.comercial, aps:{}, saldo:0};
+    var c = cliMap[o.cliente];
+    if (!c.aps[o.apolice]) c.aps[o.apolice] = {num:o.apolice, produto:o.produto, ocs:[], saldo:0};
+    c.aps[o.apolice].ocs.push(o);
+    c.aps[o.apolice].saldo += o.saldo;
+    c.saldo += o.saldo;
+  });
+
+  S.tree = Object.values(cliMap).sort(function(a,b){return a.nome.localeCompare(b.nome);});
+
+  // Reconstrói DD options
+  var coms={}, clis={}, prods={}, sits={};
+  S.tree.forEach(function(c) {
+    clis[c.nome]=1;
+    if(c.comercial) coms[c.comercial]=1;
+    Object.values(c.aps).forEach(function(a){
+      if(a.produto) prods[a.produto]=1;
+      a.ocs.forEach(function(o){ if(o.situacao) sits[o.situacao]=1; });
     });
   });
+  DD.com=Object.keys(coms).sort(); DD.cli=Object.keys(clis).sort();
+  DD.prod=Object.keys(prods).sort(); DD.sit=Object.keys(sits).sort();
 
-  // Junta informação de gestão
-  var gestMap = {};
-  STATE.gestData.forEach(function(g) { if(g.sinistro) gestMap[g.sinistro] = g; });
-
-  var clientes = {};
-  Object.keys(map).forEach(function(k) {
-    var o = map[k];
-    o.gestao = gestMap[o.sinistro] || null;
-    if (o.gestao && o.gestao.situacao) o.situacao = o.gestao.situacao;
-    o.saldo = Object.values(o.movimentos).reduce(function(s,v){return s+v;},0);
-    if (!clientes[o.cliente]) clientes[o.cliente] = {
-      nome:o.cliente, comercial:o.comercial, apolices:{}, saldoT:0
-    };
-    var cli = clientes[o.cliente];
-    if (!cli.apolices[o.apolice]) cli.apolices[o.apolice] = {
-      num:o.apolice, produto:o.produto, ocorrencias:{}, saldo:0
-    };
-    var ap = cli.apolices[o.apolice];
-    ap.ocorrencias[o.ocorrencia] = ap.ocorrencias[o.ocorrencia] || {
-      ocorrencia:o.ocorrencia, sinistro:o.sinistro, produto:o.produto, comercial:o.comercial,
-      situacao:o.situacao, dataocorrencia:o.dataocorrencia, gestao:o.gestao,
-      movimentos:o.movimentos, saldo:o.saldo
-    };
-    ap.saldo += o.saldo;
-    cli.saldoT += o.saldo;
-  });
-
-  STATE.clientes = Object.values(clientes);
-  STATE.meses = [];
-  STATE.allData.forEach(function(m) { if(STATE.meses.indexOf(m.mesKey)<0) STATE.meses.push(m.mesKey); });
-  STATE.meses.sort();
-
-  buildDD();
-  updateKPIs();
-  updateStatus();
-  showTab(curTab);
+  buildDDs();
+  document.getElementById("filtros").style.display="flex";
+  document.getElementById("kpis").style.display="grid";
+  atualizarStatus();
+  render();
   hideL();
 }
 
-// ── DROPDOWN HELPERS
-var DD_DATA = { com:[], cli:[], prod:[], sit:[] };
-
-function buildDD() {
-  var coms={}, clis={}, prods={}, sits={};
-  STATE.clientes.forEach(function(c) {
-    clis[c.nome]=1;
-    if(c.comercial) coms[c.comercial]=1;
-    Object.values(c.apolices).forEach(function(a) {
-      if(a.produto) prods[a.produto]=1;
-      Object.values(a.ocorrencias).forEach(function(o) {
-        if(o.situacao) sits[o.situacao]=1;
-      });
-    });
-  });
-  DD_DATA.com = Object.keys(coms).sort();
-  DD_DATA.cli = Object.keys(clis).sort();
-  DD_DATA.prod = Object.keys(prods).sort();
-  DD_DATA.sit = Object.keys(sits).sort();
-
-  renderDD("com", DD_DATA.com, fCom);
-  renderDD("cli", DD_DATA.cli, fCli);
-  renderDD("prod", DD_DATA.prod, fProd);
-  renderDD("sit", DD_DATA.sit, fSit);
-
-  document.getElementById("fgrp-sit").style.display = "";
-  document.getElementById("filters").style.display = "flex";
+// ═══════════════════════════════════════════════════
+// DROPDOWNS
+// ═══════════════════════════════════════════════════
+function buildDDs() {
+  renderDD("com",DD.com,F.com);
+  renderDD("cli",DD.cli,F.cli);
+  renderDD("prod",DD.prod,F.prod);
+  renderDD("sit",DD.sit,F.sit);
 }
 
-function renderDD(id, items, selected) {
-  var list = document.getElementById("dd-"+id+"-list");
+function renderDD(id, items, sel) {
+  var list = document.getElementById("ddl-"+id+"-list");
   if (!list) return;
-  list.innerHTML = "";
+  list.innerHTML="";
   items.forEach(function(item) {
-    var div = document.createElement("div");
-    div.className = "dd-item";
-    var chk = document.createElement("input");
-    chk.type = "checkbox";
-    chk.checked = selected.length===0 || selected.indexOf(item)>=0;
-    chk.onchange = function() {
-      if (chk.checked) { if(selected.indexOf(item)<0) selected.push(item); }
-      else { var idx=selected.indexOf(item); if(idx>=0) selected.splice(idx,1); }
-      if (selected.length===0||selected.length===items.length) {
-        // Se tudo ou nada selecionado, trata como "todos"
-      }
-      updateDDBtn(id, selected, items);
-      applyFilters();
+    var d=document.createElement("div"); d.className="dd-item";
+    var chk=document.createElement("input"); chk.type="checkbox";
+    chk.checked = sel.length===0||sel.indexOf(item)>=0;
+    chk.onchange=function(){
+      if(chk.checked){ if(sel.indexOf(item)<0) sel.push(item); }
+      else { var i=sel.indexOf(item); if(i>=0) sel.splice(i,1); }
+      updDDlabel(id,sel,items);
+      render();
     };
-    var span = document.createElement("span");
-    span.textContent = item;
-    div.appendChild(chk);
-    div.appendChild(span);
-    list.appendChild(div);
+    var sp=document.createElement("span"); sp.textContent=item;
+    d.appendChild(chk); d.appendChild(sp); list.appendChild(d);
   });
-  updateDDBtn(id, selected, items);
+  updDDlabel(id,sel,items);
 }
 
-function updateDDBtn(id, selected, items) {
-  var btn = document.getElementById("dd-"+id+"-btn");
-  if (!btn) return;
-  var lbl = id==="sit"?"Todas":"Todos";
-  if (selected.length===0||selected.length===items.length) btn.childNodes[0].textContent = lbl+" ";
-  else btn.childNodes[0].textContent = selected.length+" selecionado(s) ";
+function updDDlabel(id,sel,items) {
+  var lbl=document.getElementById("ddl-"+id);
+  if(!lbl) return;
+  lbl.textContent = (sel.length===0||sel.length===items.length) ? (id==="sit"?"Todas":"Todos") : sel.length+" selecionado(s)";
 }
 
 function toggleDD(id) {
-  var p = document.getElementById("dd-"+id);
-  var isOpen = p.classList.contains("open");
-  // Fecha todos
+  var p=document.getElementById("ddp-"+id);
+  var open=p.classList.contains("open");
   document.querySelectorAll(".dd-panel").forEach(function(el){el.classList.remove("open");});
-  if (!isOpen) p.classList.add("open");
+  if(!open) p.classList.add("open");
 }
+document.addEventListener("click",function(e){ if(!e.target.closest(".fg")) document.querySelectorAll(".dd-panel").forEach(function(el){el.classList.remove("open");}); });
 
-document.addEventListener("click", function(e) {
-  if (!e.target.closest(".fgrp")) {
-    document.querySelectorAll(".dd-panel").forEach(function(el){el.classList.remove("open");});
-  }
-});
-
-function filterDDSearch(id, q) {
-  var list = document.getElementById("dd-"+id+"-list");
-  if (!list) return;
-  list.querySelectorAll(".dd-item").forEach(function(item) {
-    var txt = item.querySelector("span").textContent.toLowerCase();
-    item.style.display = txt.includes(q.toLowerCase()) ? "" : "none";
+function srchDD(id,q) {
+  document.getElementById("ddl-"+id+"-list").querySelectorAll(".dd-item").forEach(function(d){
+    d.style.display=d.querySelector("span").textContent.toLowerCase().includes(q.toLowerCase())?"":"none";
   });
 }
+function allDD(id) { var a=id==="com"?F.com:id==="cli"?F.cli:id==="prod"?F.prod:F.sit; a.length=0; renderDD(id,DD[id],a); render(); }
+function noneDD(id) { var a=id==="com"?F.com:id==="cli"?F.cli:id==="prod"?F.prod:F.sit; a.length=0; DD[id].forEach(function(x){a.push(x);}); renderDD(id,DD[id],a); render(); }
 
-function selectAllDD(id) {
-  var sel = id==="com"?fCom:id==="cli"?fCli:id==="prod"?fProd:fSit;
-  sel.length=0;
-  renderDD(id, DD_DATA[id], sel);
-  applyFilters();
+// ═══════════════════════════════════════════════════
+// FILTROS DATA
+// ═══════════════════════════════════════════════════
+var dtModes = {oc:"exata", ab:"exata"};
+function togDtMode(id) {
+  dtModes[id] = dtModes[id]==="exata"?"intervalo":"exata";
+  var btn=document.getElementById("dtm-"+id);
+  var wrap=document.getElementById("dt-"+id+"-ate-w");
+  if(dtModes[id]==="intervalo"){ btn.textContent="↔ Intervalo"; btn.classList.remove("on"); wrap.style.display=""; }
+  else { btn.textContent="= Exata"; btn.classList.add("on"); wrap.style.display="none"; }
+  render();
 }
-
-function clearDD(id) {
-  var sel = id==="com"?fCom:id==="cli"?fCli:id==="prod"?fProd:fSit;
-  DD_DATA[id].forEach(function(item){if(sel.indexOf(item)<0)sel.push(item);});
-  // Na prática "limpar" = sem restrição. Resetamos para vazio (= todos)
-  sel.length=0;
-  renderDD(id, DD_DATA[id], sel);
-  applyFilters();
+function clrDt(id) {
+  document.getElementById("dt-"+id+"-de").value="";
+  var a=document.getElementById("dt-"+id+"-ate"); if(a) a.value="";
+  render();
 }
-
-function toggleDtMode(id) {
-  var isExata = id==="dtoc" ? fDtOcMode==="exata" : fDtAbMode==="exata";
-  var newMode = isExata ? "intervalo" : "exata";
-  if (id==="dtoc") fDtOcMode=newMode;
-  else fDtAbMode=newMode;
-  var btn = document.getElementById(id+"m-btn");
-  var wrap = document.getElementById(id+"-ate-wrap");
-  if (newMode==="intervalo") { btn.textContent="↔ Intervalo"; btn.classList.remove("active"); wrap.style.display=""; }
-  else { btn.textContent="= Exata"; btn.classList.add("active"); wrap.style.display="none"; }
-  applyFilters();
-}
-
-function clearDate(id) {
-  if(id==="dtoc"){document.getElementById("dtoc-de").value="";document.getElementById("dtoc-ate").value="";}
-  else{document.getElementById("dtab-de").value="";document.getElementById("dtab-ate").value="";}
-  applyFilters();
-}
-
-function clearAllFilters() {
-  fCom=[]; fCli=[]; fProd=[]; fSit=[];
-  fDtOcDe=""; fDtOcAte=""; fDtOcMode="exata";
-  fDtAbDe=""; fDtAbAte=""; fDtAbMode="exata";
-  fSin="";
+function limparFiltros() {
+  F.com=[]; F.cli=[]; F.prod=[]; F.sit=[]; F.sinistro="";
   document.getElementById("f-sin").value="";
-  document.getElementById("dtoc-de").value="";
-  document.getElementById("dtoc-ate").value="";
-  document.getElementById("dtab-de").value="";
-  document.getElementById("dtab-ate").value="";
-  renderDD("com", DD_DATA.com, fCom);
-  renderDD("cli", DD_DATA.cli, fCli);
-  renderDD("prod", DD_DATA.prod, fProd);
-  renderDD("sit", DD_DATA.sit, fSit);
-  applyFilters();
+  clrDt("oc"); clrDt("ab");
+  buildDDs(); render();
 }
 
-function applyFilters() {
-  fDtOcDe = document.getElementById("dtoc-de").value;
-  fDtOcAte = document.getElementById("dtoc-ate").value;
-  fDtAbDe = document.getElementById("dtab-de").value;
-  fDtAbAte = document.getElementById("dtab-ate").value;
-  fSin = (document.getElementById("f-sin").value||"").trim().toLowerCase();
-  showTab(curTab);
+function lerFiltros() {
+  F.dtOcDe = document.getElementById("dt-oc-de").value||"";
+  F.dtOcAte = (document.getElementById("dt-oc-ate")||{}).value||"";
+  F.dtOcMode = dtModes.oc;
+  F.dtAbDe = document.getElementById("dt-ab-de").value||"";
+  F.dtAbAte = (document.getElementById("dt-ab-ate")||{}).value||"";
+  F.dtAbMode = dtModes.ab;
+  F.sinistro = (document.getElementById("f-sin").value||"").trim().toLowerCase();
 }
 
-function matchesDt(val, de, ate, mode) {
-  if (!de && !ate) return true;
-  var d = toDate(val);
-  if (!d) return true;
-  if (mode==="exata") return de ? d===de : true;
-  return (!de||d>=de) && (!ate||d<=ate);
+function matchOc(o) {
+  if(F.com.length>0&&F.com.indexOf(o.comercial)<0) return false;
+  if(F.sit.length>0&&F.sit.indexOf(o.situacao)<0) return false;
+  if(!matchDt(o.dataocorrencia,F.dtOcDe,F.dtOcAte,F.dtOcMode)) return false;
+  var dtAb = o.gestao?o.gestao.dataabertura:"";
+  if(!matchDt(dtAb,F.dtAbDe,F.dtAbAte,F.dtAbMode)) return false;
+  if(F.sinistro && (!o.sinistro||o.sinistro.toLowerCase().indexOf(F.sinistro)<0)) return false;
+  return true;
 }
-
-function toDate(v) {
-  if (!v) return null;
-  if (v instanceof Date) return v.toISOString().slice(0,10);
-  var s = String(v);
-  var m = s.match(/(\d{4}-\d{2}-\d{2})/);
-  if (m) return m[1];
-  var p = s.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
-  if (p) return p[3]+"-"+p[2]+"-"+p[1];
+function matchDt(val,de,ate,mode) {
+  if(!de&&!ate) return true;
+  var d=normDt(val); if(!d) return true;
+  if(mode==="exata") return de?d===de:true;
+  return (!de||d>=de)&&(!ate||d<=ate);
+}
+function normDt(v) {
+  if(!v) return null;
+  if(typeof v==="object"&&v instanceof Date) return v.toISOString().slice(0,10);
+  var s=String(v).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var m=s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+  if(m) return m[3]+"-"+m[2]+"-"+m[1];
   return null;
 }
 
-function matchFilt(o) {
-  if (fCom.length>0 && fCom.indexOf(o.comercial)<0) return false;
-  if (fCli.length>0 && fCli.indexOf(o.cliente)<0) return false;
-  if (fProd.length>0 && fProd.indexOf(o.produto)<0) return false;
-  if (fSit.length>0 && fSit.indexOf(o.situacao)<0) return false;
-  if (!matchesDt(o.dataocorrencia, fDtOcDe, fDtOcAte, fDtOcMode)) return false;
-  if (fSin && o.sinistro && o.sinistro.toLowerCase().indexOf(fSin)<0) return false;
-  return true;
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+var curTabEl = null;
+function setTab(tab, el) {
+  curTab=tab;
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on");});
+  if(el) el.classList.add("on");
+  document.getElementById("fg-dtab").style.display = tab==="cc"?"":"none";
+  lerFiltros();
+  atualizarKPIs();
+  var c=document.getElementById("content");
+  if(tab==="cc") renderCC(c);
+  else if(tab==="mensal") renderMensal(c);
+  else if(tab==="ramos") renderRamos(c);
+  else if(tab==="produto") renderProduto(c);
+  else if(tab==="anual") renderAnual(c);
 }
+function setMtab(btn) { document.querySelectorAll(".mtab").forEach(function(b){b.classList.remove("on");}); btn.classList.add("on"); }
+function render() { lerFiltros(); atualizarKPIs(); setTab(curTab); }
 
-// ── KPIs
-function updateKPIs() {
-  var clis=0, apos=new Set(), sins=new Set(), deb=0, cred=0;
-  STATE.clientes.forEach(function(c) {
-    if(fCli.length>0&&fCli.indexOf(c.nome)<0) return;
-    if(fCom.length>0&&fCom.indexOf(c.comercial)<0) return;
-    clis++;
-    Object.values(c.apolices).forEach(function(a) {
-      if(fProd.length>0&&fProd.indexOf(a.produto)<0) return;
-      apos.add(a.num);
-      Object.values(a.ocorrencias).forEach(function(o) {
-        if(fSit.length>0&&fSit.indexOf(o.situacao)<0) return;
-        sins.add(o.sinistro||o.ocorrencia);
-        if(o.saldo<0) deb+=o.saldo; else cred+=o.saldo;
-      });
-    });
-  });
-  var saldo = deb+cred;
-  document.getElementById("kpis").style.display="grid";
-  document.getElementById("k1").textContent=clis;
-  document.getElementById("k2").textContent=apos.size;
-  document.getElementById("k3").textContent=sins.size;
-  document.getElementById("k4").textContent=fmt(deb);
-  document.getElementById("k5").textContent=fmt(cred);
-  document.getElementById("k6").textContent=fmt(saldo);
-  document.getElementById("k6").style.color=saldo<0?var_red():saldo>0?var_grn():"#7c3aed";
-}
-function var_red(){return "#dc2626";}
-function var_grn(){return "#16a34a";}
+// ── CONTA CORRENTE
+function renderCC(c) {
+  var h='<div class="sec-h"><h3>📋 Conta Corrente</h3><button class="btn-exp" onclick="exportarExcel()">⬇ Exportar Excel</button></div>';
+  h+='<div class="tbl-wrap"><table><thead><tr>';
+  h+='<th>Cliente / Apólice / Ocorrência</th><th>Produto</th><th>Comercial</th><th>Sinistro</th><th>Situação</th><th>Data Ocorrência</th>';
+  S.meses.forEach(function(ym){h+='<th>'+mesLabel(ym)+'</th>';});
+  h+='<th>Saldo</th></tr></thead><tbody>';
 
-function updateStatus() {
-  var n = 0;
-  STATE.allData.forEach(function(m){n+=m.rows.length;});
-  document.getElementById("k-files").textContent=STATE.allData.length+" ficheiro(s)";
-  document.getElementById("k-time").textContent=new Date().toLocaleTimeString("pt-PT");
+  S.tree.forEach(function(cli) {
+    if(F.cli.length>0&&F.cli.indexOf(cli.nome)<0) return;
+    if(F.com.length>0&&F.com.indexOf(cli.comercial)<0) return;
 
-  // badges de meses
-  var wrap = document.getElementById("meses-wrap");
-  wrap.innerHTML = "";
-  STATE.meses.forEach(function(ym) {
-    var b = document.createElement("span");
-    b.className="mes-badge";
-    b.textContent=mesLabel(ym);
-    wrap.appendChild(b);
-  });
-  document.getElementById("btn-view").style.display="";
-}
+    var cKey=cli.nome, cExp=EXP.cli[cKey];
+    h+='<tr class="tr-cli" onclick="toggleEXP(\'cli\',\''+esc(cKey)+'\')">';
+    h+='<td><span class="ico">'+(cExp?"▼":"▶")+'</span><b>'+h_(cli.nome)+'</b></td>';
+    h+='<td></td><td>'+h_(cli.comercial)+'</td><td></td><td></td><td></td>';
+    S.meses.forEach(function(){h+='<td></td>';});
+    h+='<td class="bold '+(cli.saldo<0?"neg":"pos")+'">'+fmt(cli.saldo)+'</td></tr>';
+    if(!cExp) return;
 
-// ── TABS
-function showTab(tab, el) {
-  curTab = tab;
-  document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active");});
-  if (el) el.classList.add("active");
-  else {
-    document.querySelectorAll(".tab").forEach(function(t){
-      if(t.getAttribute("onclick")&&t.getAttribute("onclick").indexOf("'"+tab+"'")>=0) t.classList.add("active");
-    });
-  }
-  document.getElementById("fgrp-dtab").style.display = tab==="cc"?"":"none";
-  var content = document.getElementById("content");
-  if (tab==="cc") renderCC(content);
-  else if (tab==="mensal") renderMensal(content);
-  else if (tab==="ramos") renderRamos(content);
-  else if (tab==="produto") renderProduto(content);
-  else if (tab==="anual") renderAnual(content);
-}
+    Object.values(cli.aps).sort(function(a,b){return a.num.localeCompare(b.num);}).forEach(function(ap) {
+      if(F.prod.length>0&&F.prod.indexOf(ap.produto)<0) return;
+      var aKey=cKey+"||"+ap.num, aExp=EXP.ap[aKey];
+      h+='<tr class="tr-ap" onclick="toggleEXP(\'ap\',\''+esc(aKey)+'\')">';
+      h+='<td class="i1"><span class="ico">'+(aExp?"▼":"▶")+'</span>'+h_(ap.num)+'</td>';
+      h+='<td>'+h_(ap.produto)+'</td><td></td><td></td><td></td><td></td>';
+      S.meses.forEach(function(){h+='<td></td>';});
+      h+='<td class="'+(ap.saldo<0?"neg":"pos")+'">'+fmt(ap.saldo)+'</td></tr>';
+      if(!aExp) return;
 
-function setMTab(btn) {
-  document.querySelectorAll(".mtab").forEach(function(b){b.classList.remove("active");});
-  btn.classList.add("active");
-}
-
-// ── CONTA CORRENTE (árvore Cliente > Apólice > Ocorrência > Movimentos)
-var expCli={}, expAp={}, expOc={};
-
-function renderCC(content) {
-  var filtered = STATE.clientes.filter(function(c) {
-    if(fCli.length>0&&fCli.indexOf(c.nome)<0) return false;
-    if(fCom.length>0&&fCom.indexOf(c.comercial)<0) return false;
-    return true;
-  });
-
-  var html = '<div class="sec-hdr"><h3>📋 Conta Corrente</h3><button class="export-btn" onclick="exportCC()">⬇ Exportar Excel</button></div>';
-  html += '<table>';
-  html += '<thead><tr><th>Cliente / Apólice / Ocorrência</th><th>Produto</th><th>Comercial</th><th>Sinistro</th><th>Situação</th><th>Data Ocorrência</th>';
-  STATE.meses.forEach(function(ym){ html+='<th>'+mesLabel(ym)+'</th>'; });
-  html += '<th>Saldo</th></tr></thead><tbody>';
-
-  filtered.sort(function(a,b){return a.nome.localeCompare(b.nome);}).forEach(function(c) {
-    var cKey = c.nome;
-    var cExp = expCli[cKey];
-    html += '<tr class="tree-row" onclick="toggleCli(\''+esc(cKey)+'\')">';
-    html += '<td><span class="expand-ico">'+(cExp?"▼":"▶")+'</span><b>'+h(c.nome)+'</b></td>';
-    html += '<td></td><td>'+h(c.comercial)+'</td><td></td><td></td><td></td>';
-    STATE.meses.forEach(function(){html+='<td></td>';});
-    html += '<td class="'+(c.saldoT<0?"neg":"pos")+'"><b>'+fmt(c.saldoT)+'</b></td>';
-    html += '</tr>';
-
-    if (!cExp) return;
-
-    Object.values(c.apolices).sort(function(a,b){return a.num.localeCompare(b.num);}).forEach(function(a) {
-      if(fProd.length>0&&fProd.indexOf(a.produto)<0) return;
-      var aKey = cKey+"||"+a.num;
-      var aExp = expAp[aKey];
-      html += '<tr class="tree-row" onclick="toggleAp(\''+esc(aKey)+'\')">';
-      html += '<td class="indent1"><span class="expand-ico">'+(aExp?"▼":"▶")+'</span>'+h(a.num)+'</td>';
-      html += '<td>'+h(a.produto)+'</td><td></td><td></td><td></td><td></td>';
-      STATE.meses.forEach(function(){html+='<td></td>';});
-      html += '<td class="'+(a.saldo<0?"neg":"pos")+'">'+fmt(a.saldo)+'</td>';
-      html += '</tr>';
-
-      if (!aExp) return;
-
-      Object.values(a.ocorrencias).sort(function(a,b){return a.ocorrencia.localeCompare(b.ocorrencia);}).forEach(function(o) {
-        if (!matchFilt(o)) return;
-        var oKey = aKey+"||"+o.ocorrencia;
-        var oExp = expOc[oKey];
-        var sitBadge = badgeSit(o.situacao);
-        html += '<tr class="tree-row" onclick="toggleOc(\''+esc(oKey)+'\')">';
-        html += '<td class="indent2"><span class="expand-ico">'+(oExp?"▼":"▶")+'</span>'+h(o.ocorrencia)+'</td>';
-        html += '<td>'+h(o.produto)+'</td><td>'+h(o.comercial)+'</td><td>'+h(o.sinistro)+'</td>';
-        html += '<td>'+sitBadge+'</td><td>'+fmtDt(o.dataocorrencia)+'</td>';
-        STATE.meses.forEach(function(ym){ var v=o.movimentos[ym]||0; html+='<td class="'+(v<0?"neg":v>0?"pos":"")+'">'+( v!==0?fmt(v):"")+'</td>'; });
-        html += '<td class="'+(o.saldo<0?"neg":"pos")+'">'+fmt(o.saldo)+'</td>';
-        html += '</tr>';
-
-        if (oExp && o.gestao) {
-          html += '<tr><td class="indent3" colspan="'+(6+STATE.meses.length+1)+'" style="background:#f8f9ff;font-size:11px;color:#444;padding:6px 12px">';
-          html += '📁 <b>Abertura:</b> '+fmtDt(o.gestao.dataabertura);
-          if(o.gestao.datareabertura) html += ' &nbsp;|&nbsp; <b>Reabertura:</b> '+fmtDt(o.gestao.datareabertura);
-          if(o.gestao.dataencerramento) html += ' &nbsp;|&nbsp; <b>Encerramento:</b> '+fmtDt(o.gestao.dataencerramento);
-          if(o.gestao.obs) html += ' &nbsp;|&nbsp; '+h(o.gestao.obs);
-          html += '</td></tr>';
+      ap.ocs.filter(matchOc).sort(function(a,b){return a.ocorrencia.localeCompare(b.ocorrencia);}).forEach(function(o) {
+        var oKey=aKey+"||"+o.ocorrencia, oExp=EXP.oc[oKey];
+        h+='<tr class="tr-oc" onclick="toggleEXP(\'oc\',\''+esc(oKey)+'\')">';
+        h+='<td class="i2"><span class="ico">'+(oExp?"▼":"▶")+'</span>'+h_(o.ocorrencia)+'</td>';
+        h+='<td>'+h_(o.produto)+'</td><td>'+h_(o.comercial)+'</td><td>'+h_(o.sinistro)+'</td>';
+        h+='<td>'+badgeSit(o.situacao)+'</td><td>'+fmtDt(o.dataocorrencia)+'</td>';
+        S.meses.forEach(function(ym){ var v=o.movs[ym]||0; h+='<td class="'+(v<0?"neg":v>0?"pos":"")+'">'+( v?fmt(v):"")+'</td>'; });
+        h+='<td class="'+(o.saldo<0?"neg":"pos")+'">'+fmt(o.saldo)+'</td></tr>';
+        if(oExp&&o.gestao) {
+          var g=o.gestao;
+          h+='<tr class="tr-det"><td class="i3" colspan="'+(6+S.meses.length+1)+'" style="font-size:11px;color:#555;padding:5px 12px">';
+          if(g.dataabertura) h+='📅 <b>Abertura:</b> '+fmtDt(g.dataabertura)+' &nbsp;';
+          if(g.datareabertura) h+='<b>Reabertura:</b> '+fmtDt(g.datareabertura)+' &nbsp;';
+          if(g.dataencerramento) h+='<b>Encerramento:</b> '+fmtDt(g.dataencerramento)+' &nbsp;';
+          if(g.obs) h+='<i>'+h_(g.obs)+'</i>';
+          h+='</td></tr>';
         }
       });
     });
   });
-
-  html += '</tbody></table>';
-  content.innerHTML = html;
+  h+='</tbody></table></div>';
+  c.innerHTML=h;
 }
 
-function toggleCli(k){expCli[k]=!expCli[k];renderCC(document.getElementById("content"));}
-function toggleAp(k){expAp[k]=!expAp[k];renderCC(document.getElementById("content"));}
-function toggleOc(k){expOc[k]=!expOc[k];renderCC(document.getElementById("content"));}
+function toggleEXP(tipo, key) {
+  if(tipo==="cli") EXP.cli[key]=!EXP.cli[key];
+  else if(tipo==="ap") EXP.ap[key]=!EXP.ap[key];
+  else EXP.oc[key]=!EXP.oc[key];
+  renderCC(document.getElementById("content"));
+}
 
 // ── RESUMO MENSAL
-function renderMensal(content) {
-  var html = '<div class="sec-hdr"><h3>📅 Resumo Mensal</h3></div>';
-  html += '<table>';
-  html += '<thead><tr><th>Mês</th><th>Nº Ocorrências</th><th>Nº Sinistros</th><th>Débito</th><th>Crédito</th><th>Saldo</th></tr></thead><tbody>';
-
-  STATE.meses.forEach(function(ym) {
-    var ocrs=new Set(), sins=new Set(), deb=0, cred=0;
-    STATE.allData.filter(function(m){return m.mesKey===ym;}).forEach(function(m) {
-      m.rows.forEach(function(r) {
-        if(fCom.length>0&&fCom.indexOf(r.comercial)<0) return;
-        if(fCli.length>0&&fCli.indexOf(r.cliente)<0) return;
-        if(fProd.length>0&&fProd.indexOf(r.produto)<0) return;
-        ocrs.add(r.ocorrencia);
-        if(r.sinistro) sins.add(r.sinistro);
-        if(r.valor<0) deb+=r.valor; else cred+=r.valor;
+function renderMensal(c) {
+  var h='<div class="sec-h"><h3>📅 Resumo Mensal</h3></div>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Mês</th><th>Clientes</th><th>Ocorrências</th><th>Sinistros</th><th>Débito</th><th>Crédito</th><th>Saldo</th></tr></thead><tbody>';
+  S.meses.forEach(function(ym) {
+    var clis=new Set(), ocrs=new Set(), sins=new Set(), deb=0, cred=0;
+    S.tree.forEach(function(cli) {
+      if(F.cli.length>0&&F.cli.indexOf(cli.nome)<0) return;
+      if(F.com.length>0&&F.com.indexOf(cli.comercial)<0) return;
+      Object.values(cli.aps).forEach(function(ap) {
+        if(F.prod.length>0&&F.prod.indexOf(ap.produto)<0) return;
+        ap.ocs.filter(matchOc).forEach(function(o) {
+          if(!o.movs[ym]&&o.movs[ym]!==0) return;
+          clis.add(cli.nome); ocrs.add(o.ocorrencia);
+          if(o.sinistro) sins.add(o.sinistro);
+          var v=o.movs[ym]||0; if(v<0) deb+=v; else cred+=v;
+        });
       });
     });
     var saldo=deb+cred;
-    html += '<tr><td><b>'+mesLabel(ym)+'</b></td><td>'+ocrs.size+'</td><td>'+sins.size+'</td>';
-    html += '<td class="neg">'+fmt(deb)+'</td><td class="pos">'+fmt(cred)+'</td>';
-    html += '<td class="'+(saldo<0?"neg":"pos")+'"><b>'+fmt(saldo)+'</b></td></tr>';
+    h+='<tr><td><b>'+mesLabel(ym)+'</b></td><td>'+clis.size+'</td><td>'+ocrs.size+'</td><td>'+sins.size+'</td>';
+    h+='<td class="neg">'+fmt(deb)+'</td><td class="pos">'+fmt(cred)+'</td>';
+    h+='<td class="bold '+(saldo<0?"neg":"pos")+'">'+fmt(saldo)+'</td></tr>';
   });
-
-  html += '</tbody></table>';
-  content.innerHTML = html;
+  h+='</tbody></table></div>'; c.innerHTML=h;
 }
 
 // ── RAMOS
-function renderRamos(content) {
-  var html = '<div class="sec-hdr"><h3>🗂️ Por Ramo</h3></div><div class="cards-grid">';
-  var ramoKeys = Object.keys(RAMOS).concat(["Outros"]);
-
+function renderRamos(c) {
+  var h='<div class="sec-h"><h3>🗂️ Por Ramo</h3></div><div class="cards">';
+  var ramoKeys=Object.keys(RAMOS).concat(["Outros"]);
   ramoKeys.forEach(function(ramo) {
     var ocrs=new Set(), sins=new Set(), deb=0, cred=0;
-    STATE.clientes.forEach(function(c) {
-      if(fCom.length>0&&fCom.indexOf(c.comercial)<0) return;
-      if(fCli.length>0&&fCli.indexOf(c.nome)<0) return;
-      Object.values(c.apolices).forEach(function(a) {
-        Object.values(a.ocorrencias).forEach(function(o) {
-          if(getProdutoRamo(o.produto)!==ramo) return;
-          if(fSit.length>0&&fSit.indexOf(o.situacao)<0) return;
-          ocrs.add(o.ocorrencia);
-          if(o.sinistro) sins.add(o.sinistro);
+    S.tree.forEach(function(cli) {
+      if(F.cli.length>0&&F.cli.indexOf(cli.nome)<0) return;
+      if(F.com.length>0&&F.com.indexOf(cli.comercial)<0) return;
+      Object.values(cli.aps).forEach(function(ap) {
+        if(getProdRamo(ap.produto)!==ramo) return;
+        ap.ocs.filter(matchOc).forEach(function(o) {
+          ocrs.add(o.ocorrencia); if(o.sinistro) sins.add(o.sinistro);
           if(o.saldo<0) deb+=o.saldo; else cred+=o.saldo;
         });
       });
     });
-    if(ocrs.size===0&&ramo==="Outros") return;
+    if(ocrs.size===0) return;
     var saldo=deb+cred;
-    var icon=RAMO_ICONS[ramo]||"📦";
-    var lbl=RAMO_LABELS[ramo]||ramo;
-    html += '<div class="card"><div class="card-hdr"><span class="name">'+icon+' '+lbl+'</span></div>';
-    html += '<div class="card-row"><span class="cl">Ocorrências</span><span class="cv">'+ocrs.size+'</span></div>';
-    html += '<div class="card-row"><span class="cl">Sinistros</span><span class="cv">'+sins.size+'</span></div>';
-    html += '<div class="card-row"><span class="cl">Débito</span><span class="cv neg">'+fmt(deb)+'</span></div>';
-    html += '<div class="card-row"><span class="cl">Crédito</span><span class="cv pos">'+fmt(cred)+'</span></div>';
-    html += '<div class="card-row"><span class="cl">Saldo</span><span class="cv '+(saldo<0?"neg":"pos")+'"><b>'+fmt(saldo)+'</b></span></div>';
-    html += '</div>';
+    h+='<div class="card"><div class="card-h"><span class="n">'+(RAMO_ICONS[ramo]||"📦")+" "+ramo+'</span></div>';
+    h+='<div class="card-r"><span>Ocorrências</span><span class="cv">'+ocrs.size+'</span></div>';
+    h+='<div class="card-r"><span>Sinistros</span><span class="cv">'+sins.size+'</span></div>';
+    h+='<div class="card-r"><span>Débito</span><span class="cv neg">'+fmt(deb)+'</span></div>';
+    h+='<div class="card-r"><span>Crédito</span><span class="cv pos">'+fmt(cred)+'</span></div>';
+    h+='<div class="card-r"><span>Saldo</span><span class="cv bold '+(saldo<0?"neg":"pos")+'">'+fmt(saldo)+'</span></div></div>';
   });
-
-  html += '</div>';
-  content.innerHTML = html;
+  h+='</div>'; c.innerHTML=h;
 }
 
 // ── POR PRODUTO
-function renderProduto(content) {
-  var prods = {};
-  STATE.clientes.forEach(function(c) {
-    if(fCom.length>0&&fCom.indexOf(c.comercial)<0) return;
-    if(fCli.length>0&&fCli.indexOf(c.nome)<0) return;
-    Object.values(c.apolices).forEach(function(a) {
-      var p = a.produto||"—";
-      if(fProd.length>0&&fProd.indexOf(p)<0) return;
-      if(!prods[p]) prods[p]={produto:p, ramo:getProdutoRamo(p), ocrs:new Set(), sins:new Set(), deb:0, cred:0};
-      Object.values(a.ocorrencias).forEach(function(o) {
-        if(fSit.length>0&&fSit.indexOf(o.situacao)<0) return;
-        prods[p].ocrs.add(o.ocorrencia);
-        if(o.sinistro) prods[p].sins.add(o.sinistro);
+function renderProduto(c) {
+  var prods={};
+  S.tree.forEach(function(cli) {
+    if(F.cli.length>0&&F.cli.indexOf(cli.nome)<0) return;
+    if(F.com.length>0&&F.com.indexOf(cli.comercial)<0) return;
+    Object.values(cli.aps).forEach(function(ap) {
+      var p=ap.produto||"—";
+      if(F.prod.length>0&&F.prod.indexOf(p)<0) return;
+      if(!prods[p]) prods[p]={prod:p,ramo:getProdRamo(p),ocrs:new Set(),sins:new Set(),deb:0,cred:0};
+      ap.ocs.filter(matchOc).forEach(function(o) {
+        prods[p].ocrs.add(o.ocorrencia); if(o.sinistro) prods[p].sins.add(o.sinistro);
         if(o.saldo<0) prods[p].deb+=o.saldo; else prods[p].cred+=o.saldo;
       });
     });
   });
-
-  var rows = Object.values(prods).sort(function(a,b){return a.produto.localeCompare(b.produto);});
-  var html = '<div class="sec-hdr"><h3>📦 Por Produto</h3></div>';
-  html += '<table><thead><tr><th>Produto</th><th>Ramo</th><th>Ocorrências</th><th>Sinistros</th><th>Débito</th><th>Crédito</th><th>Saldo</th></tr></thead><tbody>';
-  rows.forEach(function(p) {
+  var h='<div class="sec-h"><h3>📦 Por Produto</h3></div><div class="tbl-wrap"><table>';
+  h+='<thead><tr><th>Produto</th><th>Ramo</th><th>Ocorrências</th><th>Sinistros</th><th>Débito</th><th>Crédito</th><th>Saldo</th></tr></thead><tbody>';
+  Object.values(prods).sort(function(a,b){return a.prod.localeCompare(b.prod);}).forEach(function(p) {
     if(p.ocrs.size===0) return;
-    var saldo=p.deb+p.cred;
-    html += '<tr><td><b>'+h(p.produto)+'</b></td><td>'+h(RAMO_LABELS[p.ramo]||p.ramo)+'</td>';
-    html += '<td>'+p.ocrs.size+'</td><td>'+p.sins.size+'</td>';
-    html += '<td class="neg">'+fmt(p.deb)+'</td><td class="pos">'+fmt(p.cred)+'</td>';
-    html += '<td class="'+(saldo<0?"neg":"pos")+'"><b>'+fmt(saldo)+'</b></td></tr>';
+    var s=p.deb+p.cred;
+    h+='<tr><td><b>'+h_(p.prod)+'</b></td><td>'+h_(p.ramo)+'</td><td>'+p.ocrs.size+'</td><td>'+p.sins.size+'</td>';
+    h+='<td class="neg">'+fmt(p.deb)+'</td><td class="pos">'+fmt(p.cred)+'</td><td class="bold '+(s<0?"neg":"pos")+'">'+fmt(s)+'</td></tr>';
   });
-  html += '</tbody></table>';
-  content.innerHTML = html;
+  h+='</tbody></table></div>'; c.innerHTML=h;
 }
 
 // ── RESUMO ANUAL
-function renderAnual(content) {
-  var html = '<div class="sec-hdr"><h3>📆 Resumo Anual por Cliente</h3></div>';
-  html += '<table><thead><tr><th>Cliente</th><th>Comercial</th><th>Ocorrências</th><th>Sinistros</th>';
-  STATE.meses.forEach(function(ym){html+='<th>'+mesLabel(ym)+'</th>';});
-  html += '<th>Total</th></tr></thead><tbody>';
-
-  STATE.clientes.sort(function(a,b){return a.nome.localeCompare(b.nome);}).forEach(function(c) {
-    if(fCom.length>0&&fCom.indexOf(c.comercial)<0) return;
-    if(fCli.length>0&&fCli.indexOf(c.nome)<0) return;
-    var ocrs=new Set(), sins=new Set(), totMes={}, total=0;
-    Object.values(c.apolices).forEach(function(a) {
-      if(fProd.length>0&&fProd.indexOf(a.produto)<0) return;
-      Object.values(a.ocorrencias).forEach(function(o) {
-        if(!matchFilt(o)) return;
-        ocrs.add(o.ocorrencia);
-        if(o.sinistro) sins.add(o.sinistro);
-        Object.keys(o.movimentos).forEach(function(ym){
-          totMes[ym]=(totMes[ym]||0)+o.movimentos[ym];
-          total+=o.movimentos[ym];
-        });
+function renderAnual(c) {
+  var h='<div class="sec-h"><h3>📆 Resumo Anual por Cliente</h3></div><div class="tbl-wrap"><table><thead><tr>';
+  h+='<th>Cliente</th><th>Comercial</th><th>Ocorrências</th><th>Sinistros</th>';
+  S.meses.forEach(function(ym){h+='<th>'+mesLabel(ym)+'</th>';});
+  h+='<th>Total</th></tr></thead><tbody>';
+  S.tree.forEach(function(cli) {
+    if(F.cli.length>0&&F.cli.indexOf(cli.nome)<0) return;
+    if(F.com.length>0&&F.com.indexOf(cli.comercial)<0) return;
+    var ocrs=new Set(), sins=new Set(), mv={}, tot=0;
+    Object.values(cli.aps).forEach(function(ap) {
+      if(F.prod.length>0&&F.prod.indexOf(ap.produto)<0) return;
+      ap.ocs.filter(matchOc).forEach(function(o) {
+        ocrs.add(o.ocorrencia); if(o.sinistro) sins.add(o.sinistro);
+        Object.keys(o.movs).forEach(function(ym){ mv[ym]=(mv[ym]||0)+o.movs[ym]; tot+=o.movs[ym]; });
       });
     });
     if(ocrs.size===0) return;
-    html += '<tr><td><b>'+h(c.nome)+'</b></td><td>'+h(c.comercial)+'</td><td>'+ocrs.size+'</td><td>'+sins.size+'</td>';
-    STATE.meses.forEach(function(ym){var v=totMes[ym]||0;html+='<td class="'+(v<0?"neg":v>0?"pos":"")+'">'+( v?fmt(v):"")+'</td>';});
-    html += '<td class="'+(total<0?"neg":"pos")+'"><b>'+fmt(total)+'</b></td></tr>';
+    h+='<tr><td><b>'+h_(cli.nome)+'</b></td><td>'+h_(cli.comercial)+'</td><td>'+ocrs.size+'</td><td>'+sins.size+'</td>';
+    S.meses.forEach(function(ym){ var v=mv[ym]||0; h+='<td class="'+(v<0?"neg":v>0?"pos":"")+'">'+( v?fmt(v):"")+'</td>'; });
+    h+='<td class="bold '+(tot<0?"neg":"pos")+'">'+fmt(tot)+'</td></tr>';
   });
-
-  html += '</tbody></table>';
-  content.innerHTML = html;
+  h+='</tbody></table></div>'; c.innerHTML=h;
 }
 
-// ── EXPORT EXCEL
-function exportCC() {
-  var rows = [];
-  STATE.clientes.forEach(function(c) {
-    Object.values(c.apolices).forEach(function(a) {
-      Object.values(a.ocorrencias).forEach(function(o) {
-        if(!matchFilt(o)) return;
-        var row = {
-          "Cliente":c.nome,"Apólice":a.num,"Produto":o.produto||a.produto,
-          "Comercial":o.comercial,"Ocorrência":o.ocorrencia,"Sinistro":o.sinistro||"",
-          "Situação":o.situacao,"Data Ocorrência":fmtDt(o.dataocorrencia),
-          "Data Abertura":o.gestao?fmtDt(o.gestao.dataabertura):"",
-          "Data Encerramento":o.gestao?fmtDt(o.gestao.dataencerramento):""
-        };
-        STATE.meses.forEach(function(ym){row[mesLabel(ym)]=o.movimentos[ym]||0;});
-        row["Saldo"]=o.saldo;
-        rows.push(row);
+// ── KPIs
+function atualizarKPIs() {
+  var clis=new Set(), apos=new Set(), sins=new Set(), deb=0, cred=0;
+  S.tree.forEach(function(cli) {
+    if(F.cli.length>0&&F.cli.indexOf(cli.nome)<0) return;
+    if(F.com.length>0&&F.com.indexOf(cli.comercial)<0) return;
+    Object.values(cli.aps).forEach(function(ap) {
+      if(F.prod.length>0&&F.prod.indexOf(ap.produto)<0) return;
+      var ocs=ap.ocs.filter(matchOc);
+      if(ocs.length===0) return;
+      clis.add(cli.nome); apos.add(ap.num);
+      ocs.forEach(function(o){
+        if(o.sinistro) sins.add(o.sinistro);
+        if(o.saldo<0) deb+=o.saldo; else cred+=o.saldo;
       });
     });
   });
-  var ws = XLSX.utils.json_to_sheet(rows);
-  var wb = XLSX.utils.book_new();
+  var saldo=deb+cred;
+  document.getElementById("k1").textContent=clis.size;
+  document.getElementById("k2").textContent=apos.size;
+  document.getElementById("k3").textContent=sins.size;
+  document.getElementById("k4").textContent=fmt(deb);
+  document.getElementById("k5").textContent=fmt(cred);
+  var k6=document.getElementById("k6"); k6.textContent=fmt(saldo);
+  k6.style.color=saldo<0?"#dc2626":saldo>0?"#16a34a":"#7c3aed";
+}
+
+function atualizarStatus() {
+  document.getElementById("s-files").textContent = S.meses.length+" mês(es) / "+S.tree.reduce(function(n,c){return n+Object.values(c.aps).reduce(function(m,a){return m+a.ocs.length;},0);},0)+" ocorrências";
+  document.getElementById("s-time").textContent = new Date().toLocaleTimeString("pt-PT");
+  var mb=document.getElementById("mes-badges"); mb.innerHTML="";
+  S.meses.forEach(function(ym){ var b=document.createElement("span"); b.className="mes-badge"; b.textContent=mesLabel(ym); mb.appendChild(b); });
+}
+
+// ── EXPORT EXCEL
+function exportarExcel() {
+  var rows=[];
+  S.tree.forEach(function(cli) {
+    Object.values(cli.aps).forEach(function(ap) {
+      ap.ocs.filter(matchOc).forEach(function(o) {
+        var r={"Cliente":cli.nome,"Apólice":ap.num,"Produto":ap.produto,"Comercial":o.comercial,
+                "Ocorrência":o.ocorrencia,"Sinistro":o.sinistro||"","Situação":o.situacao,
+                "Data Ocorrência":fmtDt(o.dataocorrencia),
+                "Data Abertura":o.gestao?fmtDt(o.gestao.dataabertura):"",
+                "Data Encerramento":o.gestao?fmtDt(o.gestao.dataencerramento):""};
+        S.meses.forEach(function(ym){ r[mesLabel(ym)]=o.movs[ym]||0; });
+        r["Saldo"]=o.saldo; rows.push(r);
+      });
+    });
+  });
+  var ws=XLSX.utils.json_to_sheet(rows), wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,"ContaCorrente");
   XLSX.writeFile(wb,"CB_Seguros_ContaCorrente.xlsx");
 }
 
 // ── HELPERS
-function fmt(v) {
-  if (v===null||v===undefined) return "—";
-  return v.toLocaleString("pt-PT",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+function fmt(v) { if(!v&&v!==0) return "—"; return v.toLocaleString("pt-PT",{minimumFractionDigits:2,maximumFractionDigits:2})+" €"; }
+function fmtDt(v) { var d=normDt(v); if(!d) return v?String(v):""; var p=d.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
+function h_(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function esc(s){return String(s||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");}
+function getProdRamo(p) {
+  if(!p) return "Outros";
+  var u=p.toUpperCase().trim();
+  for(var r in RAMOS){ if(RAMOS[r].indexOf(u)>=0) return r; }
+  return "Outros";
 }
-function fmtDt(v) {
-  var d = toDate(v);
-  if (!d) return v?String(v):"";
-  var p=d.split("-");
-  return p[2]+"/"+p[1]+"/"+p[0];
-}
-function h(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function esc(s){return String(s||"").replace(/'/g,"\\'");}
 function badgeSit(sit) {
   if(!sit) return "";
-  var s=sit.toLowerCase();
-  var cls="badge-out";
-  if(s.includes("aber")) cls="badge-ab";
-  else if(s.includes("encer")||s.includes("fecha")) cls="badge-en";
-  else if(s.includes("reaber")) cls="badge-re";
-  return '<span class="badge '+cls+'">'+h(sit)+'</span>';
+  var s=sit.toLowerCase(), cls="b-out";
+  if(s.includes("aber")) cls="b-ab"; else if(s.includes("encer")||s.includes("fecha")) cls="b-en"; else if(s.includes("reaber")) cls="b-re";
+  return '<span class="badge '+cls+'">'+h_(sit)+'</span>';
 }
-
-// ── VIEW TOGGLE (mobile/desktop)
-function toggleView() {
-  isMobile = !isMobile;
-  document.getElementById("btn-view").textContent = isMobile?"🖥️":"📱";
-  showTab(curTab);
+function debug(msg) {
+  console.log("[CB]",msg);
+  var db=document.getElementById("debug-bar");
+  db.style.display="block";
+  db.innerHTML += msg+"<br>";
 }
-
-// ── LOADER
 function showL(m){document.getElementById("loader").style.display="flex";document.getElementById("lmsg").textContent=m||"A carregar...";}
 function hideL(){document.getElementById("loader").style.display="none";}
 
-// ── INIT
-window.addEventListener("load", function() {
-  isMobile = window.innerWidth<=768;
-  initMsalApp().then(function(app) {
-    // Processa redirect se vier de loginRedirect
-    return app.handleRedirectPromise().then(function(resp) {
-      if (resp && resp.account) {
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+document.getElementById("btn-login").onclick=doLogin;
+document.getElementById("btn-atualizar").onclick=carregarDados;
+document.getElementById("btn-cache").onclick=hardReset;
+
+window.addEventListener("load",function(){
+  getMsal().then(function(app){
+    return app.handleRedirectPromise().then(function(resp){
+      if(resp&&resp.account){
         app.setActiveAccount(resp.account);
         setUser(resp.account);
-        _token = resp.accessToken;
-        return loadSP();
+        _token=resp.accessToken;
+        return carregarDados();
       }
-      // Verifica sessão existente
-      var accounts = app.getAllAccounts();
-      if (accounts.length>0) {
-        app.setActiveAccount(accounts[0]);
-        setUser(accounts[0]);
-        return loadSP();
+      var accs=app.getAllAccounts();
+      if(accs.length>0){
+        app.setActiveAccount(accs[0]);
+        setUser(accs[0]);
+        return carregarDados();
       }
     });
-  }).catch(function(e) { console.error("Auto-login:",e); });
+  }).catch(function(e){console.error("Init:",e);});
 });
 </script>
 </body>
