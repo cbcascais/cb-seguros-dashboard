@@ -730,11 +730,9 @@ function filtersBar(hg,lists){
   h+='</div>';
   h+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
   h+=dtGrp("📅 Data Ocorrência",fDtOcDe,fDtOcAte,"fDtOcDe","fDtOcAte",fDtOcMode,"fDtOcMode");
-  if(hg){
-    h+=dtGrp("📅 Data Abertura",fDtAbDe,fDtAbAte,"fDtAbDe","fDtAbAte",fDtAbMode,"fDtAbMode");
-    h+=dtGrp("📅 Data Reabertura",fDtReDe,fDtReAte,"fDtReDe","fDtReAte",fDtReMode,"fDtReMode");
-    h+=dtGrp("📅 Data Encerramento",fDtEnDe,fDtEnAte,"fDtEnDe","fDtEnAte",fDtEnMode,"fDtEnMode");
-  }
+  h+=dtGrp("📅 Data Abertura",fDtAbDe,fDtAbAte,"fDtAbDe","fDtAbAte",fDtAbMode,"fDtAbMode");
+  h+=dtGrp("📅 Data Reabertura",fDtReDe,fDtReAte,"fDtReDe","fDtReAte",fDtReMode,"fDtReMode");
+  h+=dtGrp("📅 Data Encerramento",fDtEnDe,fDtEnAte,"fDtEnDe","fDtEnAte",fDtEnMode,"fDtEnMode");
   h+='</div></div>';
   return h;
 }
