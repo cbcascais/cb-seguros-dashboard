@@ -421,12 +421,15 @@ function hardReset() {
 function loadSP() {
   showL("A ligar ao SharePoint...");
   return getToken().then(function() {
-    return graph("/sites/cbcascais.sharepoint.com:/drives");
+    // Primeiro obter o site raiz, depois as drives
+    return graph("/sites/root").then(function(site) {
+      return graph("/sites/"+site.id+"/drives");
+    });
   }).then(function(drives) {
     var lib = drives.value.find(function(d) {
       return d.name === SP_LIB || d.webUrl.toLowerCase().indexOf("documentos") >= 0;
     });
-    if (!lib) throw new Error("Biblioteca '"+SP_LIB+"' não encontrada");
+    if (!lib) throw new Error("Biblioteca '"+SP_LIB+"' não encontrada. Drives disponíveis: "+drives.value.map(function(d){return d.name;}).join(", "));
     var dId = lib.id;
 
     showL("A ler ficheiros mensais...");
