@@ -421,53 +421,73 @@ function hardReset() {
 function loadSP() {
   showL("A ligar ao SharePoint...");
   return getToken().then(function() {
-    // Primeiro obter o site raiz, depois as drives
-    return graph("/sites/root").then(function(site) {
-      return graph("/sites/"+site.id+"/drives");
-    });
+    showL("A obter site SharePoint...");
+    return graph("/sites/root");
+  }).then(function(site) {
+    showL("A listar drives...");
+    return graph("/sites/"+site.id+"/drives");
   }).then(function(drives) {
-    var lib = drives.value.find(function(d) {
-      return d.name === SP_LIB || d.webUrl.toLowerCase().indexOf("documentos") >= 0;
-    });
-    if (!lib) throw new Error("Biblioteca '"+SP_LIB+"' não encontrada. Drives disponíveis: "+drives.value.map(function(d){return d.name;}).join(", "));
+    var lib = null;
+    // Tenta encontrar por nome exato primeiro
+    lib = drives.value.find(function(d){ return d.name === SP_LIB; });
+    // Fallback: contém "documentos" no nome ou URL
+    if (!lib) lib = drives.value.find(function(d){ return d.name.toLowerCase().indexOf("doc")>=0 || d.webUrl.toLowerCase().indexOf("documentos")>=0; });
+    // Fallback: primeira drive disponível
+    if (!lib) lib = drives.value[0];
+    if (!lib) throw new Error("Nenhuma drive encontrada. Site: "+drives["@odata.context"]);
+
+    console.log("Drive encontrada:", lib.name, lib.id);
     var dId = lib.id;
 
     var pathM = FOLDER_M.split("/").map(function(p){return encodeURIComponent(p);}).join("/");
     var pathS = FOLDER_S.split("/").map(function(p){return encodeURIComponent(p);}).join("/");
 
-    showL("A ler ficheiros mensais...");
+    showL("A ler pasta Mensais...");
     return graph("/drives/"+dId+"/root:/"+pathM+":/children").then(function(men) {
-      var xls = men.value.filter(function(f) { return f.name.match(/\.(xlsx|xls)$/i); });
-
-      showL("A ler ficheiros de sinistros...");
+      var xls = men.value.filter(function(f){ return f.name.match(/\.(xlsx|xls)$/i); });
+      console.log("Ficheiros mensais encontrados:", xls.map(function(f){return f.name;}));
+      showL("A ler pasta Sinistros...");
+      // pasta Sinistros é opcional — não falha se não existir
       return graph("/drives/"+dId+"/root:/"+pathS+":/children").then(function(sin) {
-        var xsin = sin.value.filter(function(f) { return f.name.match(/\.(xlsx|xls)$/i); });
-        return processFiles(dId, xls, xsin);
+        var xsin = sin.value.filter(function(f){ return f.name.match(/\.(xlsx|xls)$/i); });
+        return processFiles(xls, xsin);
+      }).catch(function() {
+        console.warn("Pasta Sinistros não encontrada ou vazia — continua sem ela");
+        return processFiles(xls, []);
       });
     });
   }).catch(function(e) {
     hideL();
     console.error(e);
-    alert("Erro ao carregar dados: "+e.message);
+    alert("Erro: "+e.message);
   });
 }
 
-function downloadFile(dId, fileId) {
-  return fetch("https://graph.microsoft.com/v1.0/drives/"+dId+"/items/"+fileId+"/content", {
+// Usa @microsoft.graph.downloadUrl — URL pré-autenticado que vem na listagem
+function downloadFile(file) {
+  var url = file["@microsoft.graph.downloadUrl"];
+  if (url) {
+    return fetch(url).then(function(r){
+      if(!r.ok) throw new Error("Download HTTP "+r.status);
+      return r.arrayBuffer();
+    });
+  }
+  // fallback via Graph API com token
+  return fetch("https://graph.microsoft.com/v1.0/drives/"+file.parentReference.driveId+"/items/"+file.id+"/content", {
     headers: { Authorization: "Bearer "+_token }
-  }).then(function(r) {
-    if (!r.ok) throw new Error("Download "+r.status);
+  }).then(function(r){
+    if(!r.ok) throw new Error("Download fallback HTTP "+r.status);
     return r.arrayBuffer();
   });
 }
 
-function processFiles(dId, xlsFiles, sinFiles) {
+function processFiles(xlsFiles, sinFiles) {
   showL("A processar "+xlsFiles.length+" ficheiro(s)...");
   var proms = xlsFiles.map(function(f) {
-    return downloadFile(dId, f.id).then(function(buf) { return { name:f.name, buf:buf }; });
+    return downloadFile(f).then(function(buf) { return { name:f.name, buf:buf }; });
   });
   var sinProms = sinFiles.map(function(f) {
-    return downloadFile(dId, f.id).then(function(buf) { return { name:f.name, buf:buf }; });
+    return downloadFile(f).then(function(buf) { return { name:f.name, buf:buf }; });
   });
 
   return Promise.all(proms).then(function(results) {
