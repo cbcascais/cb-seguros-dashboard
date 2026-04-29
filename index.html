@@ -458,11 +458,12 @@ function processarFicheiros(xlsM, xlsS) {
       var ws = wb.Sheets[wb.SheetNames[0]];
       var rows = XLSX.utils.sheet_to_json(ws, {defval:"",raw:false});
       debug("Ficheiro "+f.name+": "+rows.length+" linhas brutas, mês="+ym);
+      if(rows.length>0) debug("COLUNAS: "+Object.keys(rows[0]).join(" | "));
       var out = [];
       rows.forEach(function(r) {
-        var cli = col(r,"Cliente","CLIENTE","client");
-        var apo = col(r,"Apólice","Apolice","APOLICE","apólice","apolice","Apol");
-        var ocr = col(r,"Ocorrência","Ocorrencia","OCORRENCIA","ocorrência","Ocorr","Ocorrencia ");
+        var cli = col(r,"Cliente","CLIENTE","client","Tomador","Tomador do Seguro","TOMADOR","Segurado","SEGURADO");
+        var apo = col(r,"Apólice","Apolice","APOLICE","apólice","apolice","Apol","Nº Apólice","N.º Apólice","Num Apolice","NumApolice","Nr Apolice","NrApolice","Numero Apolice","Nº Apolice","N Apolice","Apolice ");
+        var ocr = col(r,"Ocorrência","Ocorrencia","OCORRENCIA","ocorrência","Ocorr","Ocorrencia ","Nº Ocorrência","N.º Ocorrência","Num Ocorrencia","Nr Ocorrencia","NrOcorrencia","Numero Ocorrencia","Nº Ocorrencia","N Ocorrencia");
         if (!cli||!apo||!ocr) return;
         out.push({
           mesKey: ym||"2026-00",
