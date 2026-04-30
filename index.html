@@ -538,7 +538,13 @@ function getArr(varName){
 function ckToggleItem(varName,val){
   var arr=getArr(varName),idx=arr.indexOf(val);
   if(idx>=0)arr.splice(idx,1);else arr.push(val);
+  var wasOpen=_ckOpen; // guarda qual dropdown estava aberto
   showTab(curTab);
+  // Re-abre o dropdown depois do re-render para permitir múltipla seleção
+  if(wasOpen){
+    var el=document.getElementById(wasOpen);
+    if(el){el.classList.add("open");_ckOpen=wasOpen;}
+  }
 }
 function ckAll(varName,all){
   var arr=getArr(varName);
@@ -1242,20 +1248,12 @@ function gerarRelatorio(){
   html+="*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}";
   html+='body{font-size:12px;color:#1a1a2e;background:#fff;padding:20px}';
   html+='@media print{body{padding:0}@page{margin:15mm;size:A4}}';
-  html+='.page-break{page-break-before:always}';
-  html+='@media print{';
-  html+='  @page{margin:15mm 12mm 28mm 12mm}';
-  html+='  .page-footer{display:block!important}';
-  html+='}';
+  html+='.page-break{page-break-before:always;margin-top:0}';
+  html+='@media print{@page{margin:12mm 12mm 20mm 12mm}}';
   html+='.page-footer{';
-  html+='  display:none;';
-  html+='  position:fixed;';
-  html+='  bottom:0;left:0;right:0;';
-  html+='  background:#fff;';
-  html+='  border-top:2px solid #1B2A5E;';
-  html+='  padding:6px 16px 4px;';
-  html+='  font-size:9px;color:#6b7280;';
-  html+='  z-index:9999;';
+  html+='  width:100%;border-top:2px solid #1B2A5E;';
+  html+='  padding:5px 0 2px;font-size:9px;color:#6b7280;';
+  html+='  margin-top:12px;';
   html+='}';
   html+='.header{background:#1B2A5E;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}';
   html+='.header h1{font-size:18px;font-weight:700}.header .sub{font-size:11px;color:#7eb3f7;margin-top:4px}';
@@ -1337,7 +1335,7 @@ function gerarRelatorio(){
   html+='</tbody></table></div>';
 
   // ── DETALHE — nova página
-  html+='<div class="page-break"></div>';
+  html+=footerHtml; html+='<div class="page-break"></div>';
   html+='<div class="section"><div class="section-title">📋 Conta Corrente Detalhada</div>';
   // Adiciona coluna Sinistro ao cabeçalho
   var cols=hg?11:8;
@@ -1392,6 +1390,16 @@ function gerarRelatorio(){
 
     // Utilizador autenticado
   var userName = document.getElementById("user-name").textContent.replace("👤 ","") || "—";
+  var footerHtml = '<div class="page-footer">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">'
+    +'<span style="font-weight:700;color:#1B2A5E">DOCUMENTO CONFIDENCIAL — USO INTERNO</span>'
+    +'<span style="color:#9ca3af">|</span>'
+    +'<span>CB Med. Seguros, Lda. &nbsp;|&nbsp; NIF: PT514712864</span>'
+    +'<span style="color:#9ca3af">|</span>'
+    +'<span>⚠️ Proibida a reprodução ou partilha sem autorização</span>'
+    +'<span style="margin-left:auto">Emitido por: <b>'+userName+'</b> &nbsp;|&nbsp; '+dataRel+'</span>'
+    +'</div>'
+    +'</div>';
 
   html+='<div class="footer">';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">';
