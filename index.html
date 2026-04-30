@@ -1317,10 +1317,12 @@ function gerarRelatorio(){
   // ── DETALHE — nova página
   html+='<div class="page-break"></div>';
   html+='<div class="section"><div class="section-title">📋 Conta Corrente Detalhada</div>';
+  // Adiciona coluna Sinistro ao cabeçalho
+  var cols=hg?11:8;
   html+='<table><thead><tr>';
   html+='<th>Cliente</th><th>Comercial</th><th>Apólice</th><th>Ocorrência</th><th>Data Ocorr.</th><th>Produto</th>';
   if(hg)html+='<th>Situação</th><th>Dt.Abertura</th><th>Dt.Encerramento</th>';
-  html+='<th style="text-align:right">Saldo</th>';
+  html+='<th style="text-align:right">Saldo Ocorr.</th>';
   html+='</tr></thead><tbody>';
 
   filtCli.forEach(function(c){
@@ -1332,20 +1334,32 @@ function gerarRelatorio(){
         cSaldo+=o.saldoT;
         var g=o.gestao;
         var sitHtml=g?('<span class="badge">'+g.situacao+'</span>'):"—";
+        // Linha da ocorrência
         cRows+='<tr class="tr-oc">';
         cRows+='<td></td><td>'+(o.comercial||c.comercial||"—")+'</td>';
         cRows+='<td>'+a.apolice+'</td>';
-        cRows+='<td>'+o.ocorrencia+'</td>';
+        cRows+='<td><b>'+o.ocorrencia+'</b></td>';
         cRows+='<td>'+(o.dataocorrencia||"—")+'</td>';
         cRows+='<td>'+(o.produto||"—")+'</td>';
         if(hg)cRows+='<td>'+sitHtml+'</td><td>'+(g?g.dataabertura||"—":"—")+'</td><td>'+(g?g.dataencerramento||"—":"—")+'</td>';
-        cRows+='<td style="text-align:right" class="'+(o.saldoT<0?"neg":"pos")+'">'+fmt(o.saldoT)+'</td>';
+        cRows+='<td style="text-align:right;font-weight:700" class="'+(o.saldoT<0?"neg":"pos")+'">'+fmt(o.saldoT)+'</td>';
         cRows+='</tr>';
+        // Linhas dos sinistros (por baixo da ocorrência)
+        o.sinistros.forEach(function(s){
+          cRows+='<tr style="background:#f0f0ff;font-size:10px">';
+          cRows+='<td style="padding-left:28px;color:#6366f1">↳ Sin. <b>'+s.sinistro+'</b></td>';
+          cRows+='<td colspan="'+(hg?7:4)+'" style="color:#6b7280">';
+          s.movimentos.forEach(function(mv){
+            if(mv.mov!==0) cRows+='<span style="margin-right:10px">'+mm(mv.mes)+': <b class="'+(mv.mov<0?"neg":"pos")+'">'+fmt(mv.mov)+'</b></span>';
+          });
+          cRows+='</td>';
+          cRows+='<td style="text-align:right;color:#6366f1;font-weight:700">'+fmt(s.saldo)+'</td>';
+          cRows+='</tr>';
+        });
       });
     });
     if(!cRows) return;
     // Linha cliente
-    var cols=hg?10:7;
     html+='<tr class="tr-cli">';
     html+='<td colspan="'+(cols-1)+'">'+c.cliente+(c.comercial?" — "+c.comercial:"")+'</td>';
     html+='<td style="text-align:right" class="'+(cSaldo<0?"neg":"pos")+'">'+fmt(cSaldo)+'</td>';
