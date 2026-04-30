@@ -1243,6 +1243,20 @@ function gerarRelatorio(){
   html+='body{font-size:12px;color:#1a1a2e;background:#fff;padding:20px}';
   html+='@media print{body{padding:0}@page{margin:15mm;size:A4}}';
   html+='.page-break{page-break-before:always}';
+  html+='@media print{';
+  html+='  @page{margin:15mm 12mm 28mm 12mm}';
+  html+='  .page-footer{display:block!important}';
+  html+='}';
+  html+='.page-footer{';
+  html+='  display:none;';
+  html+='  position:fixed;';
+  html+='  bottom:0;left:0;right:0;';
+  html+='  background:#fff;';
+  html+='  border-top:2px solid #1B2A5E;';
+  html+='  padding:6px 16px 4px;';
+  html+='  font-size:9px;color:#6b7280;';
+  html+='  z-index:9999;';
+  html+='}';
   html+='.header{background:#1B2A5E;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}';
   html+='.header h1{font-size:18px;font-weight:700}.header .sub{font-size:11px;color:#7eb3f7;margin-top:4px}';
   html+='.header .meta{text-align:right;font-size:11px;color:#7eb3f7}';
@@ -1264,7 +1278,7 @@ function gerarRelatorio(){
   html+='.tr-oc{background:#f8faff}';
   html+='.neg{color:#dc2626;font-weight:600}.pos{color:#16a34a;font-weight:600}';
   html+='.badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#e5e7eb;color:#374151}';
-  html+='.footer{font-size:10px;color:#9ca3af;margin-top:24px;padding-top:12px;border-top:2px solid #1B2A5E}';
+  html+='.footer{font-size:10px;color:#9ca3af;margin-top:24px}';
   html+='</style></head><body>';
 
   // CABEÇALHO
@@ -1387,7 +1401,7 @@ function gerarRelatorio(){
   html+='<div style="font-size:10px;color:#6b7280;margin-top:2px">Propriedade de CB Med. Seguros, Lda. — Todos os direitos reservados</div>';
   html+='</div>';
   html+='<div style="text-align:right;font-size:10px;color:#9ca3af">';
-  html+='CB Med. Seguros, Lda.<br>NIF: PT ___________';
+  html+='CB Med. Seguros, Lda.<br>NIF: PT514712864';
   html+='</div>';
   html+='</div>';
   html+='<div style="border-top:1px solid #e5e7eb;padding-top:8px;display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;flex-wrap:wrap;gap:4px">';
