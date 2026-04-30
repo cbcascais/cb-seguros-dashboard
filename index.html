@@ -214,7 +214,12 @@ function initMsalApp() {
   return loadMsalLib().then(function() {
     if (msalApp) return msalApp;
     msalApp = new msal.PublicClientApplication({
-      auth: { clientId:CLIENT, authority:"https://login.microsoftonline.com/"+TENANT, redirectUri:REDIRECT },
+      auth: {
+        clientId: CLIENT,
+        authority: "https://login.microsoftonline.com/"+TENANT,
+        redirectUri: REDIRECT,
+        knownAuthorities: ["login.microsoftonline.com"]
+      },
       cache: { cacheLocation:"localStorage", storeAuthStateInCookie:true }
     });
     return msalApp.initialize().then(function() { return msalApp; });
@@ -752,7 +757,10 @@ function filtersBar(hg,lists){
   h+=hg&&lists.sit.length?ckDropdown("ck-sit","fSituacao",lists.sit,"Situação",false):"";
   h+='<button style="border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #d1d5db;background:'+(fMulti?"var(--navy)":"#fff")+';color:'+(fMulti?"#fff":"#6b7280")+'" onclick="fMulti=!fMulti;showTab(\'cc\')">🔀 Múltiplas apólices'+(Object.keys(multi).length?'<span style="background:#dc2626;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px">'+Object.keys(multi).length+'</span>':"")+'</button>';
   h+='<button style="border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#6b7280" onclick="clearFilters()">✕ Limpar</button>';
-  h+='<button style="border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #16a34a;background:#16a34a;color:#fff;margin-left:auto" onclick="exportXls()">⬇ Exportar</button>';
+  h+='<div style="display:flex;gap:6px;margin-left:auto">';
+  h+='<button style="border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #16a34a;background:#16a34a;color:#fff" onclick="exportXls()">⬇ Excel</button>';
+  h+='<button style="border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #1d4ed8;background:#1d4ed8;color:#fff" onclick="gerarRelatorio()">📄 Relatório PDF</button>';
+  h+="</div>";
   h+='</div>';
   h+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
   h+=dtGrp("📅 Data Ocorrência",fDtOcDe,fDtOcAte,"fDtOcDe","fDtOcAte",fDtOcMode,"fDtOcMode");
@@ -1159,6 +1167,204 @@ function rAnualMobile(){
   return h;
 }
 
+function gerarRelatorio(){
+  // Recolhe filtros activos para o título
+  var filtrosDesc=[];
+  if(fCli.length) filtrosDesc.push("Clientes: "+fCli.join(", "));
+  if(fComercial.length) filtrosDesc.push("Comercial: "+fComercial.join(", "));
+  if(fProduto.length) filtrosDesc.push("Produto: "+fProduto.join(", "));
+  if(fSituacao.length) filtrosDesc.push("Situação: "+fSituacao.join(", "));
+  if(fDtOcDe) filtrosDesc.push("Data Ocorrência: "+fDtOcDe+(fDtOcAte&&fDtOcAte!==fDtOcDe?" a "+fDtOcAte:""));
+  if(fDtAbDe) filtrosDesc.push("Data Abertura: "+fDtAbDe+(fDtAbAte&&fDtAbAte!==fDtAbDe?" a "+fDtAbAte:""));
+  if(fDtEnDe) filtrosDesc.push("Data Encerramento: "+fDtEnDe+(fDtEnAte&&fDtEnAte!==fDtEnDe?" a "+fDtEnAte:""));
+
+  // Dados filtrados
+  var multi={};STATE.clientes.forEach(function(c){if(c.apolices.length>1)multi[c.cliente]=true;});
+  var filtCli=STATE.clientes.filter(function(c){
+    if(fCli.length&&fCli.indexOf(c.cliente)<0)return false;
+    if(fMulti&&!multi[c.cliente])return false;
+    if(fComercial.length){var com=c.comercial||"";var ok=fComercial.indexOf(com)>=0;if(!ok)ok=c.apolices.some(function(a){return a.ocorrencias.some(function(o){return o.sinistros.some(function(s){return fComercial.indexOf(s.comercial)>=0;});});});if(!ok)return false;}
+    if(fProduto.length){var hp=c.apolices.some(function(a){return a.ocorrencias.some(function(o){return fProduto.indexOf(o.produto)>=0;});});if(!hp)return false;}
+    if(fSituacao.length){var hs=c.apolices.some(function(a){return a.ocorrencias.some(function(o){return o.gestao&&fSituacao.indexOf(o.gestao.situacao)>=0;});});if(!hs)return false;}
+    return true;
+  }).sort(function(a,b){return a.cliente.localeCompare(b.cliente,"pt");});
+
+  // KPIs
+  var totalOcorr=0,totalSin=0,deb=0,cred=0;
+  filtCli.forEach(function(c){
+    c.apolices.forEach(function(a){
+      a.ocorrencias.forEach(function(o){
+        if(!matchFilters(c,a,o))return;
+        totalOcorr++;
+        totalSin+=o.sinistros.length;
+        if(o.saldoT<0)deb+=o.saldoT; else cred+=o.saldoT;
+      });
+    });
+  });
+  var saldo=deb+cred;
+
+  // KPIs por ramo
+  var ramoMap={};
+  filtCli.forEach(function(c){
+    c.apolices.forEach(function(a){
+      a.ocorrencias.forEach(function(o){
+        if(!matchFilters(c,a,o))return;
+        var r=getProdutoRamo(o.produto);
+        if(!ramoMap[r])ramoMap[r]={ocs:0,sins:0,saldo:0};
+        ramoMap[r].ocs++;ramoMap[r].sins+=o.sinistros.length;ramoMap[r].saldo+=o.saldoT;
+      });
+    });
+  });
+
+  // Movimentos por mês
+  var movMes={};
+  filtCli.forEach(function(c){
+    c.apolices.forEach(function(a){
+      a.ocorrencias.forEach(function(o){
+        if(!matchFilters(c,a,o))return;
+        o.sinistros.forEach(function(s){
+          s.movimentos.forEach(function(mv){
+            if(!movMes[mv.mes])movMes[mv.mes]={mov:0,vf:0};
+            movMes[mv.mes].mov+=mv.mov;
+            movMes[mv.mes].vf=mv.vf;
+          });
+        });
+      });
+    });
+  });
+
+  var dataRel=new Date().toLocaleDateString("pt-PT");
+  var hg=STATE.gestData.length>0;
+
+  var html='<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8">';
+  html+='<title>Relatório Sinistralidade CB Seguros</title>';
+  html+='<style>';
+  html+="*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}";
+  html+='body{font-size:12px;color:#1a1a2e;background:#fff;padding:20px}';
+  html+='@media print{body{padding:0}@page{margin:15mm;size:A4}}';
+  html+='.page-break{page-break-before:always}';
+  html+='.header{background:#1B2A5E;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}';
+  html+='.header h1{font-size:18px;font-weight:700}.header .sub{font-size:11px;color:#7eb3f7;margin-top:4px}';
+  html+='.header .meta{text-align:right;font-size:11px;color:#7eb3f7}';
+  html+='.section{margin-bottom:20px}';
+  html+='.section-title{font-size:13px;font-weight:700;color:#1B2A5E;border-bottom:2px solid #1B2A5E;padding-bottom:4px;margin-bottom:12px}';
+  html+='.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}';
+  html+='.kpi{background:#f0f3fa;border-radius:6px;padding:10px 12px;border-left:3px solid #1B2A5E}';
+  html+='.kpi.red{border-left-color:#dc2626}.kpi.grn{border-left-color:#16a34a}.kpi.pur{border-left-color:#7c3aed}';
+  html+='.kpi .lbl{font-size:10px;color:#666;margin-bottom:3px}.kpi .val{font-size:15px;font-weight:700;color:#1B2A5E}';
+  html+='.kpi.red .val{color:#dc2626}.kpi.grn .val{color:#16a34a}.kpi.pur .val{color:#7c3aed}';
+  html+='.filtros-box{background:#fef9c3;border:1px solid #fbbf24;border-radius:6px;padding:8px 12px;margin-bottom:16px;font-size:11px}';
+  html+='.filtros-box b{color:#92400e}';
+  html+='table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px}';
+  html+='thead tr{background:#1B2A5E;color:#fff}';
+  html+='th{padding:7px 8px;text-align:left;white-space:nowrap;font-size:10px}';
+  html+='td{padding:6px 8px;border-bottom:1px solid #e5e7eb}';
+  html+='.tr-cli{background:#e8edf8;font-weight:700}';
+  html+='.tr-ap{background:#f0f4fc;font-weight:600}';
+  html+='.tr-oc{background:#f8faff}';
+  html+='.neg{color:#dc2626;font-weight:600}.pos{color:#16a34a;font-weight:600}';
+  html+='.badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#e5e7eb;color:#374151}';
+  html+='.footer{text-align:center;font-size:10px;color:#9ca3af;margin-top:20px;padding-top:10px;border-top:1px solid #e5e7eb}';
+  html+='</style></head><body>';
+
+  // CABEÇALHO
+  html+='<div class="header">';
+  html+='<div><div class="sub">CB Seguros | Cascais</div><h1>Relatório de Sinistralidade</h1>';
+  html+='<div class="sub">Dashboard Sinistralidade 2026</div></div>';
+  html+='<div class="meta">Gerado em: '+dataRel+'<br>Período: '+STATE.meses.map(mm).join(", ")+'</div>';
+  html+='</div>';
+
+  // FILTROS ACTIVOS
+  if(filtrosDesc.length){
+    html+='<div class="filtros-box"><b>Filtros aplicados:</b> '+filtrosDesc.join(" &nbsp;|&nbsp; ")+'</div>';
+  }
+
+  // ── RESUMO EXECUTIVO
+  html+='<div class="section"><div class="section-title">📊 Resumo Executivo</div>';
+  html+='<div class="kpi-grid">';
+  html+='<div class="kpi"><div class="lbl">Clientes</div><div class="val">'+filtCli.length+'</div></div>';
+  html+='<div class="kpi"><div class="lbl">Ocorrências</div><div class="val">'+totalOcorr+'</div></div>';
+  html+='<div class="kpi"><div class="lbl">Sinistros</div><div class="val">'+totalSin+'</div></div>';
+  html+='<div class="kpi red"><div class="lbl">Total Débito</div><div class="val">'+fmt(deb)+'</div></div>';
+  html+='<div class="kpi grn"><div class="lbl">Total Crédito</div><div class="val">'+fmt(cred)+'</div></div>';
+  html+='</div>';
+  html+='<div class="kpi-grid" style="grid-template-columns:1fr 1fr;max-width:300px">';
+  html+='<div class="kpi pur"><div class="lbl">Saldo Total</div><div class="val">'+fmt(saldo)+'</div></div>';
+  html+='</div>';
+
+  // Resumo por mês
+  var meses=Object.keys(movMes).sort();
+  if(meses.length){
+    html+='<table><thead><tr><th>Mês</th><th style="text-align:right">Movimento</th></tr></thead><tbody>';
+    meses.forEach(function(m){
+      var v=movMes[m].mov;
+      html+='<tr><td>'+mm(m)+'</td><td style="text-align:right" class="'+(v<0?"neg":"pos")+'">'+fmt(v)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+
+  // Resumo por ramo
+  html+='<div class="section-title" style="margin-top:12px">🗂️ Por Ramo</div>';
+  html+='<table><thead><tr><th>Ramo</th><th style="text-align:center">Ocorrências</th><th style="text-align:center">Sinistros</th><th style="text-align:right">Saldo</th></tr></thead><tbody>';
+  Object.keys(ramoMap).sort().forEach(function(r){
+    var d=ramoMap[r];
+    html+='<tr><td>'+(RAMO_ICONS[r]||"📁")+" "+(RAMO_LABELS[r]||r)+'</td>';
+    html+='<td style="text-align:center">'+d.ocs+'</td><td style="text-align:center">'+d.sins+'</td>';
+    html+='<td style="text-align:right" class="'+(d.saldo<0?"neg":"pos")+'">'+fmt(d.saldo)+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // ── DETALHE — nova página
+  html+='<div class="page-break"></div>';
+  html+='<div class="section"><div class="section-title">📋 Conta Corrente Detalhada</div>';
+  html+='<table><thead><tr>';
+  html+='<th>Cliente</th><th>Comercial</th><th>Apólice</th><th>Ocorrência</th><th>Data Ocorr.</th><th>Produto</th>';
+  if(hg)html+='<th>Situação</th><th>Dt.Abertura</th><th>Dt.Encerramento</th>';
+  html+='<th style="text-align:right">Saldo</th>';
+  html+='</tr></thead><tbody>';
+
+  filtCli.forEach(function(c){
+    var cSaldo=0;
+    var cRows="";
+    c.apolices.forEach(function(a){
+      a.ocorrencias.forEach(function(o){
+        if(!matchFilters(c,a,o))return;
+        cSaldo+=o.saldoT;
+        var g=o.gestao;
+        var sitHtml=g?('<span class="badge">'+g.situacao+'</span>'):"—";
+        cRows+='<tr class="tr-oc">';
+        cRows+='<td></td><td>'+(o.comercial||c.comercial||"—")+'</td>';
+        cRows+='<td>'+a.apolice+'</td>';
+        cRows+='<td>'+o.ocorrencia+'</td>';
+        cRows+='<td>'+(o.dataocorrencia||"—")+'</td>';
+        cRows+='<td>'+(o.produto||"—")+'</td>';
+        if(hg)cRows+='<td>'+sitHtml+'</td><td>'+(g?g.dataabertura||"—":"—")+'</td><td>'+(g?g.dataencerramento||"—":"—")+'</td>';
+        cRows+='<td style="text-align:right" class="'+(o.saldoT<0?"neg":"pos")+'">'+fmt(o.saldoT)+'</td>';
+        cRows+='</tr>';
+      });
+    });
+    if(!cRows) return;
+    // Linha cliente
+    var cols=hg?10:7;
+    html+='<tr class="tr-cli">';
+    html+='<td colspan="'+(cols-1)+'">'+c.cliente+(c.comercial?" — "+c.comercial:"")+'</td>';
+    html+='<td style="text-align:right" class="'+(cSaldo<0?"neg":"pos")+'">'+fmt(cSaldo)+'</td>';
+    html+='</tr>';
+    html+=cRows;
+  });
+  html+='</tbody></table></div>';
+
+  html+='<div class="footer">CB Seguros — Relatório gerado automaticamente em '+dataRel+' — Confidencial</div>';
+  html+='</body></html>';
+
+  // Abre em nova janela para imprimir / guardar como PDF
+  var win=window.open("","_blank");
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function(){win.print();},500);
+}
+
 function exportXls(){
   var rows=[];
   STATE.clientes.forEach(function(c){c.apolices.forEach(function(a){a.ocorrencias.forEach(function(o){o.sinistros.forEach(function(s){
@@ -1195,24 +1401,8 @@ window.addEventListener("load",function(){
           setUser(accounts[0]);
           return checkAndLoad(false);
         }
-        // Nenhuma sessão ativa — login automático
-        showL("A autenticar...");
-        // Usa popup (redirect falha em iframes / GitHub Pages embedded)
-        return app.loginPopup({ scopes:SCOPES, prompt:"select_account" }).then(function(r){
-          app.setActiveAccount(r.account);
-          setUser(r.account);
-          _token = r.accessToken;
-          hideL();
-          return checkAndLoad(false);
-        }).catch(function(e){
-          hideL();
-          // Se popup bloqueado, tenta redirect
-          if(e&&e.message&&(e.message.indexOf("popup")>=0||e.message.indexOf("block")>=0)){
-            showL("A redirecionar...");
-            return app.loginRedirect({ scopes:SCOPES });
-          }
-          console.error("Login falhou:",e);
-        });
+        // Sem sessão ativa — mostra botão para o utilizador clicar
+        hideL();
       });
     }).catch(function(e){console.error("Auto-login:",e);});
   },800);
