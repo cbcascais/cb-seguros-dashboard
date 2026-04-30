@@ -630,11 +630,21 @@ function matchFilters(c,a,o){
 function render(){
   document.getElementById("kpis").style.display="grid";
   var c=STATE.clientes;
-  document.getElementById("k1").textContent=c.length;
-  document.getElementById("k2").textContent=c.reduce(function(s,x){return s+x.apolices.reduce(function(s2,a){return s2+a.ocorrencias.length;},0);},0);
-  document.getElementById("k3").textContent=c.reduce(function(s,x){return s+x.apolices.reduce(function(s2,a){return s2+a.ocorrencias.reduce(function(s3,o){return s3+o.sinistros.length;},0);},0);},0);
-  var td=c.filter(function(x){return x.saldoT<0;}).reduce(function(s,x){return s+x.saldoT;},0);
-  var tc=c.filter(function(x){return x.saldoT>0;}).reduce(function(s,x){return s+x.saldoT;},0);
+  // KPIs respeitam os filtros activos
+  var multi2={};c.forEach(function(x){if(x.apolices.length>1)multi2[x.cliente]=true;});
+  var kFilt=c.filter(function(x){
+    if(fCli.length&&fCli.indexOf(x.cliente)<0)return false;
+    if(fMulti&&!multi2[x.cliente])return false;
+    if(fComercial.length){var com=x.comercial||"";var ok=fComercial.indexOf(com)>=0;if(!ok)ok=x.apolices.some(function(a){return a.ocorrencias.some(function(o){return o.sinistros.some(function(s){return fComercial.indexOf(s.comercial)>=0;});});});if(!ok)return false;}
+    if(fProduto.length){var hp=x.apolices.some(function(a){return a.ocorrencias.some(function(o){return fProduto.indexOf(o.produto)>=0;});});if(!hp)return false;}
+    if(fSituacao.length){var hs=x.apolices.some(function(a){return a.ocorrencias.some(function(o){return o.gestao&&fSituacao.indexOf(o.gestao.situacao)>=0;});});if(!hs)return false;}
+    return true;
+  });
+  document.getElementById("k1").textContent=kFilt.length;
+  document.getElementById("k2").textContent=kFilt.reduce(function(s,x){return s+x.apolices.reduce(function(s2,a){return s2+a.ocorrencias.length;},0);},0);
+  document.getElementById("k3").textContent=kFilt.reduce(function(s,x){return s+x.apolices.reduce(function(s2,a){return s2+a.ocorrencias.reduce(function(s3,o){return s3+o.sinistros.length;},0);},0);},0);
+  var td=kFilt.reduce(function(s,x){return s+(x.saldoT<0?x.saldoT:0);},0);
+  var tc=kFilt.reduce(function(s,x){return s+(x.saldoT>0?x.saldoT:0);},0);
   var sal=td+tc;
   document.getElementById("k4").textContent=fmt(td);
   document.getElementById("k5").textContent=fmt(tc);
@@ -761,6 +771,14 @@ function rCC(){
     if(fCli.length&&fCli.indexOf(c.cliente)<0)return false;
     if(fMulti&&!multi[c.cliente])return false;
     if(fComercial.length){var com=c.comercial||"";var ok=fComercial.indexOf(com)>=0;if(!ok){ok=c.apolices.some(function(a){return a.ocorrencias.some(function(o){return o.sinistros.some(function(s){return fComercial.indexOf(s.comercial)>=0;});});});}if(!ok)return false;}
+    if(fProduto.length){
+      var hasProd=c.apolices.some(function(a){return a.ocorrencias.some(function(o){return fProduto.indexOf(o.produto)>=0;});});
+      if(!hasProd) return false;
+    }
+    if(fSituacao.length){
+      var hasSit=c.apolices.some(function(a){return a.ocorrencias.some(function(o){return o.gestao&&fSituacao.indexOf(o.gestao.situacao)>=0;});});
+      if(!hasSit) return false;
+    }
     return true;
   }).sort(function(a,b){return a.cliente.localeCompare(b.cliente,"pt");});
   var ts=0,td=0,tc=0,totalOcorr=0;
