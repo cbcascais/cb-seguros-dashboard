@@ -1248,12 +1248,20 @@ function gerarRelatorio(){
   html+="*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}";
   html+='body{font-size:12px;color:#1a1a2e;background:#fff;padding:20px}';
   html+='@media print{body{padding:0}@page{margin:15mm;size:A4}}';
-  html+='.page-break{page-break-before:always;margin-top:0}';
-  html+='@media print{@page{margin:12mm 12mm 20mm 12mm}}';
-  html+='.page-footer{';
-  html+='  width:100%;border-top:2px solid #1B2A5E;';
-  html+='  padding:5px 0 2px;font-size:9px;color:#6b7280;';
-  html+='  margin-top:12px;';
+  html+='.page-break{page-break-before:always}';
+  html+='@media print{';
+  html+='  @page{margin:12mm 12mm 22mm 12mm}';
+  html+='  .print-footer{display:flex!important}';
+  html+='}';
+  html+='.print-footer{';
+  html+='  display:none;';
+  html+='  position:fixed;bottom:0;left:0;right:0;';
+  html+='  background:#fff;';
+  html+='  border-top:2px solid #1B2A5E;';
+  html+='  padding:5px 12px 4px;';
+  html+='  font-size:9px;color:#6b7280;';
+  html+='  justify-content:space-between;align-items:center;';
+  html+='  z-index:9999;';
   html+='}';
   html+='.header{background:#1B2A5E;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}';
   html+='.header h1{font-size:18px;font-weight:700}.header .sub{font-size:11px;color:#7eb3f7;margin-top:4px}';
@@ -1334,8 +1342,65 @@ function gerarRelatorio(){
   });
   html+='</tbody></table></div>';
 
+  // ── TOP 10
+  // Calcula saldo e nº sinistros por cliente (dados filtrados)
+  var top10data = [];
+  filtCli.forEach(function(c){
+    var saldoCli=0, sinsCli=0, ocrsCli=0;
+    c.apolices.forEach(function(a){
+      a.ocorrencias.forEach(function(o){
+        if(!matchFilters(c,a,o)) return;
+        saldoCli += o.saldoT;
+        sinsCli  += o.sinistros.length;
+        ocrsCli  += 1;
+      });
+    });
+    if(ocrsCli===0) return;
+    top10data.push({nome:c.cliente, saldo:saldoCli, sins:sinsCli, ocrs:ocrsCli});
+  });
+
+  // TOP 10 Valor (mais sinistralidade em euros — mais negativo = pior)
+  var top10valor = top10data.slice().sort(function(a,b){return a.saldo-b.saldo;}).slice(0,10);
+  // TOP 10 Frequência (mais sinistros)
+  var top10freq  = top10data.slice().sort(function(a,b){return b.sins-a.sins;}).slice(0,10);
+
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">';
+
+  // TOP 10 Valor
+  html+='<div>';
+  html+='<div class="section-title" style="margin-bottom:8px">🏆 TOP 10 — Maior Sinistralidade (Valor)</div>';
+  html+='<table><thead><tr><th style="width:22px">#</th><th>Cliente</th><th style="text-align:right">Sinistros</th><th style="text-align:right">Saldo</th></tr></thead><tbody>';
+  top10valor.forEach(function(c,i){
+    var medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+".";
+    html+='<tr style="background:'+(i%2===0?"#f8faff":"#fff")+'">';
+    html+='<td style="text-align:center;font-weight:700">'+medal+'</td>';
+    html+='<td style="font-weight:'+(i<3?"700":"400")+'">'+c.nome+'</td>';
+    html+='<td style="text-align:right">'+c.sins+'</td>';
+    html+='<td style="text-align:right" class="'+(c.saldo<0?"neg":"pos")+'">'+fmt(c.saldo)+'</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // TOP 10 Frequência
+  html+='<div>';
+  html+='<div class="section-title" style="margin-bottom:8px">📊 TOP 10 — Maior Frequência (Nº Sinistros)</div>';
+  html+='<table><thead><tr><th style="width:22px">#</th><th>Cliente</th><th style="text-align:right">Nº Sinistros</th><th style="text-align:right">Saldo</th></tr></thead><tbody>';
+  top10freq.forEach(function(c,i){
+    var medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+".";
+    html+='<tr style="background:'+(i%2===0?"#f8faff":"#fff")+'">';
+    html+='<td style="text-align:center;font-weight:700">'+medal+'</td>';
+    html+='<td style="font-weight:'+(i<3?"700":"400")+'">'+c.nome+'</td>';
+    html+='<td style="text-align:right;font-weight:700;color:#1B2A5E">'+c.sins+'</td>';
+    html+='<td style="text-align:right" class="'+(c.saldo<0?"neg":"pos")+'">'+fmt(c.saldo)+'</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+
+  html+='</div>';
+  html+='</div>'; // fecha section resumo
+
   // ── DETALHE — nova página
-  html+=footerHtml; html+='<div class="page-break"></div>';
+  html+='<div class="page-break"></div>';
   html+='<div class="section"><div class="section-title">📋 Conta Corrente Detalhada</div>';
   // Adiciona coluna Sinistro ao cabeçalho
   var cols=hg?11:8;
@@ -1390,15 +1455,12 @@ function gerarRelatorio(){
 
     // Utilizador autenticado
   var userName = document.getElementById("user-name").textContent.replace("👤 ","") || "—";
-  var footerHtml = '<div class="page-footer">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">'
-    +'<span style="font-weight:700;color:#1B2A5E">DOCUMENTO CONFIDENCIAL — USO INTERNO</span>'
-    +'<span style="color:#9ca3af">|</span>'
-    +'<span>CB Med. Seguros, Lda. &nbsp;|&nbsp; NIF: PT514712864</span>'
-    +'<span style="color:#9ca3af">|</span>'
-    +'<span>⚠️ Proibida a reprodução ou partilha sem autorização</span>'
-    +'<span style="margin-left:auto">Emitido por: <b>'+userName+'</b> &nbsp;|&nbsp; '+dataRel+'</span>'
-    +'</div>'
+  // Footer fixo — aparece em TODAS as páginas via position:fixed + @media print
+  var footerHtml = '<div class="print-footer">'
+    +'<div><span style="font-weight:700;color:#1B2A5E">DOCUMENTO CONFIDENCIAL — USO INTERNO</span>'
+    +' &nbsp;|&nbsp; CB Med. Seguros, Lda. &nbsp;|&nbsp; NIF: PT514712864'
+    +' &nbsp;|&nbsp; ⚠️ Proibida reprodução ou partilha sem autorização</div>'
+    +'<div>Emitido por: <b>'+userName+'</b> &nbsp;|&nbsp; '+dataRel+'</div>'
     +'</div>';
 
   html+='<div class="footer">';
