@@ -523,13 +523,29 @@ function ckToggle(id){
   var opening=!el.classList.contains("open");
   el.classList.toggle("open");_ckOpen=opening?id:null;
 }
+function getArr(varName){
+  if(varName==="fCli") return fCli;
+  if(varName==="fComercial") return fComercial;
+  if(varName==="fProduto") return fProduto;
+  if(varName==="fSituacao") return fSituacao;
+  return window[varName]||[];
+}
 function ckToggleItem(varName,val){
-  var arr=window[varName],idx=arr.indexOf(val);
+  var arr=getArr(varName),idx=arr.indexOf(val);
   if(idx>=0)arr.splice(idx,1);else arr.push(val);
   showTab(curTab);
 }
-function ckAll(varName,all){window[varName]=all.slice();showTab(curTab);}
-function ckClearVar(varName){window[varName]=[];showTab(curTab);}
+function ckAll(varName,all){
+  var arr=getArr(varName);
+  arr.length=0;
+  all.forEach(function(v){arr.push(v);});
+  showTab(curTab);
+}
+function ckClearVar(varName){
+  var arr=getArr(varName);
+  arr.length=0;
+  showTab(curTab);
+}
 function ckSearch(listId,q){
   var el=document.getElementById(listId);if(!el)return;
   el.querySelectorAll(".ck-item").forEach(function(item){
@@ -1161,9 +1177,24 @@ window.addEventListener("load",function(){
           setUser(accounts[0]);
           return checkAndLoad(false);
         }
-        // Nenhuma sessão ativa — redireciona automaticamente para login M365
-        showL("A redirecionar para login...");
-        return app.loginRedirect({ scopes:SCOPES });
+        // Nenhuma sessão ativa — login automático
+        showL("A autenticar...");
+        // Usa popup (redirect falha em iframes / GitHub Pages embedded)
+        return app.loginPopup({ scopes:SCOPES, prompt:"select_account" }).then(function(r){
+          app.setActiveAccount(r.account);
+          setUser(r.account);
+          _token = r.accessToken;
+          hideL();
+          return checkAndLoad(false);
+        }).catch(function(e){
+          hideL();
+          // Se popup bloqueado, tenta redirect
+          if(e&&e.message&&(e.message.indexOf("popup")>=0||e.message.indexOf("block")>=0)){
+            showL("A redirecionar...");
+            return app.loginRedirect({ scopes:SCOPES });
+          }
+          console.error("Login falhou:",e);
+        });
       });
     }).catch(function(e){console.error("Auto-login:",e);});
   },800);
