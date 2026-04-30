@@ -1264,14 +1264,22 @@ function gerarRelatorio(){
   html+='.tr-oc{background:#f8faff}';
   html+='.neg{color:#dc2626;font-weight:600}.pos{color:#16a34a;font-weight:600}';
   html+='.badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#e5e7eb;color:#374151}';
-  html+='.footer{text-align:center;font-size:10px;color:#9ca3af;margin-top:20px;padding-top:10px;border-top:1px solid #e5e7eb}';
+  html+='.footer{font-size:10px;color:#9ca3af;margin-top:24px;padding-top:12px;border-top:2px solid #1B2A5E}';
   html+='</style></head><body>';
 
   // CABEÇALHO
   html+='<div class="header">';
-  html+='<div><div class="sub">CB Seguros | Cascais</div><h1>Relatório de Sinistralidade</h1>';
-  html+='<div class="sub">Dashboard Sinistralidade 2026</div></div>';
-  html+='<div class="meta">Gerado em: '+dataRel+'<br>Período: '+STATE.meses.map(mm).join(", ")+'</div>';
+  html+='<div style="display:flex;align-items:center;gap:16px">';
+  html+='<div>';
+  html+='<div style="font-size:10px;color:#7eb3f7;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">CB Med. Seguros, Lda.</div>';
+  html+='<h1 style="font-size:20px">Relatório de Sinistralidade 2026</h1>';
+  html+='<div style="font-size:11px;color:#7eb3f7;margin-top:4px">Análise de Ocorrências e Movimentos</div>';
+  html+='</div></div>';
+  html+='<div class="meta" style="text-align:right">';
+  html+='<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+dataRel+'</div>';
+  html+='<div>Período: '+STATE.meses.map(mm).join(", ")+'</div>';
+  html+='<div style="margin-top:4px;background:rgba(255,255,255,.15);border-radius:4px;padding:2px 8px;font-size:10px">🔒 CONFIDENCIAL</div>';
+  html+='</div>';
   html+='</div>';
 
   // FILTROS ACTIVOS
@@ -1368,7 +1376,27 @@ function gerarRelatorio(){
   });
   html+='</tbody></table></div>';
 
-  html+='<div class="footer">CB Seguros — Relatório gerado automaticamente em '+dataRel+' — Confidencial</div>';
+    // Utilizador autenticado
+  var userName = document.getElementById("user-name").textContent.replace("👤 ","") || "—";
+
+  html+='<div class="footer">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">';
+  // logo CB Seguros (omitido)
+  html+='<div style="text-align:center;flex:1">';
+  html+='<div style="font-size:11px;font-weight:700;color:#1B2A5E;letter-spacing:.04em">DOCUMENTO CONFIDENCIAL — USO INTERNO</div>';
+  html+='<div style="font-size:10px;color:#6b7280;margin-top:2px">Propriedade de CB Med. Seguros, Lda. — Todos os direitos reservados</div>';
+  html+='</div>';
+  html+='<div style="text-align:right;font-size:10px;color:#9ca3af">';
+  html+='CB Med. Seguros, Lda.<br>NIF: PT ___________';
+  html+='</div>';
+  html+='</div>';
+  html+='<div style="border-top:1px solid #e5e7eb;padding-top:8px;display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;flex-wrap:wrap;gap:4px">';
+  html+='<span>📅 Gerado em: <b>'+dataRel+'</b></span>';
+  html+='<span>👤 Emitido por: <b>'+userName+'</b></span>';
+  html+='<span>📊 Dados referentes a: <b>'+STATE.meses.map(mm).join(", ")+'</b></span>';
+  html+='<span>⚠️ Proibida a reprodução ou partilha sem autorização</span>';
+  html+='</div>';
+  html+='</div>';
   html+='</body></html>';
 
   // Abre em nova janela para imprimir / guardar como PDF
